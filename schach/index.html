@@ -14,7 +14,7 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0}
-body{font-family:Nunito,system-ui,sans-serif;color:var(--txt);background:linear-gradient(180deg,var(--bg1),var(--bg2)) fixed;min-height:100vh}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--txt);background:radial-gradient(900px 500px at 15% -10%,rgba(232,176,75,.13),transparent 60%),radial-gradient(700px 500px at 110% 20%,rgba(92,196,137,.08),transparent 60%),linear-gradient(180deg,var(--bg1),var(--bg2)) fixed;min-height:100vh}
 #app{max-width:1060px;margin:0 auto;padding:14px 12px 40px}
 header{display:flex;align-items:center;gap:10px;margin:4px 2px 14px}
 header h1{font-size:24px;margin:0;font-weight:800;letter-spacing:.2px}
@@ -100,6 +100,15 @@ button:disabled{opacity:.45;cursor:default}
 .promo .pc{font-size:46px;justify-content:center}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0e1216;border:1px solid var(--line);padding:10px 16px;border-radius:12px;z-index:60;max-width:90vw;text-align:center}
 .note{font-size:14px;color:var(--mut);margin-top:10px}
+.pc.pop{animation:pcpop .28s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pcpop{0%{transform:scale(.55);opacity:.3}100%{transform:scale(1);opacity:1}}
+#status.chk{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+.card{transition:transform .15s,border-color .15s}
+#home .card:hover{border-color:#4b5868}
+button{transition:filter .15s,transform .1s}
+button:hover:not(:disabled){filter:brightness(1.08)}
+.sq.sel .pc{transform:scale(1.08)}
 .seg.levels button{min-width:44px;font-size:16px}
 .sq.hint::before{content:"";position:absolute;inset:0;background:rgba(80,160,255,.5)}
 .guide{max-width:760px}
@@ -479,6 +488,14 @@ let mode=null;            // 'local' | 'online'
 let R=null;               // Ergebnis von replay()
 let selected=null, manualFlip=false;
 let view={bottom:'w',canMove:false,over:null,me:null};
+let popCount=-1,wasOver=undefined;
+function confetti(){try{
+  const c=document.createElement('canvas'),dpr=window.devicePixelRatio||1;c.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:80';document.body.appendChild(c);
+  const ctx=c.getContext('2d'),W=c.width=innerWidth*dpr,H=c.height=innerHeight*dpr,cols=['#e8b04b','#e0453a','#2f7de1','#2fa35a','#f2c21b','#ffffff'];
+  const ps=Array.from({length:150},()=>({x:W/2+(Math.random()-.5)*W*.3,y:H*.4,vx:(Math.random()-.5)*W*.03,vy:-Math.random()*H*.028-H*.008,r:Math.random()*6,vr:(Math.random()-.5)*.3,s:(6+Math.random()*7)*dpr,c:cols[Math.random()*cols.length|0]}));
+  let t=0;(function f(){t++;ctx.clearRect(0,0,W,H);for(const p of ps){p.vy+=H*.0008;p.vx*=.985;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);ctx.restore();}if(t<170)requestAnimationFrame(f);else c.remove();})();
+}catch(e){}}
+
 let local={moves:[],autoFlip:false};
 const LKEY='familienschach-lokal';
 function saveLocal(){try{localStorage.setItem(LKEY,JSON.stringify(local));}catch(e){}}
@@ -537,6 +554,7 @@ function render(){
   const s=R.s,last=s.last,checkSq=inCheck(s,s.turn)?s.b.indexOf(s.turn==='w'?'K':'k'):-1;
   const targets=selected!=null?R.legal.filter(m=>m.f===selected):[];
   const movable=new Set(view.canMove?R.legal.map(m=>m.f):[]);
+  const popSq=(last&&popCount!==-1&&R.applied!==popCount)?last.t:-1;popCount=R.applied;
   for(let k=0;k<64;k++){
     const i=view.bottom==='w'?k:63-k,cell=cells[k],r=i>>3,c=i&7;cell._i=i;
     let cls='sq '+(((r+c)&1)?'dark':'light');
@@ -548,6 +566,7 @@ function render(){
     if(movable.has(i)||targets.length)cls+=' mov';
     cell.className=cls;
     let h=s.b[i]?pieceHTML(s.b[i]):'';
+    if(i===popSq&&h)h=h.replace('class="pc ','class="pc pop ');
     if((k&7)===0)h+=`<span class="co rk">${8-r}</span>`;
     if((k>>3)===7)h+=`<span class="co fl">${FILES[c]}</span>`;
     cell.innerHTML=h;
@@ -597,6 +616,11 @@ function renderStatus(){
     else txt=chk+playerName(s.turn)+` (${s.turn==='w'?'Weiß':'Schwarz'}) ist am Zug`;
   }
   if(txt!==null)st.textContent=txt;
+  if(!view.over&&chk)st.classList.add('chk');
+  if(view.over&&wasOver===false){const r=view.over.result;
+    const won=r!=='½-½'&&(mode==='local'||(view.me&&((r==='1-0')===(view.me==='w'))));
+    if(won)confetti();}
+  wasOver=!!view.over;
   // Remis-Angebot
   const of=$('#offer');of.classList.add('hidden');of.innerHTML='';
   if(mode==='online'&&!view.over&&og.data&&og.data.drawOffer){
@@ -743,6 +767,7 @@ function showHome(){
   renderLobby();window.scrollTo(0,0);
 }
 function showGame(label){
+  popCount=-1;wasOver=undefined;
   $('#home').classList.add('hidden');$('#guide').classList.add('hidden');$('#game').classList.remove('hidden');$('#modeLabel').textContent=label;window.scrollTo(0,0);
 }
 let guideFrom=null;
