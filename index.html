@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bayazit Spiele</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<meta name="theme-color" content="#1f2630">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Spiele">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Symbols+2&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg1:#1f2630;--bg2:#141920;--card:#27303b;--line:#3a4552;--txt:#eef1f5;--mut:#a7b1bd;--acc:#e8b04b}
+*{box-sizing:border-box}
+body{margin:0;font-family:Nunito,system-ui,sans-serif;color:var(--txt);background:linear-gradient(180deg,var(--bg1),var(--bg2)) fixed;min-height:100vh}
+main{max-width:900px;margin:0 auto;padding:22px 14px 40px}
+h1{font-size:28px;font-weight:900;margin:6px 2px 4px}
+.sub{color:var(--mut);margin:0 2px 20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.tile{display:flex;flex-direction:column;gap:10px;text-decoration:none;color:var(--txt);background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;transition:transform .12s,border-color .12s}
+a.tile:hover,a.tile:active{transform:translateY(-2px);border-color:var(--acc)}
+.ico{width:70px;height:70px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:42px}
+.ico.chess{background:#efdab5;color:#1e1e21;font-family:'Noto Sans Symbols 2','Segoe UI Symbol',sans-serif}
+.ico.ludo{background:linear-gradient(135deg,#e0453a 0 50%,#2f7de1 50%);}
+.tile h2{margin:0;font-size:20px}
+.tile p{margin:0;color:var(--mut);line-height:1.4;font-size:15px}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:#1a2028;border:1px solid var(--line);color:var(--mut)}
+.soon{opacity:.55;border-style:dashed;pointer-events:none}
+.ico.soon-ico{background:#1a2028;font-size:34px}
+footer{color:var(--mut);font-size:13px;text-align:center;margin-top:28px}
+</style>
+</head>
+<body>
+<main>
+  <h1>🎲 Bayazit Spiele</h1>
+  <p class="sub">Spiele für die ganze Familie – einfach antippen und losspielen.</p>
+  <div class="grid">
+    <a class="tile" href="schach/">
+      <div class="ico chess">♞&#xFE0E;</div>
+      <h2>Familien-Schach</h2>
+      <p>Gegen den Computer in 5 Stufen – mit Tipps, „Zug zurück“ und Anleitung. Oder zu zweit am selben Gerät.</p>
+      <div class="tags"><span class="tag">1–2 Spieler</span><span class="tag">Computer</span><span class="tag">Anleitung</span></div>
+    </a>
+    <a class="tile" href="mensch-aergere-dich-nicht/">
+      <div class="ico ludo">🎲</div>
+      <h2>Ärgere dich nicht!</h2>
+      <p>Der Klassiker mit Würfel: Figuren rausbringen, rauswerfen, ins Ziel. Freie Plätze übernimmt der Computer.</p>
+      <div class="tags"><span class="tag">2–4 Spieler</span><span class="tag">Computer</span><span class="tag">Ab 6 Jahren</span></div>
+    </a>
+    <a class="tile" href="https://blockrausch.kompassapps.de/">
+      <div class="ico" style="background:linear-gradient(135deg,#7b5cff,#21c3e6)">🧱</div>
+      <h2>Blockrausch</h2>
+      <p>Fallende Steine drehen und Reihen füllen – wie lange hältst du durch?</p>
+      <div class="tags"><span class="tag">1 Spieler</span><span class="tag">Geschicklichkeit</span></div>
+    </a>
+    <div class="tile soon">
+      <div class="ico soon-ico">➕</div>
+      <h2>Bald mehr …</h2>
+      <p>Weitere Spiele kommen hier dazu.</p>
+    </div>
+  </div>
+  <footer>kompassapps.de</footer>
+</main>
+</body>
+</html>

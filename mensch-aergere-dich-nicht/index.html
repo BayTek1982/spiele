@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ärgere dich nicht!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg1:#1f2630;--bg2:#141920;--card:#27303b;--card2:#2f3946;--line:#3a4552;--txt:#eef1f5;--mut:#a7b1bd;--acc:#e8b04b;--ok:#5cc489}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--txt);background:linear-gradient(180deg,var(--bg1),var(--bg2)) fixed;min-height:100vh}
+#app{max-width:1060px;margin:0 auto;padding:14px 12px 40px}
+header{display:flex;align-items:center;gap:10px;margin:4px 2px 14px}
+header h1{font-size:23px;margin:0;font-weight:900}
+header .logo{font-size:28px}
+.hidden{display:none!important}
+a.back{color:var(--mut);text-decoration:none;font-weight:700;font-size:14px;display:inline-block;margin:0 0 8px 2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.card h2{margin:0 0 8px;font-size:19px}
+.card p{margin:0 0 10px;color:var(--mut);line-height:1.45}
+button{font:inherit;cursor:pointer;border-radius:12px;padding:11px 16px;font-weight:800;color:var(--txt);background:var(--card2);border:1px solid var(--line)}
+button:active{transform:translateY(1px)}
+button.primary{background:var(--acc);color:#1d1606;border-color:var(--acc)}
+button.small{padding:7px 12px;font-size:14px;border-radius:10px}
+button:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+/* Einstellungen */
+.seat{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.seat:last-child{border-bottom:0}
+.seat .cdot{width:26px;height:26px;border-radius:50%;flex:none;box-shadow:inset 0 -3px 0 rgba(0,0,0,.25)}
+.seat input{flex:1;min-width:0;font:inherit;font-weight:700;background:var(--bg2);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.seg{display:inline-flex;background:var(--bg2);border-radius:12px;padding:3px;border:1px solid var(--line)}
+.seg button{background:transparent;border:0;padding:7px 10px;border-radius:9px;color:var(--mut);font-size:14px}
+.seg button.on{background:var(--card2);color:var(--txt)}
+.lbl{color:var(--mut);font-size:14px}
+.note{font-size:14px;color:var(--mut);margin-top:10px}
+/* Spiel */
+.game-grid{display:grid;gap:14px;grid-template-columns:1fr;justify-items:center}
+@media(min-width:900px){.game-grid{grid-template-columns:auto 1fr;align-items:start;justify-items:stretch}}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px}
+#board{position:relative;width:min(94vw,560px);aspect-ratio:1/1;background:radial-gradient(circle at 50% 45%,#fbefd2,#ecd5a3);border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.45),0 0 0 6px #6b4a28,0 0 0 9px #432c15;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.cell{position:absolute;width:7.4%;height:7.4%;border-radius:50%;transform:translate(-50%,-50%);background:#fffaf0;border:2.5px solid #7a5a33;box-shadow:inset 0 2px 3px rgba(0,0,0,.15)}
+.cell.house{border-style:solid}
+.cell .lab{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:min(2.6vw,15px);color:rgba(0,0,0,.45)}
+.mark{position:absolute;width:8.6%;height:8.6%;border-radius:50%;transform:translate(-50%,-50%);border:4px dashed currentColor;pointer-events:none;animation:spin 3s linear infinite;opacity:.9}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+.piece{position:absolute;width:6.2%;height:6.2%;transform:translate(-50%,-58%);border-radius:50%;transition:left .13s ease,top .13s ease;z-index:5;pointer-events:none}
+.piece::before{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.85) 0 12%,rgba(255,255,255,0) 32%),var(--pc);box-shadow:0 3px 0 var(--pd),0 5px 6px rgba(0,0,0,.4)}
+.piece.can{pointer-events:auto;cursor:pointer;z-index:7;animation:hop .8s ease-in-out infinite}
+.piece.can::after{content:"";position:absolute;inset:-28%;border-radius:50%}
+@keyframes hop{50%{transform:translate(-50%,-80%)}}
+.center{position:absolute;left:50%;top:50%;width:8%;height:8%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff,#e9d3a6);border:2px solid #7a5a33}
+.panel{width:min(94vw,560px)}
+@media(min-width:900px){.panel{width:auto}}
+.turnbox{display:flex;align-items:center;gap:14px;padding:14px;border-radius:16px;background:var(--card);border:2px solid var(--line);margin-bottom:10px}
+.turnbox .who{flex:1;min-width:0}
+.turnbox .name{font-size:20px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.turnbox .msg{color:var(--mut);font-size:15px;margin-top:2px;min-height:20px}
+.dice{width:68px;height:68px;flex:none;border-radius:14px;background:#fff;box-shadow:inset 0 -4px 0 #d8d8d8,0 4px 10px rgba(0,0,0,.35);display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:9px;cursor:pointer;border:0}
+.dice i{width:13px;height:13px;border-radius:50%;background:#1d1d1f;align-self:center;justify-self:center;opacity:0}
+.dice i.on{opacity:1}
+.dice.rolling{animation:shake .12s linear infinite}
+.dice.ready{box-shadow:inset 0 -4px 0 #d8d8d8,0 0 0 4px var(--acc),0 4px 14px rgba(232,176,75,.6)}
+@keyframes shake{25%{transform:rotate(-12deg) translateY(-3px)}75%{transform:rotate(12deg) translateY(2px)}}
+.dice:disabled{opacity:1;cursor:default}
+.players{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.pl{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-weight:700;font-size:14px;min-width:0}
+.pl .cdot{width:14px;height:14px;border-radius:50%;flex:none}
+.pl .pn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.pl .pg{color:var(--mut);font-size:13px}
+.pl.cur{border-color:var(--acc)}
+.pl.off{opacity:.35}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+.modal .box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:440px;width:100%;max-height:88vh;overflow:auto}
+.modal .box h2{margin:0 0 10px}
+.modal .box p,.modal .box li{line-height:1.5}
+.modal .row{justify-content:flex-end;margin-top:14px}
+.big{font-size:44px;text-align:center;margin:4px 0 8px}
+.rank{margin:8px 0 0;padding-left:22px;font-weight:700;line-height:1.7}
+</style>
+</head>
+<body>
+<div id="app">
+  <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
+  <header><span class="logo">🎲</span><h1>Ärgere dich nicht!</h1><button id="btnRules" class="small" style="margin-left:auto">📖 Regeln</button></header>
+
+  <!-- Einstellungen -->
+  <section id="setup">
+    <div class="card">
+      <h2>Wer spielt mit?</h2>
+      <p>2 bis 4 Spieler. Freie Plätze kann der Computer übernehmen – ihr spielt alle am selben Gerät und gebt es weiter.</p>
+      <div id="seats"></div>
+    </div>
+    <div class="card">
+      <h2>Computer-Stärke</h2>
+      <div class="seg" id="lvlSeg"><button data-l="1">Leicht</button><button data-l="2" class="on">Mittel</button><button data-l="3">Schwer</button></div>
+      <div class="note" id="lvlInfo"></div>
+    </div>
+    <div class="row">
+      <button id="btnStart" class="primary">Spiel starten</button>
+      <button id="btnResume" class="hidden">Weiterspielen</button>
+    </div>
+    <div class="note" id="setupErr"></div>
+  </section>
+
+  <!-- Spiel -->
+  <section id="game" class="hidden">
+    <div class="topbar"><button id="btnMenu" class="small">‹ Menü</button><span class="lbl" id="lvlLabel"></span></div>
+    <div class="game-grid">
+      <div id="board"></div>
+      <div class="panel">
+        <div class="turnbox" id="turnbox">
+          <div class="who"><div class="name" id="turnName"></div><div class="msg" id="msg"></div></div>
+          <button class="dice" id="dice" aria-label="Würfeln"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></button>
+        </div>
+        <div class="players" id="players"></div>
+        <div class="actions">
+          <button class="small" id="btnSpeed">⏩ Computer schnell</button>
+          <button class="small" id="btnSound">🔊 Ton an</button>
+          <button class="small" id="btnNew">Neues Spiel</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
+</div>
+
+<script>
+/* ===== Spielbrett ===== */
+const TRACK=[[0,4],[1,4],[2,4],[3,4],[4,4],[4,3],[4,2],[4,1],[4,0],[5,0],[6,0],[6,1],[6,2],[6,3],[6,4],[7,4],[8,4],[9,4],[10,4],[10,5],[10,6],[9,6],[8,6],[7,6],[6,6],[6,7],[6,8],[6,9],[6,10],[5,10],[4,10],[4,9],[4,8],[4,7],[4,6],[3,6],[2,6],[1,6],[0,6],[0,5]];
+const START=[0,10,20,30];
+const GOAL=[[[1,5],[2,5],[3,5],[4,5]],[[5,1],[5,2],[5,3],[5,4]],[[9,5],[8,5],[7,5],[6,5]],[[5,9],[5,8],[5,7],[5,6]]];
+const HOUSE=[[[0,0],[1,0],[0,1],[1,1]],[[9,0],[10,0],[9,1],[10,1]],[[9,9],[10,9],[9,10],[10,10]],[[0,9],[1,9],[0,10],[1,10]]];
+const COL=[{n:'Rot',c:'#e0453a',d:'#9e2a22',l:'#f7c6c1'},{n:'Blau',c:'#2f7de1',d:'#1c4f94',l:'#c3dafa'},{n:'Grün',c:'#2fa35a',d:'#1d6a39',l:'#c2e9cf'},{n:'Gelb',c:'#f2c21b',d:'#a9840c',l:'#fbedb3'}];
+const LVL={1:'Leicht: zieht oft zufällig – gut für Kinder.',2:'Mittel: wirft gerne raus und bringt Figuren ins Ziel.',3:'Schwer: passt auf, nicht geschlagen zu werden, und spielt schlau.'};
+const $=q=>document.querySelector(q);
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pct=v=>((v+0.5)/11*100)+'%';
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ===== Regeln ===== */
+function coordOf(pl,i,p){if(p<0)return HOUSE[pl][i];if(p<40)return TRACK[(START[pl]+p)%40];return GOAL[pl][p-40];}
+const absIdx=(pl,p)=>(START[pl]+p)%40;
+function occupantAt(g,abs){
+  for(let pl=0;pl<4;pl++){if(!g.players[pl].active)continue;
+    for(let i=0;i<4;i++){const p=g.pos[pl][i];if(p>=0&&p<40&&absIdx(pl,p)===abs)return {pl,i};}}
+  return null;
+}
+function legalMoves(g,pl,d){
+  const ps=g.pos[pl],moves=[];
+  const house=[0,1,2,3].filter(i=>ps[i]<0);
+  const so=occupantAt(g,START[pl]),ownStart=so&&so.pl===pl;
+  if(d===6&&house.length&&!ownStart){
+    return house.map(i=>({pl,i,from:-1,to:0,cap:so}));     // Rausgehpflicht
+  }
+  for(let i=0;i<4;i++){
+    const p=ps[i];if(p<0)continue;const t=p+d;if(t>43)continue;
+    if(t>=40){if(ps.some(q=>q>=40&&q>p&&q<=t))continue;moves.push({pl,i,from:p,to:t,cap:null});}
+    else{const o=occupantAt(g,absIdx(pl,t));if(o&&o.pl===pl)continue;moves.push({pl,i,from:p,to:t,cap:o});}
+  }
+  if(ownStart&&house.length){const fm=moves.filter(m=>m.i===so.i);if(fm.length)return fm;} // Startfeld freimachen
+  return moves;
+}
+function threeTries(g,pl){
+  const ps=g.pos[pl];if(ps.some(p=>p>=0&&p<40))return false;
+  const gs=ps.filter(p=>p>=40).sort((a,b)=>b-a);return gs.every((p,k)=>p===43-k);
+}
+const finished=(g,pl)=>g.pos[pl].every(p=>p>=40);
+
+/* ===== Computer ===== */
+function threatened(g,pl,abs){
+  for(let o=0;o<4;o++){if(o===pl||!g.players[o].active||finished(g,o))continue;
+    for(let i=0;i<4;i++){const p=g.pos[o][i];
+      if(p>=0&&p<40){const a=absIdx(o,p);const dist=(abs-a+40)%40;if(dist>=1&&dist<=6&&p+dist<40)return true;}
+    }
+    if(abs===START[o]&&g.pos[o].some(p=>p<0))return true;
+  }
+  return false;
+}
+function chooseMove(g,moves,level){
+  if(level===1&&Math.random()<.6)return moves[Math.floor(Math.random()*moves.length)];
+  let best=null,bs=-1e9;
+  for(const m of moves){
+    let s=Math.random()*(level===1?30:level===2?6:1);
+    if(m.from<0)s+=60;
+    if(m.cap)s+=70+g.pos[m.cap.pl][m.cap.i]*1.2;
+    if(m.to>=40)s+=55+m.to;
+    s+=m.to*.6;
+    if(level>=2){
+      if(m.from>=0&&m.from<40&&threatened(g,m.pl,absIdx(m.pl,m.from)))s+=level===3?35:15;
+      if(m.to<40){
+        const sim=JSON.parse(JSON.stringify(g.pos));sim[m.pl][m.i]=m.to;if(m.cap)sim[m.cap.pl][m.cap.i]=-1;
+        if(threatened({...g,pos:sim},m.pl,absIdx(m.pl,m.to)))s-=level===3?55:20;
+      }
+      if(level===3&&m.from===0&&g.pos[m.pl].some(p=>p<0))s+=12;
+    }
+    if(s>bs){bs=s;best=m;}
+  }
+  return best;
+}
+
+/* ===== Ton ===== */
+let actx=null,soundOn=true;
+document.addEventListener('pointerdown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}},{passive:true});
+function tone(f,dur=.09,type='triangle',vol=.2,delay=0){
+  if(!soundOn||!actx||actx.state!=='running')return;
+  try{const t=actx.currentTime+delay,o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g).connect(actx.destination);o.start(t);o.stop(t+dur+.02);}catch(e){}
+}
+const sStep=()=>tone(620,.06,'sine',.15);
+const sDice=()=>{for(let k=0;k<5;k++)tone(180+Math.random()*120,.04,'square',.06,k*.07);};
+const sCap=()=>{tone(520,.12,'sawtooth',.12);tone(330,.14,'sawtooth',.12,.12);tone(200,.2,'sawtooth',.12,.26);};
+const sOut=()=>{tone(440,.08);tone(660,.1,'triangle',.2,.08);};
+const sWin=()=>{[523,659,784,1046].forEach((f,k)=>tone(f,.18,'triangle',.22,k*.14));};
+
+/* ===== Zustand ===== */
+const SKEY='aergere-dich-nicht-spiel',CKEY='aergere-dich-nicht-setup';
+let g=null,busy=false,fast=false,token=0;
+let setup={seats:[{type:'human',name:''},{type:'cpu',name:''},{type:'cpu',name:''},{type:'cpu',name:''}],level:2};
+try{const s=JSON.parse(localStorage.getItem(CKEY)||'null');if(s&&Array.isArray(s.seats)&&s.seats.length===4)setup=s;}catch(e){}
+try{fast=localStorage.getItem('aergere-schnell')==='1';soundOn=localStorage.getItem('aergere-ton')!=='0';}catch(e){}
+function save(){try{if(g)localStorage.setItem(SKEY,JSON.stringify(g));}catch(e){}}
+function loadSaved(){try{const v=JSON.parse(localStorage.getItem(SKEY)||'null');if(v&&v.pos&&v.players&&v.phase!=='over')return v;}catch(e){}return null;}
+const pname=pl=>g.players[pl].name||COL[pl].n;
+
+/* ===== Einstellungen ===== */
+function renderSetup(){
+  $('#seats').innerHTML=setup.seats.map((s,k)=>`
+    <div class="seat"><span class="cdot" style="background:${COL[k].c}"></span>
+      <input data-k="${k}" maxlength="14" placeholder="${COL[k].n}" value="${esc(s.name)}" ${s.type==='off'?'disabled':''}>
+      <div class="seg" data-k="${k}">
+        <button data-t="human" class="${s.type==='human'?'on':''}">Mensch</button>
+        <button data-t="cpu" class="${s.type==='cpu'?'on':''}">Computer</button>
+        <button data-t="off" class="${s.type==='off'?'on':''}">Aus</button>
+      </div></div>`).join('');
+  $('#lvlSeg').querySelectorAll('button').forEach(b=>b.classList.toggle('on',+b.dataset.l===setup.level));
+  $('#lvlInfo').textContent=LVL[setup.level];
+  $('#btnResume').classList.toggle('hidden',!loadSaved());
+}
+function saveSetup(){try{localStorage.setItem(CKEY,JSON.stringify(setup));}catch(e){}}
+$('#seats').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=+b.parentElement.dataset.k;setup.seats[k].type=b.dataset.t;saveSetup();renderSetup();});
+$('#seats').addEventListener('input',e=>{if(e.target.tagName==='INPUT'){setup.seats[+e.target.dataset.k].name=e.target.value.trim();saveSetup();}});
+$('#lvlSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;setup.level=+b.dataset.l;saveSetup();renderSetup();});
+$('#btnStart').onclick=async()=>{
+  const act=setup.seats.filter(s=>s.type!=='off').length;
+  if(act<2){$('#setupErr').textContent='Bitte mindestens 2 Spieler auswählen.';return;}
+  $('#setupErr').textContent='';
+  if(loadSaved()&&!(await confirmBox('Neues Spiel starten? Das laufende Spiel geht verloren.','Neues Spiel')))return;
+  newGame();
+};
+$('#btnResume').onclick=()=>{const s=loadSaved();if(!s)return;g=s;if(g.phase!=='move')g.phase='roll';openGame();};
+
+/* ===== Brett zeichnen ===== */
+const boardEl=$('#board');const pieceEls={};
+function buildBoard(){
+  let h='<div class="center"></div>';
+  const cell=(x,y,bg,bc,lab)=>`<div class="cell" style="left:${pct(x)};top:${pct(y)};${bg?'background:'+bg+';':''}${bc?'border-color:'+bc+';':''}">${lab?`<span class="lab">${lab}</span>`:''}</div>`;
+  TRACK.forEach(([x,y],k)=>{const st=START.indexOf(k);h+=cell(x,y,st>=0?COL[st].c:null,st>=0?COL[st].d:null,st>=0?'A':'');});
+  for(let pl=0;pl<4;pl++){
+    GOAL[pl].forEach(([x,y])=>h+=cell(x,y,COL[pl].l,COL[pl].d));
+    HOUSE[pl].forEach(([x,y])=>h+=cell(x,y,COL[pl].l,COL[pl].d));
+  }
+  h+='<div id="marks"></div>';
+  boardEl.innerHTML=h;
+  for(let pl=0;pl<4;pl++)for(let i=0;i<4;i++){
+    const d=document.createElement('div');d.className='piece';d.style.setProperty('--pc',COL[pl].c);d.style.setProperty('--pd',COL[pl].d);
+    d.addEventListener('click',()=>onPiece(pl,i));boardEl.appendChild(d);pieceEls[pl+'-'+i]=d;
+  }
+}
+buildBoard();
+function renderPieces(){
+  const can=new Set();
+  const human=g.players[g.turn].type==='human';
+  if(g.phase==='move'&&human&&!busy)for(const m of g.moves)can.add(m.pl+'-'+m.i);
+  for(let pl=0;pl<4;pl++)for(let i=0;i<4;i++){
+    const el=pieceEls[pl+'-'+i];
+    if(!g.players[pl].active){el.classList.add('hidden');continue;}
+    el.classList.remove('hidden');
+    const [x,y]=coordOf(pl,i,g.pos[pl][i]);el.style.left=pct(x);el.style.top=pct(y);
+    el.classList.toggle('can',can.has(pl+'-'+i));
+  }
+  // Zielmarkierungen
+  let mk='';
+  if(g.phase==='move'&&human&&!busy){
+    const seen=new Set();
+    for(const m of g.moves){const [x,y]=coordOf(m.pl,m.i,m.to);const k=x+','+y;if(seen.has(k))continue;seen.add(k);
+      mk+=`<div class="mark" style="left:${pct(x)};top:${pct(y)};color:${COL[m.pl].d}"></div>`;}
+  }
+  $('#marks').innerHTML=mk;
+}
+function setDice(v,rolling){
+  const P={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+  const on=new Set(v?P[v]:[]);
+  $('#dice').querySelectorAll('i').forEach((el,k)=>el.classList.toggle('on',on.has(k)));
+  $('#dice').classList.toggle('rolling',!!rolling);
+}
+function render(){
+  if(!g)return;
+  const pl=g.turn,human=g.players[pl].type==='human';
+  $('#turnName').innerHTML=`<span style="color:${COL[pl].c}">●</span> ${esc(pname(pl))}${human?'':' 🤖'}`;
+  $('#turnbox').style.borderColor=COL[pl].c;
+  $('#msg').textContent=g.msg||'';
+  const canRoll=g.phase==='roll'&&human&&!busy;
+  $('#dice').disabled=!canRoll;$('#dice').classList.toggle('ready',canRoll);
+  if(g.phase!=='rolling')setDice(g.die,false);
+  $('#players').innerHTML=g.players.map((p,k)=>{if(!p.active)return '';
+    const inGoal=g.pos[k].filter(x=>x>=40).length,rk=g.rank.indexOf(k);
+    return `<div class="pl ${k===g.turn&&g.phase!=='over'?'cur':''}"><span class="cdot" style="background:${COL[k].c}"></span><span class="pn">${esc(pname(k))}${p.type==='cpu'?' 🤖':''}</span><span class="pg">${rk>=0?(rk+1)+'. Platz':'🏁 '+inGoal+'/4'}</span></div>`;}).join('');
+  $('#btnSpeed').textContent=fast?'⏩ Computer schnell: an':'⏩ Computer schnell: aus';
+  $('#btnSound').textContent=soundOn?'🔊 Ton an':'🔇 Ton aus';
+  $('#lvlLabel').textContent=g.players.some(p=>p.active&&p.type==='cpu')?'Computer: '+['','Leicht','Mittel','Schwer'][g.level]:'';
+  renderPieces();
+}
+
+/* ===== Ablauf ===== */
+function newGame(){
+  const players=setup.seats.map((s,k)=>({active:s.type!=='off',type:s.type==='off'?'human':s.type,name:s.name}));
+  g={players,pos:[[-1,-1,-1,-1],[-1,-1,-1,-1],[-1,-1,-1,-1],[-1,-1,-1,-1]],turn:players.findIndex(p=>p.active),die:null,phase:'roll',tries:3,moves:[],rank:[],playOn:false,level:setup.level,msg:''};
+  openGame();
+}
+function openGame(){
+  token++;busy=false;
+  $('#setup').classList.add('hidden');$('#game').classList.remove('hidden');window.scrollTo(0,0);
+  if(g.phase==='move')g.moves=legalMoves(g,g.turn,g.die);
+  if(g.phase==='roll')startTurn(true);else{render();if(g.players[g.turn].type==='cpu')cpuAct();}
+}
+const delay=ms=>sleep(fast?Math.round(ms*.35):ms);
+function startTurn(keepMsg){
+  g.die=g.die&&keepMsg?g.die:null;g.phase='roll';g.moves=[];
+  g.tries=threeTries(g,g.turn)?3:1;
+  if(!keepMsg)g.msg=g.tries===3?'Würfle eine 6, um rauszukommen (3 Versuche).':'Würfeln!';
+  else if(!g.msg)g.msg='Würfeln!';
+  save();render();
+  if(g.players[g.turn].type==='cpu')cpuAct();
+}
+async function cpuAct(){
+  const tk=token;await delay(700);if(tk!==token)return;
+  if(g.phase==='roll')roll();
+  else if(g.phase==='move'){const m=chooseMove(g,g.moves,g.level);if(m)doMove(m);}
+}
+async function roll(){
+  if(g.phase!=='roll'||busy)return;
+  const tk=token;busy=true;g.phase='rolling';render();
+  sDice();const t0=Date.now();
+  while(Date.now()-t0<(fast?250:600)){setDice(1+Math.floor(Math.random()*6),true);await sleep(70);if(tk!==token)return;}
+  const d=1+Math.floor(Math.random()*6);g.die=d;setDice(d,false);busy=false;
+  const pl=g.turn,moves=legalMoves(g,pl,d);
+  if(!moves.length){
+    if(d===6){g.phase='roll';g.msg='6 – aber kein Zug möglich. Nochmal würfeln!';save();render();if(g.players[pl].type==='cpu')cpuAct();return;}
+    g.tries--;
+    if(g.tries>0){g.phase='roll';g.msg=`Leider keine 6. Noch ${g.tries} ${g.tries===1?'Versuch':'Versuche'}.`;save();render();if(g.players[pl].type==='cpu')cpuAct();return;}
+    g.phase='wait';g.msg=threeTries(g,pl)?'Leider keine 6.':'Kein Zug möglich.';render();
+    await delay(1000);if(tk!==token)return;nextPlayer();return;
+  }
+  g.moves=moves;g.phase='move';
+  g.msg=d===6&&moves[0].from<0?'Eine 6! Raus mit einer Figur.':d===6?'Eine 6! Ziehen und nochmal würfeln.':'Figur antippen, die ziehen soll.';
+  save();render();
+  if(g.players[pl].type==='cpu'){cpuAct();return;}
+  // nur ein möglicher Zug -> automatisch
+  const pieces=new Set(moves.map(m=>m.from<0?'h':m.i));
+  if(pieces.size===1){await sleep(650);if(tk!==token||g.phase!=='move')return;doMove(moves[0]);}
+}
+function onPiece(pl,i){
+  if(!g||g.phase!=='move'||busy||g.players[g.turn].type!=='human')return;
+  const m=g.moves.find(x=>x.pl===pl&&x.i===i);if(m)doMove(m);
+}
+async function doMove(m){
+  if(busy)return;const tk=token;busy=true;g.phase='anim';g.moves=[];render();
+  if(m.from<0){g.pos[m.pl][m.i]=0;sOut();renderPieces();await delay(250);}
+  else for(let p=m.from+1;p<=m.to;p++){g.pos[m.pl][m.i]=p;renderPieces();sStep();await delay(150);if(tk!==token)return;}
+  let txt='';
+  if(m.cap){await delay(120);g.pos[m.cap.pl][m.cap.i]=-1;sCap();renderPieces();txt=`${pname(m.pl)} wirft ${pname(m.cap.pl)} raus! 😈`;}
+  if(m.to>=40&&m.from<40)txt=txt||'Eine Figur ist im Ziel! 🏁';
+  busy=false;
+  if(finished(g,m.pl)&&!g.rank.includes(m.pl)){
+    g.rank.push(m.pl);sWin();
+    const left=g.players.map((p,k)=>k).filter(k=>g.players[k].active&&!g.rank.includes(k));
+    if(g.rank.length===1&&!g.playOn){
+      g.phase='wait';save();render();
+      const go=await winDialog(m.pl,left.length>1);
+      if(tk!==token)return;
+      if(!go){g.phase='over';save();render();showFinal();return;}
+      g.playOn=true;
+    }
+    if(left.length<=1){if(left.length)g.rank.push(left[0]);g.phase='over';save();render();showFinal();return;}
+    g.msg='';nextPlayer();return;
+  }
+  if(g.die===6){g.msg=(txt?txt+' ':'')+'Nochmal würfeln!';startTurn(true);return;}
+  g.msg=txt;render();
+  if(txt)await delay(600);if(tk!==token)return;
+  nextPlayer();
+}
+function nextPlayer(){
+  let n=g.turn;
+  for(let k=0;k<4;k++){n=(n+1)%4;if(g.players[n].active&&!g.rank.includes(n))break;}
+  const prevMsg=g.msg;g.turn=n;g.die=null;
+  startTurn(false);
+  if(prevMsg&&prevMsg.includes('raus!')){g.msg=prevMsg+' – '+g.msg;render();}
+}
+
+/* ===== Dialoge ===== */
+function modal(html,setup2){return new Promise(res=>{const m=$('#modal'),box=$('#modalBox');box.innerHTML=html;m.classList.remove('hidden');
+  const close=v=>{m.classList.add('hidden');box.innerHTML='';m.onclick=null;res(v);};setup2(box,close);m.onclick=e=>{if(e.target===m&&box.dataset.dismiss!=='0')close(null);};});}
+function confirmBox(text,yes='Ja',no='Abbrechen'){
+  return modal(`<p>${text}</p><div class="row"><button data-v="0">${no}</button><button class="primary" data-v="1">${yes}</button></div>`,
+    (box,close)=>{box.dataset.dismiss='1';box.querySelectorAll('button').forEach(b=>b.onclick=()=>close(b.dataset.v==='1'));});}
+function winDialog(pl,canGoOn){
+  return modal(`<div class="big">🏆</div><h2 style="text-align:center">${esc(pname(pl))} hat gewonnen!</h2>
+    <div class="row" style="justify-content:center">${canGoOn?'<button data-v="1" class="primary">Weiterspielen um Platz 2</button>':''}<button data-v="0">Spiel beenden</button></div>`,
+    (box,close)=>{box.dataset.dismiss='0';box.querySelectorAll('button').forEach(b=>b.onclick=()=>close(b.dataset.v==='1'));});
+}
+function showFinal(){
+  const list=g.rank.map(k=>`<li><span style="color:${COL[k].c}">●</span> ${esc(pname(k))}</li>`).join('');
+  modal(`<div class="big">🎉</div><h2 style="text-align:center">Spiel vorbei</h2><ol class="rank">${list}</ol>
+    <div class="row"><button data-v="menu">Menü</button><button class="primary" data-v="again">Nochmal spielen</button></div>`,
+    (box,close)=>{box.dataset.dismiss='1';box.querySelectorAll('button').forEach(b=>b.onclick=()=>close(b.dataset.v));})
+  .then(v=>{try{localStorage.removeItem(SKEY);}catch(e){}if(v==='again')newGame();else if(v==='menu')toMenu();});
+}
+function toMenu(){token++;busy=false;$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');renderSetup();window.scrollTo(0,0);}
+const RULES=`<h2>📖 So wird gespielt</h2>
+<p><b>Ziel:</b> Bringe als Erster alle 4 Figuren aus deinem Haus (Ecke) einmal ums Brett in dein farbiges Ziel in der Mitte.</p>
+<ol>
+<li><b>Würfeln:</b> Tippe auf den Würfel. Wer dran ist, sieht man oben am farbigen Rahmen.</li>
+<li><b>Rauskommen:</b> Nur mit einer <b>6</b> darf eine Figur aus dem Haus auf dein Startfeld (Feld mit „A“). Sind alle Figuren im Haus, hast du <b>3 Versuche</b>.</li>
+<li><b>Bei einer 6</b> musst du rausgehen, wenn noch eine Figur im Haus ist – und du darfst danach <b>nochmal würfeln</b>.</li>
+<li><b>Startfeld frei machen:</b> Steht deine Figur auf dem Startfeld und im Haus warten noch welche, musst du sie zuerst wegziehen.</li>
+<li><b>Rauswerfen:</b> Landest du auf einer fremden Figur, muss sie zurück in ihr Haus. 😈</li>
+<li>Auf eigene Figuren darfst du nicht ziehen.</li>
+<li><b>Ins Ziel:</b> Du musst genau passend würfeln. Im Ziel darfst du eigene Figuren nicht überspringen.</li>
+</ol>
+<p><b>Bedienung:</b> Nach dem Würfeln hüpfen die Figuren, die ziehen dürfen. Die gestrichelten Ringe zeigen, wo sie landen. Figur antippen – fertig. Gibt es nur einen Zug, läuft er von selbst.</p>
+<div class="row"><button class="primary" data-v="1">Los geht's!</button></div>`;
+$('#btnRules').onclick=()=>modal(RULES,(box,close)=>{box.dataset.dismiss='1';box.querySelector('button').onclick=()=>close(1);});
+
+/* ===== Knöpfe ===== */
+$('#dice').onclick=()=>{if(g&&g.phase==='roll'&&g.players[g.turn].type==='human')roll();};
+$('#btnMenu').onclick=toMenu;
+$('#btnNew').onclick=async()=>{if(await confirmBox('Neues Spiel starten? Das laufende Spiel geht verloren.','Neues Spiel')){try{localStorage.removeItem(SKEY);}catch(e){}toMenu();}};
+$('#btnSpeed').onclick=()=>{fast=!fast;try{localStorage.setItem('aergere-schnell',fast?'1':'0');}catch(e){}render();};
+$('#btnSound').onclick=()=>{soundOn=!soundOn;try{localStorage.setItem('aergere-ton',soundOn?'1':'0');}catch(e){}render();};
+
+// Link zur Spiele-Übersicht nur auf der eigenen Webseite zeigen
+setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
+renderSetup();
+</script>
+</body>
+</html>
