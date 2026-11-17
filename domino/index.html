@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Domino</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('bs-theme'))||'dark';}catch(e){document.documentElement.dataset.theme='dark';}</script>
+<style>
+:root{--acc:#3b82f6;--acc-ink:#ffffff}
+:root{--bg1:#1f2630;--bg2:#141920;--card:#27303b;--card2:#2f3946;--line:#3a4552;--txt:#eef1f5;--mut:#a7b1bd;--cell:#1b222b;--shadow:rgba(0,0,0,.45)}
+[data-theme=light]{--bg1:#f4f1ea;--bg2:#e9e4d8;--card:#ffffff;--card2:#f2eee6;--line:#ddd5c6;--txt:#1f2630;--mut:#6b7380;--cell:#f7f4ee;--shadow:rgba(60,50,30,.18)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--txt);min-height:100vh;transition:background .3s,color .3s;
+ background:radial-gradient(900px 500px at 12% -10%,color-mix(in srgb,var(--acc) 16%,transparent),transparent 60%),radial-gradient(700px 500px at 110% 15%,rgba(33,195,230,.08),transparent 60%),linear-gradient(180deg,var(--bg1),var(--bg2)) fixed}
+#app{max-width:var(--maxw,640px);margin:0 auto;padding:14px 12px 40px}
+.hidden{display:none!important}
+a.back{color:var(--mut);text-decoration:none;font-weight:700;font-size:14px;display:inline-block;margin:0 0 8px 2px}
+header{display:flex;align-items:center;gap:10px;margin:4px 2px 14px}
+header .logo{font-size:26px}
+header h1{font-family:'JetBrains Mono',monospace;font-size:21px;margin:0;font-weight:800;letter-spacing:-.5px}
+header h1 b{color:var(--acc)}
+.hbtns{margin-left:auto;display:flex;gap:6px}
+.ib{padding:7px 10px!important;font-size:17px!important;line-height:1}
+button{font:inherit;cursor:pointer;border-radius:12px;padding:10px 14px;font-weight:800;color:var(--txt);background:var(--card2);border:1px solid var(--line);transition:filter .15s,transform .1s}
+button:hover:not(:disabled){filter:brightness(1.06)}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--acc);color:var(--acc-ink,#14181e);border-color:var(--acc)}
+button.small{padding:7px 12px;font-size:14px;border-radius:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.card h2{margin:0 0 8px;font-size:18px}
+.card p{margin:0 0 8px;color:var(--mut);line-height:1.45}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin:0 0 6px}
+.seg{display:flex;background:var(--bg2);border-radius:12px;padding:3px;border:1px solid var(--line)}
+.seg button{flex:1;background:transparent;border:0;padding:8px 6px;border-radius:9px;color:var(--mut);font-size:14px}
+.seg button.on{background:var(--card2);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.opts{display:grid;gap:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stats{display:flex;gap:8px;margin-bottom:10px}
+.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;text-align:center}
+.stat .k{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+.stat .v{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800}
+.note{font-size:14px;color:var(--mut);margin-top:8px;line-height:1.45}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+.modal .box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:420px;width:100%;max-height:88vh;overflow:auto;color:var(--txt)}
+.modal .box h2{margin:0 0 10px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.modal .box p,.modal .box li{line-height:1.5}
+.modal .row{justify-content:flex-end;margin-top:14px}
+.big{font-size:46px;text-align:center;margin:2px 0 6px}
+.pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,52px);gap:8px;justify-content:center;margin-top:12px;user-select:none}
+.pad button{font-size:22px;padding:0;touch-action:manipulation}
+.pad .u{grid-column:2}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+
+
+#status{text-align:center;font-weight:900;font-size:16px;min-height:24px;margin:2px 0 8px}
+.opps{display:flex;gap:6px;margin-bottom:10px}
+.opp{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:7px 8px;text-align:center;font-size:13px;font-weight:800}
+.opp.cur{border-color:var(--acc);box-shadow:0 0 14px -4px var(--acc)}
+.opp .backs{display:flex;justify-content:center;gap:2px;margin-top:5px;flex-wrap:wrap}
+.opp .backs i{width:8px;height:15px;border-radius:2px;background:var(--acc);opacity:.8}
+.opp small{display:block;color:var(--mut);font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:3px}
+.table{min-height:170px;border-radius:16px;border:1px solid var(--line);padding:12px 8px;display:flex;flex-wrap:wrap;gap:3px;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 50% 40%,#1f6b45,#134a2f);box-shadow:inset 0 0 30px rgba(0,0,0,.35)}
+[data-theme=light] .table{background:radial-gradient(circle at 50% 40%,#3f9a68,#2c7a50)}
+.table .end{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,.7);padding:0 4px}
+.tile{display:inline-block;line-height:0;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+.tile.new{animation:tin .35s ease-out}
+@keyframes tin{from{transform:scale(1.4);opacity:0}}
+.hand{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px;min-height:80px}
+.hand .tile{cursor:default;transition:transform .15s,opacity .15s;opacity:.55}
+.hand .tile.ok{cursor:pointer;opacity:1;transform:translateY(-6px)}
+.hand .tile.ok:hover{transform:translateY(-10px)}
+.score{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.score .s{flex:1;min-width:70px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:5px 8px;text-align:center;font-size:12px;font-weight:800}
+.score .s b{display:block;font-family:'JetBrains Mono',monospace;font-size:17px;color:var(--acc)}
+.bone{text-align:center;color:var(--mut);font-size:13px;margin-top:6px}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
+  <header><span class="logo">🁫</span><h1><b>Domino</b></h1><div class="hbtns"><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
+
+  <div class="card opts">
+    <div><div class="lbl">Gegner</div><div class="seg" id="nSeg"><button data-v="1">1 Computer</button><button data-v="2">2 Computer</button><button data-v="3">3 Computer</button></div></div>
+    <div><div class="lbl">Stärke</div><div class="seg" id="lvlSeg"><button data-v="1">Leicht</button><button data-v="2">Schlau</button></div></div>
+  </div>
+  <div class="score" id="score"></div>
+  <div class="opps" id="opps"></div>
+  <div id="status"></div>
+  <div class="table" id="table"></div>
+  <div class="bone" id="bone"></div>
+  <div class="hand" id="hand"></div>
+  <div class="row" style="justify-content:center;margin-top:14px"><button class="small primary" id="btnDraw">Ziehen</button><button class="small" id="btnNew">Neue Runde</button><button class="small" id="btnMatch">Neues Spiel</button><button class="small" id="btnHelp">📖 Regeln</button></div>
+
+  <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
+</div>
+<script>
+const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const KIT={get(k,d){try{const v=JSON.parse(localStorage.getItem('bs-'+k));return v??d;}catch(e){return d;}},set(k,v){try{localStorage.setItem('bs-'+k,JSON.stringify(v));}catch(e){}}};
+let theme=KIT.get('theme','dark'),soundOn=KIT.get('sound',true);
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function applyTheme(){document.documentElement.dataset.theme=theme;$('#btnTheme').textContent=theme==='dark'?'☀️':'🌙';if(window.onTheme)window.onTheme();}
+$('#btnTheme').onclick=()=>{theme=theme==='dark'?'light':'dark';KIT.set('theme',theme);applyTheme();};
+$('#btnSound').onclick=()=>{soundOn=!soundOn;KIT.set('sound',soundOn);$('#btnSound').textContent=soundOn?'🔊':'🔇';};
+$('#btnSound').textContent=soundOn?'🔊':'🔇';
+let actx=null;
+document.addEventListener('pointerdown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}},{passive:true});
+document.addEventListener('keydown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}});
+function tone(f,d=.1,delay=0,type='triangle',v=.18){if(!soundOn||!actx||actx.state!=='running')return;try{const t=actx.currentTime+delay,o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+d+.03);}catch(e){}}
+const sWin=()=>[523,659,784,1046].forEach((f,k)=>tone(f,.18,k*.12));
+const sLose=()=>[392,330,262].forEach((f,k)=>tone(f,.22,k*.15,'sine'));
+function confetti(){try{
+  const c=document.createElement('canvas'),dpr=window.devicePixelRatio||1;c.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:80';document.body.appendChild(c);
+  const ctx=c.getContext('2d'),W=c.width=innerWidth*dpr,H=c.height=innerHeight*dpr,cols=['#e8b04b','#21c3e6','#e0453a','#2fa35a','#f2c21b','#ffffff','#7b5cff'];
+  const ps=Array.from({length:150},()=>({x:W/2+(Math.random()-.5)*W*.3,y:H*.4,vx:(Math.random()-.5)*W*.03,vy:-Math.random()*H*.028-H*.008,r:Math.random()*6,vr:(Math.random()-.5)*.3,s:(6+Math.random()*7)*dpr,c:cols[Math.random()*cols.length|0]}));
+  let t=0;(function f(){t++;ctx.clearRect(0,0,W,H);for(const p of ps){p.vy+=H*.0008;p.vx*=.985;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);ctx.restore();}if(t<170)requestAnimationFrame(f);else c.remove();})();
+}catch(e){}}
+function modal(html,setup,dismiss=true){return new Promise(res=>{const m=$('#modal'),box=$('#modalBox');box.innerHTML=html;m.classList.remove('hidden');
+  const close=v=>{m.classList.add('hidden');box.innerHTML='';m.onclick=null;res(v);};
+  box.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>close(b.dataset.v));if(setup)setup(box,close);
+  m.onclick=e=>{if(e.target===m&&dismiss)close(null);};});}
+const confirmBox=(text,yes='Ja',no='Abbrechen')=>modal(`<p>${text}</p><div class="row"><button data-v="0">${no}</button><button class="primary" data-v="1">${yes}</button></div>`).then(v=>v==='1');
+const infoBox=(html,btn='OK')=>modal(html+`<div class="row"><button class="primary" data-v="1">${btn}</button></div>`);
+// Swipe-Hilfe
+function onSwipe(el,cb){let sx=0,sy=0,act=false;
+  el.addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;act=true;},{passive:true});
+  el.addEventListener('touchmove',e=>{if(!act)return;const t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))>22){cb(Math.abs(dx)>Math.abs(dy)?(dx>0?'r':'l'):(dy>0?'d':'u'));act=false;}e.preventDefault();},{passive:false});
+  el.addEventListener('touchend',()=>act=false);}
+setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
+
+
+const PIPS={0:[],1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,3,6,2,5,8]};
+function half(v,x,y,s){return PIPS[v].map(k=>{const cx=x+s*(.22+(k%3)*.28),cy=y+s*(.22+Math.floor(k/3)*.28);return `<circle cx="${cx}" cy="${cy}" r="${s*.085}" fill="#1b1f27"/>`;}).join('');}
+function tileSVG(a,b,vert,s){const w=vert?s:2*s,h=vert?2*s:s;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><rect x=".5" y=".5" width="${w-1}" height="${h-1}" rx="${s*.14}" fill="#fbf8f1" stroke="#c9c1b0"/>`+
+   (vert?`<line x1="${s*.15}" y1="${s}" x2="${s*.85}" y2="${s}" stroke="#b5ad9c" stroke-width="1.4"/>${half(a,0,0,s)}${half(b,0,s,s)}`:`<line x1="${s}" y1="${s*.15}" x2="${s}" y2="${s*.85}" stroke="#b5ad9c" stroke-width="1.4"/>${half(a,0,0,s)}${half(b,s,0,s)}`)+`</svg>`;}
+let cfg=KIT.get('domino-cfg',{n:1,lvl:2});
+let P,chain,bone,cur,passes,roundOver,points=null,busy=false,lastIdx=-1,token=0;
+const NAMES=['Du','Robo','Kiki','Oma Bot'];
+const pip=t=>t[0]+t[1],handPips=h=>h.reduce((s,t)=>s+pip(t),0);
+const ends=()=>chain.length?[chain[0][0],chain[chain.length-1][1]]:null;
+function fits(t){if(!chain.length)return ['l'];const [L,R]=ends(),o=[];if(t[0]===L||t[1]===L)o.push('l');if(t[0]===R||t[1]===R)o.push('r');return o;}
+function newMatch(){points=Array(cfg.n+1).fill(0);newRound();}
+function newRound(){
+  token++;busy=false;const all=[];for(let a=0;a<=6;a++)for(let b=a;b<=6;b++)all.push([a,b]);all.sort(()=>Math.random()-.5);
+  const np=cfg.n+1,hs=np===2?7:5;P=[];for(let i=0;i<np;i++)P.push({n:NAMES[i],cpu:i>0,h:all.splice(0,hs)});
+  bone=all;chain=[];passes=0;roundOver=false;lastIdx=-1;
+  // Wer beginnt: höchster Pasch, sonst höchster Stein
+  let bestP=0,bestV=-1;P.forEach((p,i)=>p.h.forEach(t=>{const v=t[0]===t[1]?100+t[0]:pip(t);if(v>bestV){bestV=v;bestP=i;}}));
+  cur=bestP;render();
+  $('#status').textContent=cur===0?'Du hast den höchsten Stein – du fängst an!':`${P[cur].n} fängt an.`;
+  if(P[cur].cpu)setTimeout(()=>cpuTurn(token),1100);
+}
+function place(pi,ti,side){
+  const t=P[pi].h.splice(ti,1)[0];let x=t.slice();
+  if(!chain.length){chain.push(x);lastIdx=0;}
+  else if(side==='l'){const L=chain[0][0];if(x[1]!==L)x.reverse();chain.unshift(x);lastIdx=0;}
+  else{const R=chain[chain.length-1][1];if(x[0]!==R)x.reverse();chain.push(x);lastIdx=chain.length-1;}
+  passes=0;tone(440+Math.random()*80,.06,0,'square',.07);
+}
+function next(){
+  if(roundOver)return;
+  if(!P[cur].h.length)return endRound(cur);
+  if(passes>=P.length)return endRound(null);
+  cur=(cur+1)%P.length;render();
+  if(P[cur].cpu)setTimeout(()=>cpuTurn(token),900);
+  else{if(!P[0].h.some(t=>fits(t).length)){$('#status').textContent=bone.length?'Kein passender Stein – tippe auf „Ziehen“.':'Kein passender Stein und nichts mehr zu ziehen – du musst passen.';
+      if(!bone.length){passes++;setTimeout(next,1300);}}
+    else $('#status').textContent='Du bist dran – lege einen passenden Stein.';}
+}
+function cpuTurn(tk){
+  if(tk!==token||roundOver)return;const p=P[cur];
+  let opts=[];p.h.forEach((t,i)=>fits(t).forEach(s=>opts.push({i,s,t})));
+  while(!opts.length&&bone.length){p.h.push(bone.pop());const i=p.h.length-1;fits(p.h[i]).forEach(s=>opts.push({i,s,t:p.h[i]}));tone(300,.04);}
+  if(!opts.length){passes++;$('#status').textContent=`${p.n} muss passen.`;render();setTimeout(next,1000);return;}
+  let m;
+  if(cfg.lvl===1)m=opts[Math.floor(Math.random()*opts.length)];
+  else{const count=v=>p.h.filter(t=>t[0]===v||t[1]===v).length;
+    m=opts.map(o=>{const nt=o.t,oth=o.s==='l'?(chain.length?(nt[0]===chain[0][0]?nt[1]:nt[0]):nt[1]):(nt[0]===chain[chain.length-1][1]?nt[1]:nt[0]);
+      const sc=pip(nt)*2+(nt[0]===nt[1]?6:0)+count(oth)*3+(P[0].h.length<=2?pip(nt):0);return {...o,sc};}).sort((a,b)=>b.sc-a.sc)[0];}
+  place(cur,m.i,m.s);$('#status').textContent=`${p.n} legt [${m.t[0]}|${m.t[1]}].`;render();setTimeout(next,700);
+}
+async function play(ti){
+  if(busy||roundOver||cur!==0)return;const t=P[0].h[ti],f=fits(t);if(!f.length){tone(200,.08);$('#status').textContent='Dieser Stein passt nicht.';return;}
+  let side=f[0];
+  if(f.length===2&&chain.length){const [L,R]=ends();const lv=t[0]===L?t[1]:t[0],rv=t[0]===R?t[1]:t[0];
+    if(L!==R||lv!==rv){busy=true;const v=await modal(`<h2>Wo anlegen?</h2><p>Der Stein [${t[0]}|${t[1]}] passt an beide Enden.</p><div class="row" style="justify-content:center"><button class="primary" data-v="l">◀ Links (${L})</button><button class="primary" data-v="r">Rechts (${R}) ▶</button></div>`);busy=false;if(!v)return;side=v;}}
+  place(0,ti,side);render();next();
+}
+$('#btnDraw').onclick=()=>{if(roundOver||cur!==0||busy)return;if(P[0].h.some(t=>fits(t).length)){$('#status').textContent='Du hast einen passenden Stein!';return;}
+  if(!bone.length)return;P[0].h.push(bone.pop());tone(300,.05);render();
+  if(P[0].h.some(t=>fits(t).length))$('#status').textContent='Passt! Leg ihn an.';else if(!bone.length){$('#status').textContent='Immer noch nichts – du musst passen.';passes++;setTimeout(next,1200);}};
+function endRound(w){
+  roundOver=true;render();
+  if(w===null){const s=P.map(p=>handPips(p.h)),min=Math.min(...s);w=s.indexOf(min);}
+  const gain=P.reduce((a,p,i)=>i===w?a:a+handPips(p.h),0);points[w]+=gain;render();
+  const blocked=P[w].h.length>0;
+  if(points[w]>=100){$('#status').textContent=w===0?`🏆 Du gewinnst das ganze Spiel mit ${points[w]} Punkten!`:`🏆 ${P[w].n} gewinnt das Spiel mit ${points[w]} Punkten.`;
+    if(w===0){confetti();sWin();}else sLose();points=Array(cfg.n+1).fill(0);return;}
+  $('#status').textContent=(blocked?'Blockiert! ':'')+(w===0?`🎉 Du gewinnst die Runde (+${gain} Punkte)`:`${P[w].n} gewinnt die Runde (+${gain})`)+' – tippe „Neue Runde“.';
+  if(w===0){sWin();}else sLose();
+}
+function render(){
+  $$('#nSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.v===cfg.n));$$('#lvlSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.v===cfg.lvl));
+  $('#score').innerHTML=P.map((p,i)=>`<div class="s">${p.cpu?'🤖 ':''}${p.n}<b>${points[i]}</b></div>`).join('')+'<div class="s">Ziel<b>100</b></div>';
+  $('#opps').innerHTML=P.slice(1).map((p,k)=>`<div class="opp ${cur===k+1&&!roundOver?'cur':''}">🤖 ${p.n}<div class="backs">${roundOver?p.h.map(t=>tileSVG(t[0],t[1],false,11)).join(''):'<i></i>'.repeat(p.h.length)}</div><small>${p.h.length} Steine</small></div>`).join('');
+  const n=chain.length,s=n>16?17:n>10?20:24;
+  $('#table').innerHTML=n?chain.map((t,i)=>`<span class="tile${i===lastIdx?' new':''}">${tileSVG(t[0],t[1],t[0]===t[1],s)}</span>`).join(''):'<span class="end">Hier wird angelegt</span>';
+  $('#bone').textContent=bone.length?`Zum Ziehen übrig: ${bone.length} Steine`:'Keine Steine mehr zum Ziehen';
+  const my=cur===0&&!roundOver&&!busy;
+  $('#hand').innerHTML=P[0].h.map((t,i)=>`<span class="tile${my&&fits(t).length?' ok':''}" data-i="${i}">${tileSVG(t[0],t[1],true,30)}</span>`).join('');
+  $('#btnDraw').disabled=!(my&&bone.length&&!P[0].h.some(t=>fits(t).length));
+}
+$('#hand').onclick=e=>{const t=e.target.closest('.tile');if(t)play(+t.dataset.i);};
+$('#btnNew').onclick=()=>{if(!points)newMatch();else newRound();};
+$('#btnMatch').onclick=async()=>{if(await confirmBox('Ganz neues Spiel? Die Punkte werden auf 0 gesetzt.','Neues Spiel'))newMatch();};
+$('#nSeg').onclick=e=>{const b=e.target.closest('button');if(!b||+b.dataset.v===cfg.n)return;cfg.n=+b.dataset.v;KIT.set('domino-cfg',cfg);newMatch();};
+$('#lvlSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;cfg.lvl=+b.dataset.v;KIT.set('domino-cfg',cfg);render();};
+$('#btnHelp').onclick=()=>infoBox(`<h2>📖 Domino-Regeln</h2><ol><li>Jeder bekommt Steine (zu zweit 7, sonst 5). Wer den höchsten Pasch hat, fängt an.</li><li>Leg einen Stein an ein <b>Ende der Schlange</b> – die Augenzahl muss passen.</li><li>Passt keiner, musst du <b>ziehen</b>, bis einer passt. Ist nichts mehr zu ziehen, passt du.</li><li>Wer zuerst alle Steine los ist, gewinnt die Runde und bekommt die <b>Augen aller Gegner</b> als Punkte.</li><li>Geht nichts mehr (blockiert), gewinnt, wer die wenigsten Augen hat.</li><li>Wer zuerst <b>100 Punkte</b> hat, gewinnt das Spiel.</li></ol>`,'Verstanden');
+window.onTheme=()=>{};applyTheme();newMatch();
+
+</script>
+</body>
+</html>
