@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tic-Tac-Toe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg1:#1f2630;--bg2:#141920;--card:#27303b;--card2:#2f3946;--line:#3a4552;--txt:#eef1f5;--mut:#a7b1bd;
+  --x:#e8b04b;--o:#21c3e6;--acc:#e8b04b;--cell:#1b222b;--glow:rgba(232,176,75,.14)}
+[data-theme=light]{--bg1:#f4f1ea;--bg2:#e9e4d8;--card:#ffffff;--card2:#f2eee6;--line:#ddd5c6;--txt:#1f2630;--mut:#6b7380;
+  --x:#c98a14;--o:#0e93b3;--acc:#c98a14;--cell:#f7f4ee;--glow:rgba(201,138,20,.12)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--txt);min-height:100vh;transition:background .3s,color .3s;
+  background:radial-gradient(900px 500px at 15% -10%,var(--glow),transparent 60%),radial-gradient(800px 500px at 110% 10%,rgba(33,195,230,.10),transparent 60%),linear-gradient(180deg,var(--bg1),var(--bg2)) fixed}
+#app{max-width:560px;margin:0 auto;padding:14px 12px 40px}
+a.back{color:var(--mut);text-decoration:none;font-weight:700;font-size:14px;display:inline-block;margin:0 0 8px 2px}
+.hidden{display:none!important}
+header{display:flex;align-items:center;gap:10px;margin:4px 2px 14px}
+header h1{font-family:'JetBrains Mono',monospace;font-size:22px;margin:0;font-weight:800;letter-spacing:-.5px}
+header h1 .x{color:var(--x)}header h1 .o{color:var(--o)}
+button{font:inherit;cursor:pointer;border-radius:12px;padding:10px 14px;font-weight:800;color:var(--txt);background:var(--card2);border:1px solid var(--line);transition:filter .15s,transform .1s}
+button:hover:not(:disabled){filter:brightness(1.06)}
+button:active{transform:translateY(1px)}
+button.primary{background:var(--acc);color:#1d1606;border-color:var(--acc)}
+.icon-btn{margin-left:auto;padding:8px 11px;font-size:18px;line-height:1}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.seg{display:flex;background:var(--bg2);border-radius:12px;padding:3px;border:1px solid var(--line)}
+.seg button{flex:1;background:transparent;border:0;padding:8px 6px;border-radius:9px;color:var(--mut);font-size:14px}
+.seg button.on{background:var(--card2);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.opts{display:grid;gap:12px}
+.score{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:12px}
+.sbox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;text-align:center;transition:border-color .2s,box-shadow .2s}
+.sbox.turn{border-color:currentColor;box-shadow:0 0 18px -4px currentColor}
+.sbox.x{color:var(--x)}.sbox.o{color:var(--o)}
+.sbox .nm{font-size:13px;font-weight:700;color:var(--mut)}
+.sbox .pts{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:800}
+.draw{text-align:center;color:var(--mut);font-size:13px}
+.draw b{display:block;font-family:'JetBrains Mono',monospace;font-size:20px;color:var(--txt)}
+#status{text-align:center;font-weight:900;font-size:18px;min-height:28px;margin:4px 0 12px}
+.boardwrap{position:relative;width:min(92vw,420px);margin:0 auto 14px;aspect-ratio:1/1}
+#board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;height:100%}
+.c{background:var(--cell);border:1px solid var(--line);border-radius:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:background .15s,transform .1s}
+.c:hover:empty{background:var(--card2)}
+.c.dis{cursor:default}
+.c svg{width:62%;height:62%;overflow:visible}
+.c .mx line{stroke:var(--x);stroke-width:13;stroke-linecap:round;stroke-dasharray:120;stroke-dashoffset:120;animation:draw .28s ease-out forwards}
+.c .mx line+line{animation-delay:.12s}
+.c .mo circle{fill:none;stroke:var(--o);stroke-width:13;stroke-dasharray:260;stroke-dashoffset:260;animation:draw .4s ease-out forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.c.win{animation:winpulse .9s ease-in-out infinite}
+@keyframes winpulse{50%{transform:scale(1.05)}}
+.c.fade svg{opacity:.3;transition:opacity .4s}
+#line{position:absolute;inset:0;pointer-events:none}
+#line line{stroke:var(--txt);stroke-width:2.4;stroke-linecap:round;stroke-dasharray:150;stroke-dashoffset:150;opacity:.85}
+#line line.go{animation:draw .45s ease-out forwards}
+.actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.thinking{animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.4}}
+</style>
+</head>
+<body>
+<div id="app">
+  <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
+  <header>
+    <h1><span class="x">✕</span> Tic-Tac-Toe <span class="o">◯</span></h1>
+    <button class="icon-btn" id="btnTheme" title="Hell / Dunkel">☀️</button>
+  </header>
+
+  <div class="card opts">
+    <div>
+      <div class="lbl">Modus</div>
+      <div class="seg" id="modeSeg"><button data-v="cpu">🤖 Gegen Computer</button><button data-v="pvp">👥 Zu zweit</button></div>
+    </div>
+    <div id="lvlBox">
+      <div class="lbl">Computer-Stärke</div>
+      <div class="seg" id="lvlSeg"><button data-v="1">Leicht</button><button data-v="2">Mittel</button><button data-v="3">Unschlagbar</button></div>
+    </div>
+  </div>
+
+  <div class="score">
+    <div class="sbox x" id="sx"><div class="nm" id="nx">Du (✕)</div><div class="pts" id="px">0</div></div>
+    <div class="draw">Remis<b id="pd">0</b></div>
+    <div class="sbox o" id="so"><div class="nm" id="no">Computer (◯)</div><div class="pts" id="po">0</div></div>
+  </div>
+
+  <div id="status"></div>
+  <div class="boardwrap">
+    <div id="board"></div>
+    <svg id="line" viewBox="0 0 100 100"></svg>
+  </div>
+  <div class="actions">
+    <button class="primary" id="btnNext">Neue Runde</button>
+    <button id="btnReset">Punkte löschen</button>
+    <button id="btnSound">🔊</button>
+  </div>
+</div>
+
+<script>
+const $=q=>document.querySelector(q);
+const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+const KEY='tictactoe-bayazit';
+let st={mode:'cpu',level:2,score:{cpu:{x:0,o:0,d:0},pvp:{x:0,o:0,d:0}},theme:'dark',sound:true,starter:'x'};
+try{const v=JSON.parse(localStorage.getItem(KEY)||'null');if(v)st={...st,...v};}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}};
+let b=Array(9).fill(''),turn='x',over=false,thinking=false,token=0;
+
+/* Theme */
+function applyTheme(){document.documentElement.dataset.theme=st.theme;$('#btnTheme').textContent=st.theme==='dark'?'☀️':'🌙';}
+$('#btnTheme').onclick=()=>{st.theme=st.theme==='dark'?'light':'dark';save();applyTheme();};
+
+/* Ton */
+let actx=null;
+document.addEventListener('pointerdown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}},{passive:true});
+function tone(f,d=.1,delay=0,type='triangle',v=.2){if(!st.sound||!actx||actx.state!=='running')return;try{const t=actx.currentTime+delay,o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+d+.02);}catch(e){}}
+const sX=()=>tone(520),sO=()=>tone(390),sWin=()=>[523,659,784,1046].forEach((f,k)=>tone(f,.18,k*.12)),sLose=()=>[392,330,262].forEach((f,k)=>tone(f,.2,k*.15,'sine')),sDraw=()=>{tone(440,.15);tone(440,.15,.18);};
+$('#btnSound').onclick=()=>{st.sound=!st.sound;save();$('#btnSound').textContent=st.sound?'🔊':'🔇';};
+
+function confetti(){try{
+  const c=document.createElement('canvas'),dpr=window.devicePixelRatio||1;c.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:80';document.body.appendChild(c);
+  const ctx=c.getContext('2d'),W=c.width=innerWidth*dpr,H=c.height=innerHeight*dpr,cols=['#e8b04b','#21c3e6','#e0453a','#2fa35a','#f2c21b','#ffffff'];
+  const ps=Array.from({length:140},()=>({x:W/2+(Math.random()-.5)*W*.3,y:H*.4,vx:(Math.random()-.5)*W*.03,vy:-Math.random()*H*.028-H*.008,r:Math.random()*6,vr:(Math.random()-.5)*.3,s:(6+Math.random()*7)*dpr,c:cols[Math.random()*cols.length|0]}));
+  let t=0;(function f(){t++;ctx.clearRect(0,0,W,H);for(const p of ps){p.vy+=H*.0008;p.vx*=.985;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);ctx.restore();}if(t<170)requestAnimationFrame(f);else c.remove();})();
+}catch(e){}}
+
+/* Logik */
+function winner(bd){for(const l of LINES){const[a,c,d]=l;if(bd[a]&&bd[a]===bd[c]&&bd[a]===bd[d])return{p:bd[a],l};}return bd.every(Boolean)?{p:'d'}:null;}
+function minimax(bd,me,cur,depth){
+  const w=winner(bd);if(w)return w.p==='d'?0:(w.p===me?10-depth:depth-10);
+  let best=cur===me?-99:99;
+  for(let i=0;i<9;i++)if(!bd[i]){bd[i]=cur;const s=minimax(bd,me,cur==='x'?'o':'x',depth+1);bd[i]='';best=cur===me?Math.max(best,s):Math.min(best,s);}
+  return best;
+}
+function bestMoves(bd,me){let bs=-99,res=[];for(let i=0;i<9;i++)if(!bd[i]){bd[i]=me;const s=minimax(bd,me,me==='x'?'o':'x',1);bd[i]='';if(s>bs){bs=s;res=[i];}else if(s===bs)res.push(i);}return res;}
+function cpuMove(){
+  const free=b.map((v,i)=>v?-1:i).filter(i=>i>=0),rnd=a=>a[Math.floor(Math.random()*a.length)];
+  const lv=st.level;
+  if(lv===1&&Math.random()<.7)return rnd(free);
+  if(lv===2){
+    for(const p of['o','x'])for(const i of free){b[i]=p;const w=winner(b);b[i]='';if(w&&w.p===p)return i;} // gewinnen, sonst blocken
+    if(Math.random()<.45)return rnd(free);
+  }
+  return rnd(bestMoves(b,'o'));
+}
+
+/* Darstellung */
+const boardEl=$('#board');
+for(let i=0;i<9;i++){const d=document.createElement('div');d.className='c';d.onclick=()=>play(i,true);boardEl.appendChild(d);}
+const cells=[...boardEl.children];
+const SVG={x:'<svg viewBox="0 0 100 100" class="mx"><line x1="15" y1="15" x2="85" y2="85"/><line x1="85" y1="15" x2="15" y2="85"/></svg>',
+           o:'<svg viewBox="0 0 100 100" class="mo"><circle cx="50" cy="50" r="38"/></svg>'};
+function names(){return st.mode==='cpu'?{x:'Du (✕)',o:'Computer (◯)'}:{x:'Spieler ✕',o:'Spieler ◯'};}
+function renderTop(){
+  const sc=st.score[st.mode],n=names();
+  $('#px').textContent=sc.x;$('#po').textContent=sc.o;$('#pd').textContent=sc.d;
+  $('#nx').textContent=n.x;$('#no').textContent=n.o;
+  $('#sx').classList.toggle('turn',!over&&turn==='x');$('#so').classList.toggle('turn',!over&&turn==='o');
+  $('#modeSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.v===st.mode));
+  $('#lvlSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.v===st.level));
+  $('#lvlBox').classList.toggle('hidden',st.mode!=='cpu');
+  cells.forEach((c,i)=>c.classList.toggle('dis',over||!!b[i]||thinking||(st.mode==='cpu'&&turn==='o')));
+}
+function setStatus(html){$('#status').innerHTML=html;}
+function drawLine(l){
+  const ctr=i=>[(i%3)*33.33+16.67,Math.floor(i/3)*33.33+16.67];
+  const [a,,c]=l,[x1,y1]=ctr(a),[x2,y2]=ctr(c),dx=(x2-x1)*.12,dy=(y2-y1)*.12;
+  $('#line').innerHTML=`<line x1="${x1-dx}" y1="${y1-dy}" x2="${x2+dx}" y2="${y2+dy}"/>`;
+  requestAnimationFrame(()=>$('#line line').classList.add('go'));
+}
+
+/* Ablauf */
+function newRound(){
+  token++;b=Array(9).fill('');over=false;thinking=false;
+  cells.forEach(c=>{c.innerHTML='';c.className='c';});$('#line').innerHTML='';
+  turn=st.starter;st.starter=st.starter==='x'?'o':'x';save();
+  nextTurn();
+}
+function nextTurn(){
+  renderTop();
+  if(st.mode==='cpu'&&turn==='o'){
+    thinking=true;renderTop();setStatus('<span class="thinking">Computer überlegt …</span>');
+    const tk=token;setTimeout(()=>{if(tk!==token)return;thinking=false;play(cpuMove(),false);},450+Math.random()*350);
+  }else{
+    const n=names();setStatus(st.mode==='cpu'?'Du bist dran!':`<span style="color:var(--${turn})">${n[turn]}</span> ist dran`);
+  }
+}
+function play(i,byHuman){
+  if(over||b[i]||thinking)return;
+  if(byHuman&&st.mode==='cpu'&&turn==='o')return;
+  b[i]=turn;cells[i].innerHTML=SVG[turn];(turn==='x'?sX:sO)();
+  const w=winner(b);
+  if(w){
+    over=true;const sc=st.score[st.mode];
+    if(w.p==='d'){sc.d++;setStatus('Unentschieden! 🤝');sDraw();}
+    else{
+      sc[w.p]++;w.l.forEach(k=>cells[k].classList.add('win'));cells.forEach((c,k)=>{if(!w.l.includes(k))c.classList.add('fade');});drawLine(w.l);
+      if(st.mode==='cpu'){if(w.p==='x'){setStatus('Du hast gewonnen! 🎉');sWin();confetti();}else{setStatus('Der Computer gewinnt 🤖');sLose();}}
+      else{setStatus(`<span style="color:var(--${w.p})">${names()[w.p]}</span> gewinnt! 🎉`);sWin();confetti();}
+    }
+    save();renderTop();return;
+  }
+  turn=turn==='x'?'o':'x';nextTurn();
+}
+
+/* Knöpfe */
+$('#btnNext').onclick=newRound;
+$('#btnReset').onclick=()=>{st.score[st.mode]={x:0,o:0,d:0};save();renderTop();};
+$('#modeSeg').onclick=e=>{const t=e.target.closest('button');if(!t||t.dataset.v===st.mode)return;st.mode=t.dataset.v;st.starter='x';save();newRound();};
+$('#lvlSeg').onclick=e=>{const t=e.target.closest('button');if(!t)return;st.level=+t.dataset.v;save();renderTop();if(b.every(v=>!v)||over)newRound();};
+
+applyTheme();$('#btnSound').textContent=st.sound?'🔊':'🔇';
+setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
+newRound();
+</script>
+</body>
+</html>
