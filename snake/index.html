@@ -53,6 +53,11 @@ button.small{padding:7px 12px;font-size:14px;border-radius:10px}
 .pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,52px);gap:8px;justify-content:center;margin-top:12px;user-select:none}
 .pad button{font-size:22px;padding:0;touch-action:manipulation}
 .pad .u{grid-column:2}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+.help h2{margin:0 0 6px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.help h3{margin:14px 0 4px;font-size:15px;color:var(--acc)}
+.help p,.help li{line-height:1.5;margin:0 0 6px}
+.help ol,.help ul{margin:0 0 4px;padding-left:20px}
+.help .tip{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:14px}
 
 
 .boardwrap{position:relative;width:min(92vw,480px);margin:0 auto}
@@ -66,7 +71,7 @@ canvas{display:block;width:100%;aspect-ratio:1/1;border-radius:16px;border:1px s
 <body>
 <div id="app">
   <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
-  <header><span class="logo">🐍</span><h1><b>Snake</b></h1><div class="hbtns"><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
+  <header><span class="logo">🐍</span><h1><b>Snake</b></h1><div class="hbtns"><button class="ib" id="btnHelp" title="Anleitung">📖</button><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
 
   <div class="card opts">
     <div><div class="lbl">Tempo</div><div class="seg" id="spdSeg"><button data-v="0">🐢 Langsam</button><button data-v="1">🐍 Normal</button><button data-v="2">⚡ Schnell</button></div></div>
@@ -122,7 +127,16 @@ function onSwipe(el,cb){let sx=0,sy=0,act=false;
   el.addEventListener('touchend',()=>act=false);}
 setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
 
+function showHelp(){if(!window.HELP)return;return modal(`<div class="help">${window.HELP}</div><div class="row"><button class="primary" data-v="1">Los geht's!</button></div>`);}
+$('#btnHelp').onclick=showHelp;
+function initHelp(id){if(window.HELP&&!KIT.get('help-seen-'+id,false)){KIT.set('help-seen-'+id,true);setTimeout(showHelp,350);}}
 
+
+window.HELP=`<h2>🐍 So spielst du Snake</h2>
+<h3>Ziel</h3><p>Friss so viele Äpfel wie möglich. Mit jedem Apfel wird die Schlange länger.</p>
+<h3>Steuerung</h3><ul><li><b>Handy:</b> Auf dem Spielfeld in die gewünschte Richtung wischen oder die Pfeil-Knöpfe unten antippen.</li><li><b>Computer:</b> Pfeiltasten oder W A S D. Leertaste = Start/Pause.</li></ul>
+<h3>Regeln</h3><ul><li>🍎 Apfel = 10 Punkte</li><li>⭐ Stern = 50 Punkte – er verschwindet nach ein paar Sekunden wieder!</li><li>Beißt du dich selbst, ist das Spiel vorbei.</li><li><b>Wände:</b> Gegen den Rand fahren = vorbei. <b>Durchgehen:</b> Am Rand kommst du auf der anderen Seite wieder raus.</li><li>Je länger die Schlange, desto schneller wird sie.</li></ul>
+<div class="tip">💡 Tipp: Fahr am Anfang am Rand entlang und lass in der Mitte Platz – so kesselst du dich nicht selbst ein.</div>`;
 const N=20,cv=$('#cv'),ctx=cv.getContext('2d'),CS=cv.width/N;
 const SPEEDS=[170,115,75];
 let cfg=KIT.get('snake-cfg',{spd:1,walls:1});
@@ -187,6 +201,7 @@ window.onTheme=()=>draw();
 reset();segs();applyTheme();draw();
 setInterval(()=>{if(bonus&&running&&!paused)draw();},120);
 
+initHelp('snake');
 </script>
 </body>
 </html>

@@ -53,6 +53,11 @@ button.small{padding:7px 12px;font-size:14px;border-radius:10px}
 .pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,52px);gap:8px;justify-content:center;margin-top:12px;user-select:none}
 .pad button{font-size:22px;padding:0;touch-action:manipulation}
 .pad .u{grid-column:2}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+.help h2{margin:0 0 6px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.help h3{margin:14px 0 4px;font-size:15px;color:var(--acc)}
+.help p,.help li{line-height:1.5;margin:0 0 6px}
+.help ol,.help ul{margin:0 0 4px;padding-left:20px}
+.help .tip{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:14px}
 
 
 .card5{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;width:min(92vw,400px);margin:0 auto}
@@ -94,7 +99,7 @@ button.small{padding:7px 12px;font-size:14px;border-radius:10px}
 <body>
 <div id="app">
   <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
-  <header><span class="logo">🎱</span><h1><b>Bingo</b></h1><div class="hbtns"><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
+  <header><span class="logo">🎱</span><h1><b>Bingo</b></h1><div class="hbtns"><button class="ib" id="btnHelp" title="Anleitung">📖</button><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
 
   <div class="seg" id="modeSeg" style="margin-bottom:12px"><button data-v="cpu">🤖 Gegen Computer</button><button data-v="ans">📣 Ansager</button><button data-v="karte">🎟️ Meine Karte</button></div>
 
@@ -171,7 +176,16 @@ function onSwipe(el,cb){let sx=0,sy=0,act=false;
   el.addEventListener('touchend',()=>act=false);}
 setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
 
+function showHelp(){if(!window.HELP)return;return modal(`<div class="help">${window.HELP}</div><div class="row"><button class="primary" data-v="1">Los geht's!</button></div>`);}
+$('#btnHelp').onclick=showHelp;
+function initHelp(id){if(window.HELP&&!KIT.get('help-seen-'+id,false)){KIT.set('help-seen-'+id,true);setTimeout(showHelp,350);}}
 
+
+window.HELP=`<h2>🎱 So spielst du Bingo</h2>
+<h3>Ziel</h3><p>Hast du als Erster eine <b>volle Reihe</b> auf deiner Karte – waagrecht, senkrecht oder schräg – rufst du <b>BINGO!</b> Das Feld in der Mitte (FREI) zählt immer mit.</p>
+<h3>🤖 Gegen Computer</h3><ol><li>Es wird automatisch eine Kugel nach der anderen gezogen (oder „von Hand“ mit dem Knopf).</li><li>Steht die Zahl auf deiner Karte, tippe sie an. Für Kinder gibt es „automatisch markieren“.</li><li>Ist eine Reihe voll: schnell <b>BINGO!</b> drücken – bevor ein Computer-Spieler es ruft. Die Balken zeigen, wie nah die Computer dran sind.</li></ol>
+<h3>👨‍👩‍👧‍👦 Familien-Bingo</h3><ol><li>Ein Handy oder Tablet wählt <b>📣 Ansager</b>. Es zieht die Kugeln und sagt sie laut an.</li><li>Jeder andere öffnet auf seinem eigenen Handy <b>🎟️ Meine Karte</b> und markiert die angesagten Zahlen.</li><li>Wer eine volle Reihe hat, drückt BINGO und zeigt seine <b>Kartennummer</b>.</li><li>Der Ansager tippt die Nummer bei „Bingo prüfen“ ein und sieht sofort, ob es stimmt.</li></ol>
+<div class="tip">💡 Die Zahlen gehören zu Buchstaben: B = 1–15, I = 16–30, N = 31–45, G = 46–60, O = 61–75.</div>`;
 const L='BINGO';
 const letterOf=n=>L[Math.floor((n-1)/15)];
 function rng(seed){let s=seed>>>0||1;return()=>{s^=s<<13;s>>>=0;s^=s>>17;s^=s<<5;s>>>=0;return s/4294967296;};}
@@ -262,6 +276,7 @@ $('#btnKNew').onclick=async()=>{if(!(await confirmBox('Neue Karte nehmen? Deine 
 document.addEventListener('visibilitychange',()=>{if(document.hidden){stopCpu();stopAuto();}else if(mode==='cpu')schedule();});
 window.onTheme=()=>{};applyTheme();showMode();
 
+initHelp('bingo');
 </script>
 </body>
 </html>

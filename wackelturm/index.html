@@ -53,6 +53,11 @@ button.small{padding:7px 12px;font-size:14px;border-radius:10px}
 .pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,52px);gap:8px;justify-content:center;margin-top:12px;user-select:none}
 .pad button{font-size:22px;padding:0;touch-action:manipulation}
 .pad .u{grid-column:2}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+.help h2{margin:0 0 6px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.help h3{margin:14px 0 4px;font-size:15px;color:var(--acc)}
+.help p,.help li{line-height:1.5;margin:0 0 6px}
+.help ol,.help ul{margin:0 0 4px;padding-left:20px}
+.help .tip{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:14px}
 
 
 .players{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
@@ -89,7 +94,7 @@ button.small{padding:7px 12px;font-size:14px;border-radius:10px}
 <body>
 <div id="app">
   <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
-  <header><span class="logo">🧱</span><h1>Wackel<b>turm</b></h1><div class="hbtns"><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
+  <header><span class="logo">🧱</span><h1>Wackel<b>turm</b></h1><div class="hbtns"><button class="ib" id="btnHelp" title="Anleitung">📖</button><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
 
   <section id="setup" class="setup">
     <div class="card">
@@ -105,7 +110,7 @@ button.small{padding:7px 12px;font-size:14px;border-radius:10px}
     <div class="players" id="players"></div>
     <div id="status"></div>
     <div class="stage" id="stage"><div class="risk"><span>Wackeln</span><div class="bar"><i id="riskBar"></i></div></div><div id="tower"></div><div class="floor"></div></div>
-    <div class="row" style="justify-content:center;margin-top:12px"><button class="small" id="btnMenu">‹ Menü</button><button class="small primary" id="btnAgain">Neuer Turm</button><button class="small" id="btnHelp">📖 Regeln</button></div>
+    <div class="row" style="justify-content:center;margin-top:12px"><button class="small" id="btnMenu">‹ Menü</button><button class="small primary" id="btnAgain">Neuer Turm</button></div>
   </section>
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
@@ -146,7 +151,16 @@ function onSwipe(el,cb){let sx=0,sy=0,act=false;
   el.addEventListener('touchend',()=>act=false);}
 setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
 
+function showHelp(){if(!window.HELP)return;return modal(`<div class="help">${window.HELP}</div><div class="row"><button class="primary" data-v="1">Los geht's!</button></div>`);}
+$('#btnHelp').onclick=showHelp;
+function initHelp(id){if(window.HELP&&!KIT.get('help-seen-'+id,false)){KIT.set('help-seen-'+id,true);setTimeout(showHelp,350);}}
 
+
+window.HELP=`<h2>🧱 So spielst du Wackelturm</h2>
+<h3>Ziel</h3><p>Zieht abwechselnd Steine aus dem Turm. <b>Wer ihn umwirft, verliert.</b></p>
+<h3>So geht's</h3><ol><li>Tippe einen Stein an – er wird herausgezogen und oben auf den Turm gelegt.</li><li>Aus den <b>obersten zwei Reihen</b> darf man nichts nehmen (diese Steine sind grau).</li><li>Jede Reihe braucht Halt: Entweder den <b>mittleren Stein</b> oder <b>beide Außensteine</b>. Fehlt das, kippt der Turm sofort!</li><li>Je mehr Steine fehlen, desto mehr wackelt der Turm – die Leiste oben zeigt es. Auch ein „sicherer“ Zug kann schiefgehen.</li></ol>
+<h3>Spielarten</h3><ul><li><b>Gegen Computer:</b> Du gegen den Computer.</li><li><b>Mit Familie:</b> 2 bis 4 Spieler geben das Handy reihum weiter.</li></ul>
+<div class="tip">💡 Tipp: Steine aus Reihen ziehen, die noch komplett sind – und lieber einen Außenstein als den mittleren, wenn schon einer fehlt.</div>`;
 const LAYERS=18;
 let cfg=KIT.get('turm-cfg',{mode:'cpu',names:['','','','']});
 let tower,players,cur,moves,busy=false,over=false,instab=0;
@@ -166,7 +180,6 @@ $('#btnStart').onclick=()=>{
 };
 $('#btnMenu').onclick=()=>{$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');renderSetup();};
 $('#btnAgain').onclick=()=>newTower();
-$('#btnHelp').onclick=()=>infoBox(`<h2>📖 Regeln</h2><ol><li>Tippe einen Stein an – er wird herausgezogen und oben auf den Turm gelegt.</li><li>Aus den <b>obersten zwei Reihen</b> darf man nichts nehmen.</li><li>Jede Reihe braucht Halt: Entweder den <b>mittleren Stein</b> oder <b>beide Außensteine</b>. Sonst kippt der Turm!</li><li>Je mehr Steine fehlen, desto mehr wackelt er – die Leiste oben zeigt das Wackeln.</li><li>Wer den Turm umwirft, verliert die Runde.</li></ol>`,'Verstanden');
 function newTower(){
   tower=[];for(let i=0;i<LAYERS;i++)tower.push([1,1,1]);
   cur=Math.floor(Math.random()*players.length);if(cfg.mode==='cpu')cur=0;moves=0;over=false;busy=false;instab=0;
@@ -236,6 +249,7 @@ function cpuTurn(){
 }
 window.onTheme=()=>{};applyTheme();renderSetup();
 
+initHelp('wackelturm');
 </script>
 </body>
 </html>

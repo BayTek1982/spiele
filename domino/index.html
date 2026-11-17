@@ -53,6 +53,11 @@ button.small{padding:7px 12px;font-size:14px;border-radius:10px}
 .pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,52px);gap:8px;justify-content:center;margin-top:12px;user-select:none}
 .pad button{font-size:22px;padding:0;touch-action:manipulation}
 .pad .u{grid-column:2}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+.help h2{margin:0 0 6px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.help h3{margin:14px 0 4px;font-size:15px;color:var(--acc)}
+.help p,.help li{line-height:1.5;margin:0 0 6px}
+.help ol,.help ul{margin:0 0 4px;padding-left:20px}
+.help .tip{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:14px}
 
 
 #status{text-align:center;font-weight:900;font-size:16px;min-height:24px;margin:2px 0 8px}
@@ -83,7 +88,7 @@ button.small{padding:7px 12px;font-size:14px;border-radius:10px}
 <body>
 <div id="app">
   <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
-  <header><span class="logo">🁫</span><h1><b>Domino</b></h1><div class="hbtns"><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
+  <header><span class="logo">🁫</span><h1><b>Domino</b></h1><div class="hbtns"><button class="ib" id="btnHelp" title="Anleitung">📖</button><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
 
   <div class="card opts">
     <div><div class="lbl">Gegner</div><div class="seg" id="nSeg"><button data-v="1">1 Computer</button><button data-v="2">2 Computer</button><button data-v="3">3 Computer</button></div></div>
@@ -95,7 +100,7 @@ button.small{padding:7px 12px;font-size:14px;border-radius:10px}
   <div class="table" id="table"></div>
   <div class="bone" id="bone"></div>
   <div class="hand" id="hand"></div>
-  <div class="row" style="justify-content:center;margin-top:14px"><button class="small primary" id="btnDraw">Ziehen</button><button class="small" id="btnNew">Neue Runde</button><button class="small" id="btnMatch">Neues Spiel</button><button class="small" id="btnHelp">📖 Regeln</button></div>
+  <div class="row" style="justify-content:center;margin-top:14px"><button class="small primary" id="btnDraw">Ziehen</button><button class="small" id="btnNew">Neue Runde</button><button class="small" id="btnMatch">Neues Spiel</button></div>
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
@@ -135,7 +140,16 @@ function onSwipe(el,cb){let sx=0,sy=0,act=false;
   el.addEventListener('touchend',()=>act=false);}
 setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
 
+function showHelp(){if(!window.HELP)return;return modal(`<div class="help">${window.HELP}</div><div class="row"><button class="primary" data-v="1">Los geht's!</button></div>`);}
+$('#btnHelp').onclick=showHelp;
+function initHelp(id){if(window.HELP&&!KIT.get('help-seen-'+id,false)){KIT.set('help-seen-'+id,true);setTimeout(showHelp,350);}}
 
+
+window.HELP=`<h2>🁫 So spielst du Domino</h2>
+<h3>Ziel</h3><p>Werde als Erster alle deine Steine los. Wer zuerst <b>100 Punkte</b> hat, gewinnt das Spiel.</p>
+<h3>So geht's</h3><ol><li>Jeder bekommt Steine (zu zweit 7, sonst 5). Wer den höchsten Pasch (z. B. 6|6) hat, fängt an.</li><li>Leg einen Stein an ein <b>Ende der Schlange</b>. Die Augenzahl muss passen: An eine 4 kommt eine 4.</li><li>Steine, die passen, sind hell und angehoben – einfach antippen. Passt er an beide Enden, wirst du gefragt, wo er hin soll.</li><li>Passt kein Stein, tippe auf <b>„Ziehen“</b>, bis einer passt. Ist nichts mehr zum Ziehen da, musst du passen.</li></ol>
+<h3>Punkte</h3><ul><li>Wer die Runde gewinnt, bekommt die <b>Augen aller Gegner-Steine</b> als Punkte.</li><li>Geht bei keinem mehr etwas (blockiert), gewinnt, wer die wenigsten Augen übrig hat.</li></ul>
+<div class="tip">💡 Tipp: Leg schwere Steine (viele Augen) früh ab – und behalte Zahlen, die du oft hast, damit du später noch anlegen kannst.</div>`;
 const PIPS={0:[],1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,3,6,2,5,8]};
 function half(v,x,y,s){return PIPS[v].map(k=>{const cx=x+s*(.22+(k%3)*.28),cy=y+s*(.22+Math.floor(k/3)*.28);return `<circle cx="${cx}" cy="${cy}" r="${s*.085}" fill="#1b1f27"/>`;}).join('');}
 function tileSVG(a,b,vert,s){const w=vert?s:2*s,h=vert?2*s:s;
@@ -223,9 +237,9 @@ $('#btnNew').onclick=()=>{if(!points)newMatch();else newRound();};
 $('#btnMatch').onclick=async()=>{if(await confirmBox('Ganz neues Spiel? Die Punkte werden auf 0 gesetzt.','Neues Spiel'))newMatch();};
 $('#nSeg').onclick=e=>{const b=e.target.closest('button');if(!b||+b.dataset.v===cfg.n)return;cfg.n=+b.dataset.v;KIT.set('domino-cfg',cfg);newMatch();};
 $('#lvlSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;cfg.lvl=+b.dataset.v;KIT.set('domino-cfg',cfg);render();};
-$('#btnHelp').onclick=()=>infoBox(`<h2>📖 Domino-Regeln</h2><ol><li>Jeder bekommt Steine (zu zweit 7, sonst 5). Wer den höchsten Pasch hat, fängt an.</li><li>Leg einen Stein an ein <b>Ende der Schlange</b> – die Augenzahl muss passen.</li><li>Passt keiner, musst du <b>ziehen</b>, bis einer passt. Ist nichts mehr zu ziehen, passt du.</li><li>Wer zuerst alle Steine los ist, gewinnt die Runde und bekommt die <b>Augen aller Gegner</b> als Punkte.</li><li>Geht nichts mehr (blockiert), gewinnt, wer die wenigsten Augen hat.</li><li>Wer zuerst <b>100 Punkte</b> hat, gewinnt das Spiel.</li></ol>`,'Verstanden');
 window.onTheme=()=>{};applyTheme();newMatch();
 
+initHelp('domino');
 </script>
 </body>
 </html>

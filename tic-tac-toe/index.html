@@ -60,6 +60,11 @@ button.primary{background:var(--acc);color:#1d1606;border-color:var(--acc)}
 .actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .idea{margin:-6px 2px 14px;font-size:14px;color:var(--mut)}
 .idea b{color:var(--acc)}
+.hmodal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+.hbox{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:420px;width:100%;max-height:88vh;overflow:auto}
+.hbox h2{margin:0 0 6px;font-family:'JetBrains Mono',monospace;font-size:19px}.hbox h3{margin:14px 0 4px;font-size:15px;color:var(--acc)}
+.hbox p,.hbox li{line-height:1.5;margin:0 0 6px}.hbox ol,.hbox ul{margin:0 0 4px;padding-left:20px}
+.hbox .tip{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:14px}
 .thinking{animation:pulse 1s infinite}
 @keyframes pulse{50%{opacity:.4}}
 </style>
@@ -69,7 +74,7 @@ button.primary{background:var(--acc);color:#1d1606;border-color:var(--acc)}
   <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
   <header>
     <h1><span class="x">✕</span> Tic-Tac-Toe <span class="o">◯</span></h1>
-    <button class="icon-btn" id="btnTheme" title="Hell / Dunkel">☀️</button>
+    <button class="icon-btn" id="btnHelp" title="Anleitung" style="margin-left:auto">📖</button><button class="icon-btn" id="btnTheme" title="Hell / Dunkel" style="margin-left:0">☀️</button>
   </header>
   <div class="idea">💡 Eine Spielidee von <b>Isajah</b></div>
 
@@ -95,6 +100,14 @@ button.primary{background:var(--acc);color:#1d1606;border-color:var(--acc)}
     <div id="board"></div>
     <svg id="line" viewBox="0 0 100 100"></svg>
   </div>
+  <div id="help" class="hmodal hidden"><div class="hbox">
+    <h2>✕◯ So spielst du Tic-Tac-Toe</h2>
+    <h3>Ziel</h3><p>Bring als Erster <b>drei gleiche Zeichen in eine Reihe</b> – waagrecht, senkrecht oder schräg.</p>
+    <h3>So geht's</h3><ol><li>Ihr setzt abwechselnd: einer ✕, der andere ◯.</li><li>Tippe ein freies Feld an, um dein Zeichen zu setzen.</li><li>Sind alle 9 Felder voll und keiner hat drei in einer Reihe, ist es <b>unentschieden</b>.</li><li>Wer anfängt, wechselt jede Runde ab.</li></ol>
+    <h3>Spielarten</h3><ul><li><b>Gegen Computer:</b> „Leicht“ macht oft Fehler, „Mittel“ gewinnt und blockt, wenn es geht, „Unschlagbar“ verliert nie – schaffst du ein Unentschieden?</li><li><b>Zu zweit:</b> Gebt das Handy einfach hin und her.</li></ul>
+    <div class="tip">💡 Tipp: Fang in der <b>Mitte</b> oder in einer <b>Ecke</b> an – und achte immer darauf, ob der Gegner gleich drei in einer Reihe hat!</div>
+    <div style="text-align:right;margin-top:12px"><button class="primary" id="btnHelpOk">Los geht's!</button></div>
+  </div></div>
   <div class="actions">
     <button class="primary" id="btnNext">Neue Runde</button>
     <button id="btnReset">Punkte löschen</button>
@@ -214,6 +227,8 @@ $('#btnReset').onclick=()=>{st.score[st.mode]={x:0,o:0,d:0};save();renderTop();}
 $('#modeSeg').onclick=e=>{const t=e.target.closest('button');if(!t||t.dataset.v===st.mode)return;st.mode=t.dataset.v;st.starter='x';save();newRound();};
 $('#lvlSeg').onclick=e=>{const t=e.target.closest('button');if(!t)return;st.level=+t.dataset.v;save();renderTop();if(b.every(v=>!v)||over)newRound();};
 
+const help=$('#help');$('#btnHelp').onclick=()=>help.classList.remove('hidden');$('#btnHelpOk').onclick=()=>help.classList.add('hidden');help.onclick=e=>{if(e.target===help)help.classList.add('hidden');};
+try{if(!localStorage.getItem('bs-help-seen-ttt')){localStorage.setItem('bs-help-seen-ttt','1');help.classList.remove('hidden');}}catch(e){}
 applyTheme();$('#btnSound').textContent=st.sound?'🔊':'🔇';
 setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
 newRound();

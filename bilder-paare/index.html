@@ -53,6 +53,11 @@ button.small{padding:7px 12px;font-size:14px;border-radius:10px}
 .pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,52px);gap:8px;justify-content:center;margin-top:12px;user-select:none}
 .pad button{font-size:22px;padding:0;touch-action:manipulation}
 .pad .u{grid-column:2}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+.help h2{margin:0 0 6px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.help h3{margin:14px 0 4px;font-size:15px;color:var(--acc)}
+.help p,.help li{line-height:1.5;margin:0 0 6px}
+.help ol,.help ul{margin:0 0 4px;padding-left:20px}
+.help .tip{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:14px}
 
 
 .setup .seatrow{display:flex;gap:8px;margin-bottom:8px}
@@ -79,7 +84,7 @@ button.small{padding:7px 12px;font-size:14px;border-radius:10px}
 <body>
 <div id="app">
   <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
-  <header><span class="logo">🃏</span><h1>Bilder-<b>Paare</b></h1><div class="hbtns"><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
+  <header><span class="logo">🃏</span><h1>Bilder-<b>Paare</b></h1><div class="hbtns"><button class="ib" id="btnHelp" title="Anleitung">📖</button><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
 
   <section id="setup" class="setup">
     <div class="card opts">
@@ -137,7 +142,16 @@ function onSwipe(el,cb){let sx=0,sy=0,act=false;
   el.addEventListener('touchend',()=>act=false);}
 setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
 
+function showHelp(){if(!window.HELP)return;return modal(`<div class="help">${window.HELP}</div><div class="row"><button class="primary" data-v="1">Los geht's!</button></div>`);}
+$('#btnHelp').onclick=showHelp;
+function initHelp(id){if(window.HELP&&!KIT.get('help-seen-'+id,false)){KIT.set('help-seen-'+id,true);setTimeout(showHelp,350);}}
 
+
+window.HELP=`<h2>🃏 So spielst du Bilder-Paare</h2>
+<h3>Ziel</h3><p>Finde alle <b>Paare</b> – also zwei gleiche Bilder.</p>
+<h3>So geht's</h3><ol><li>Tippe eine Karte an – sie dreht sich um.</li><li>Tippe eine zweite Karte an.</li><li><b>Gleiches Bild?</b> Super, das Paar gehört dir und du darfst <b>nochmal</b>.</li><li><b>Verschieden?</b> Die Karten drehen sich wieder um und der Nächste ist dran.</li><li>Merk dir gut, wo welches Bild liegt!</li></ol>
+<h3>Spielarten</h3><ul><li><b>Allein:</b> Schaffst du es mit möglichst wenigen Zügen? Dein Rekord wird gespeichert.</li><li><b>Computer:</b> Spiel gegen den Computer. „Vergesslich“ ist leicht, „Super“ hat ein sehr gutes Gedächtnis.</li><li><b>Familie:</b> 2 bis 4 Spieler am selben Handy – wer am Ende die meisten Paare hat, gewinnt.</li></ul>
+<div class="tip">💡 Tipp: Für Kleine erst mit 12 Karten anfangen, Profis nehmen 30.</div>`;
 const THEMES={tiere:'🐶🐱🐭🐹🐰🦊🐻🐼🐨🐯🦁🐮🐷🐸🐵🐔🐧🐢🐙🦋',essen:'🍕🍔🍟🌭🍿🥨🧀🍎🍌🍇🍓🍉🍒🥕🌽🍩🍪🎂🍦🥐',fahr:'🚗🚕🚌🚑🚒🚓🚜🏎️🛵🚲🚂🚁✈️🚀⛵🚤🛴🚚🛺🚠',sport:'⚽🏀🏈⚾🎾🏐🏉🎱🏓🏸🥊⛳🏒🎳🥏🏹⛷️🏊🚴🤸'};
 const split=s=>(window.Intl&&Intl.Segmenter)?[...new Intl.Segmenter('de',{granularity:'grapheme'}).segment(s)].map(x=>x.segment):Array.from(s.replace(/\uFE0F/g,''));
 let cfg=KIT.get('paare-cfg',{mode:'solo',names:['','','',''],lvl:2,size:16,theme:'tiere'});
@@ -220,6 +234,7 @@ function cpuTurn(){
 const pickRandom=a=>a.length?a[Math.floor(Math.random()*a.length)]:null;
 window.onTheme=()=>{};applyTheme();renderSetup();
 
+initHelp('bilder-paare');
 </script>
 </body>
 </html>
