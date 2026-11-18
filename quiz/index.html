@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Quiz</title>
+<title>Alea's Quiz</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
 <script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('bs-theme'))||'dark';}catch(e){document.documentElement.dataset.theme='dark';}</script>
@@ -98,14 +98,16 @@ button.small{padding:7px 12px;font-size:14px;border-radius:10px}
 .rev .r b{color:#2fbf6a}.rev .r s{color:#e5564b}
 .catstat{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:14px;margin-top:8px}
 .streak{color:#ff9f1c}
+.idea{margin:-6px 2px 14px;font-size:14px;color:var(--mut)}.idea b{color:var(--acc)}
 
 </style>
 </head>
 <body>
 <div id="app">
   <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
-  <header><span class="logo">🧠</span><h1>Bayazit <b>Quiz</b></h1><div class="hbtns"><button class="ib" id="btnHelp" title="Anleitung">📖</button><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
+  <header><span class="logo">🧠</span><h1>Alea's <b>Quiz</b></h1><div class="hbtns"><button class="ib" id="btnHelp" title="Anleitung">📖</button><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
 
+  <div class="idea">💡 Eine Spielidee von <b>Alea</b></div>
   <section id="setup">
     <div class="card opts">
       <div><div class="lbl">Themen <span id="qcount" style="text-transform:none"></span></div><div class="chips" id="cats"></div>
@@ -177,7 +179,7 @@ $('#btnHelp').onclick=showHelp;
 function initHelp(id){if(window.HELP&&!KIT.get('help-seen-'+id,false)){KIT.set('help-seen-'+id,true);setTimeout(showHelp,350);}}
 
 
-window.HELP=`<h2>🧠 So spielst du das Quiz</h2>
+window.HELP=`<h2>🧠 So spielst du Alea's Quiz</h2>
 <h3>Ziel</h3><p>Beantworte möglichst viele Fragen richtig. Für jede richtige Antwort gibt es Punkte – je schneller, desto mehr.</p>
 <h3>Vor dem Start</h3><ul><li><b>Themen:</b> Tippe die Themen an, die du willst (grün = an). „Alle“ wählt alles aus.</li><li><b>Schwierigkeit:</b><br>🙂 <b>Leicht:</b> nur 3 Antworten, keine Zeitbegrenzung, 2 Joker.<br>😎 <b>Normal:</b> 4 Antworten, 25 Sekunden, 1 Joker.<br>🔥 <b>Profi:</b> 4 Antworten, nur 12 Sekunden, kein Joker – dafür doppelte Punkte.</li><li><b>Spieler:</b> Allein oder als Familie (2–4 Spieler wechseln sich reihum ab).</li></ul>
 <h3>Punkte</h3><ul><li>Richtig: 100 Punkte + Zeitbonus (bis zu 50).</li><li>🔥 <b>Serie:</b> Ab 3 richtigen Antworten hintereinander gibt es Extrapunkte.</li><li>🃏 <b>50:50-Joker:</b> entfernt zwei falsche Antworten.</li><li>Falsch oder Zeit abgelaufen: 0 Punkte – die richtige Antwort wird grün angezeigt.</li></ul>
