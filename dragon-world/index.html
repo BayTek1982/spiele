@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dragon World Deluxe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('bs-theme'))||'dark';}catch(e){document.documentElement.dataset.theme='dark';}</script>
+<style>
+:root{--acc:#a970ff;--acc-ink:#ffffff}
+:root{--bg1:#1f2630;--bg2:#141920;--card:#27303b;--card2:#2f3946;--line:#3a4552;--txt:#eef1f5;--mut:#a7b1bd;--cell:#1b222b;--shadow:rgba(0,0,0,.45)}
+[data-theme=light]{--bg1:#f4f1ea;--bg2:#e9e4d8;--card:#ffffff;--card2:#f2eee6;--line:#ddd5c6;--txt:#1f2630;--mut:#6b7380;--cell:#f7f4ee;--shadow:rgba(60,50,30,.18)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--txt);min-height:100vh;transition:background .3s,color .3s;
+ background:radial-gradient(900px 500px at 12% -10%,color-mix(in srgb,var(--acc) 16%,transparent),transparent 60%),radial-gradient(700px 500px at 110% 15%,rgba(33,195,230,.08),transparent 60%),linear-gradient(180deg,var(--bg1),var(--bg2)) fixed}
+#app{max-width:var(--maxw,640px);margin:0 auto;padding:14px 12px 40px}
+.hidden{display:none!important}
+a.back{color:var(--mut);text-decoration:none;font-weight:700;font-size:14px;display:inline-block;margin:0 0 8px 2px}
+header{display:flex;align-items:center;gap:10px;margin:4px 2px 14px}
+header .logo{font-size:26px}
+header h1{font-family:'JetBrains Mono',monospace;font-size:21px;margin:0;font-weight:800;letter-spacing:-.5px}
+header h1 b{color:var(--acc)}
+.hbtns{margin-left:auto;display:flex;gap:6px}
+.ib{padding:7px 10px!important;font-size:17px!important;line-height:1}
+button{font:inherit;cursor:pointer;border-radius:12px;padding:10px 14px;font-weight:800;color:var(--txt);background:var(--card2);border:1px solid var(--line);transition:filter .15s,transform .1s}
+button:hover:not(:disabled){filter:brightness(1.06)}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--acc);color:var(--acc-ink,#14181e);border-color:var(--acc)}
+button.small{padding:7px 12px;font-size:14px;border-radius:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.card h2{margin:0 0 8px;font-size:18px}
+.card p{margin:0 0 8px;color:var(--mut);line-height:1.45}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin:0 0 6px}
+.seg{display:flex;background:var(--bg2);border-radius:12px;padding:3px;border:1px solid var(--line)}
+.seg button{flex:1;background:transparent;border:0;padding:8px 6px;border-radius:9px;color:var(--mut);font-size:14px}
+.seg button.on{background:var(--card2);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.opts{display:grid;gap:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stats{display:flex;gap:8px;margin-bottom:10px}
+.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;text-align:center}
+.stat .k{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+.stat .v{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800}
+.note{font-size:14px;color:var(--mut);margin-top:8px;line-height:1.45}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+.modal .box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:420px;width:100%;max-height:88vh;overflow:auto;color:var(--txt)}
+.modal .box h2{margin:0 0 10px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.modal .box p,.modal .box li{line-height:1.5}
+.modal .row{justify-content:flex-end;margin-top:14px}
+.big{font-size:46px;text-align:center;margin:2px 0 6px}
+.pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,52px);gap:8px;justify-content:center;margin-top:12px;user-select:none}
+.pad button{font-size:22px;padding:0;touch-action:manipulation}
+.pad .u{grid-column:2}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+.help h2{margin:0 0 6px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.help h3{margin:14px 0 4px;font-size:15px;color:var(--acc)}
+.help p,.help li{line-height:1.5;margin:0 0 6px}
+.help ol,.help ul{margin:0 0 4px;padding-left:20px}
+.help .tip{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:14px}
+
+
+.top{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-weight:900}
+.pill.gem{font-family:'JetBrains Mono',monospace;color:#7fe0ff}
+.tabs{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:4px;margin-bottom:12px;overflow-x:auto}
+.tabs button{flex:1;border:0;background:transparent;color:var(--mut);padding:9px 6px;border-radius:10px;font-size:13.5px;white-space:nowrap}
+.tabs button.on{background:var(--card2);color:var(--txt)}
+.habitat{position:relative;border-radius:20px;overflow:hidden;border:1px solid var(--line);height:290px;display:flex;align-items:flex-end;justify-content:center}
+.habitat .bg{position:absolute;inset:0}
+.habitat .ground{position:absolute;left:0;right:0;bottom:0;height:60px;border-radius:50% 50% 0 0/30% 30% 0 0}
+.dragon{position:relative;width:250px;height:250px;margin-bottom:6px;cursor:pointer;transition:transform .3s}
+.dragon svg{width:100%;height:100%;overflow:visible}
+.dragon.bounce{animation:dbounce .6s}
+@keyframes dbounce{30%{transform:translateY(-26px) scale(1.04)}60%{transform:translateY(0) scale(.97,1.03)}}
+.dragon .wingL,.dragon .wingR{transform-box:fill-box;animation:flap 1.6s ease-in-out infinite}
+.dragon .wingL{transform-origin:100% 80%}.dragon .wingR{transform-origin:0% 80%;animation-delay:.05s}
+@keyframes flap{50%{transform:rotate(-14deg) scaleY(.9)}}
+.dragon .wingR{animation-name:flapR}@keyframes flapR{50%{transform:rotate(14deg) scaleY(.9)}}
+.dragon .breath{transform-box:fill-box;transform-origin:50% 100%;animation:breath 3s ease-in-out infinite}
+@keyframes breath{50%{transform:scale(1.02,.98)}}
+.dragon.sleep .wingL,.dragon.sleep .wingR{animation:none}
+.zzz{position:absolute;right:20px;top:20px;font-size:26px;animation:zz 2s infinite;font-weight:900;color:#fff}
+@keyframes zz{0%{opacity:0;transform:translate(0,10px)}50%{opacity:1}100%{opacity:0;transform:translate(16px,-20px)}}
+.float{position:absolute;pointer-events:none;font-size:26px;animation:up 1.2s ease-out forwards}
+@keyframes up{to{transform:translateY(-90px);opacity:0}}
+.nameRow{display:flex;align-items:center;gap:8px;margin:12px 0 6px}
+.nameRow h2{margin:0;font-family:'JetBrains Mono',monospace;font-size:20px}
+.nameRow .lv{margin-left:auto;font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--acc)}
+.xp{height:8px;border-radius:5px;background:var(--line);overflow:hidden;margin-bottom:10px}.xp i{display:block;height:100%;background:linear-gradient(90deg,#a970ff,#ff6ad5)}
+.stats4{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.st{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:13px;font-weight:800}
+.st .bar{height:8px;border-radius:5px;background:var(--line);overflow:hidden;margin-top:5px}.st .bar i{display:block;height:100%;transition:width .5s}
+.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.acts button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;font-size:13px}
+.acts button span{font-size:24px}
+.mood{color:var(--mut);font-size:14px;margin:-2px 0 10px}
+.dlist{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 8px;margin-top:12px}
+.dchip{flex:none;width:76px;text-align:center;padding:6px 4px;border-radius:14px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:11.5px;font-weight:800}
+.dchip.on{border-color:var(--acc);box-shadow:0 0 14px -4px var(--acc)}
+.dchip svg{width:56px;height:56px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;text-align:center}
+.item .ico{font-size:40px;line-height:1.1}
+.item h3{margin:6px 0 2px;font-size:15px}
+.item p{margin:0 0 8px;color:var(--mut);font-size:12.5px;line-height:1.35}
+.egg{width:90px;height:110px;margin:0 auto;cursor:pointer}
+.egg.wobble{animation:wob .5s ease-in-out infinite}
+@keyframes wob{25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
+.egg.crack{animation:crack .7s}
+@keyframes crack{30%{transform:scale(1.15) rotate(-8deg)}60%{transform:scale(.9) rotate(8deg)}}
+.tbar{height:8px;border-radius:5px;background:var(--line);overflow:hidden;margin:6px 0}.tbar i{display:block;height:100%;background:#7fe0ff}
+.book .item{opacity:.4}.book .item.got{opacity:1}
+.prof{display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;background:var(--card);border:1px solid var(--line);margin-bottom:8px;cursor:pointer}
+.prof .av{font-size:30px}.prof b{font-size:16px}.prof small{display:block;color:var(--mut)}
+.prof .del{margin-left:auto}
+input.txt,textarea.txt{width:100%;font:inherit;font-weight:700;background:var(--bg2);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+textarea.txt{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;height:90px;resize:vertical}
+#mini{position:fixed;inset:0;z-index:60;background:linear-gradient(180deg,#120a2a,#2a1550);display:flex;flex-direction:column}
+#mini .hud{display:flex;justify-content:space-between;padding:14px 16px;color:#fff;font-weight:900;font-family:'JetBrains Mono',monospace;font-size:18px}
+#mini .field{position:relative;flex:1;overflow:hidden;touch-action:manipulation}
+#mini .gem{position:absolute;font-size:38px;cursor:pointer;user-select:none;transition:transform .1s}
+#mini .gem:active{transform:scale(.8)}
+.bubble{position:absolute;border-radius:50%;border:2px solid rgba(255,255,255,.8);background:rgba(255,255,255,.2);pointer-events:none;animation:bub 1.4s ease-out forwards}
+@keyframes bub{to{transform:translateY(-120px) scale(1.4);opacity:0}}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
+  <header><span class="logo">🐉</span><h1>Dragon World <b>Deluxe</b></h1><div class="hbtns"><button class="ib" id="btnHelp" title="Anleitung">📖</button><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
+
+  <section id="vProfiles">
+    <div class="card"><h2>🐉 Wer spielt?</h2><p>Jeder Spieler hat seinen <b>eigenen Spielstand</b> mit eigenen Drachen und Diamanten.</p><div id="profList"></div>
+      <div class="row" style="margin-top:8px"><input class="txt" id="newName" maxlength="14" placeholder="Dein Name" style="flex:1"><button class="primary" id="btnNew">Neu starten</button></div>
+      <div class="row" style="margin-top:10px"><button class="small" id="btnImport">📥 Spielstand mit Code laden</button></div>
+    </div>
+  </section>
+  <section id="vGame" class="hidden">
+    <div class="top"><span class="pill" id="who"></span><span class="pill gem" id="gems"></span><button class="small" id="btnDaily">🎁 Tagesbonus</button><button class="small" id="btnSwitch" style="margin-left:auto">👤 Wechseln</button></div>
+    <div class="tabs" id="tabs"><button data-t="dr" class="on">🐉 Drache</button><button data-t="nest">🥚 Nest</button><button data-t="shop">🛒 Laden</button><button data-t="book">📖 Buch</button><button data-t="save">💾 Speichern</button></div>
+    <div id="tDr"></div>
+    <div id="tNest" class="hidden"></div>
+    <div id="tShop" class="hidden"></div>
+    <div id="tBook" class="hidden"></div>
+    <div id="tSave" class="hidden"></div>
+  </section>
+  <div id="mini" class="hidden"><div class="hud"><span id="miniT">20</span><span id="miniS">💎 0</span></div><div class="field" id="miniF"></div></div>
+
+  <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
+</div>
+<script>
+const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const KIT={get(k,d){try{const v=JSON.parse(localStorage.getItem('bs-'+k));return v??d;}catch(e){return d;}},set(k,v){try{localStorage.setItem('bs-'+k,JSON.stringify(v));}catch(e){}}};
+let theme=KIT.get('theme','dark'),soundOn=KIT.get('sound',true);
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function applyTheme(){document.documentElement.dataset.theme=theme;$('#btnTheme').textContent=theme==='dark'?'☀️':'🌙';if(window.onTheme)window.onTheme();}
+$('#btnTheme').onclick=()=>{theme=theme==='dark'?'light':'dark';KIT.set('theme',theme);applyTheme();};
+$('#btnSound').onclick=()=>{soundOn=!soundOn;KIT.set('sound',soundOn);$('#btnSound').textContent=soundOn?'🔊':'🔇';};
+$('#btnSound').textContent=soundOn?'🔊':'🔇';
+let actx=null;
+document.addEventListener('pointerdown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}},{passive:true});
+document.addEventListener('keydown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}});
+function tone(f,d=.1,delay=0,type='triangle',v=.18){if(!soundOn||!actx||actx.state!=='running')return;try{const t=actx.currentTime+delay,o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+d+.03);}catch(e){}}
+const sWin=()=>[523,659,784,1046].forEach((f,k)=>tone(f,.18,k*.12));
+const sLose=()=>[392,330,262].forEach((f,k)=>tone(f,.22,k*.15,'sine'));
+function confetti(){try{
+  const c=document.createElement('canvas'),dpr=window.devicePixelRatio||1;c.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:80';document.body.appendChild(c);
+  const ctx=c.getContext('2d'),W=c.width=innerWidth*dpr,H=c.height=innerHeight*dpr,cols=['#e8b04b','#21c3e6','#e0453a','#2fa35a','#f2c21b','#ffffff','#7b5cff'];
+  const ps=Array.from({length:150},()=>({x:W/2+(Math.random()-.5)*W*.3,y:H*.4,vx:(Math.random()-.5)*W*.03,vy:-Math.random()*H*.028-H*.008,r:Math.random()*6,vr:(Math.random()-.5)*.3,s:(6+Math.random()*7)*dpr,c:cols[Math.random()*cols.length|0]}));
+  let t=0;(function f(){t++;ctx.clearRect(0,0,W,H);for(const p of ps){p.vy+=H*.0008;p.vx*=.985;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);ctx.restore();}if(t<170)requestAnimationFrame(f);else c.remove();})();
+}catch(e){}}
+function modal(html,setup,dismiss=true){return new Promise(res=>{const m=$('#modal'),box=$('#modalBox');box.innerHTML=html;m.classList.remove('hidden');
+  const close=v=>{m.classList.add('hidden');box.innerHTML='';m.onclick=null;res(v);};
+  box.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>close(b.dataset.v));if(setup)setup(box,close);
+  m.onclick=e=>{if(e.target===m&&dismiss)close(null);};});}
+const confirmBox=(text,yes='Ja',no='Abbrechen')=>modal(`<p>${text}</p><div class="row"><button data-v="0">${no}</button><button class="primary" data-v="1">${yes}</button></div>`).then(v=>v==='1');
+const infoBox=(html,btn='OK')=>modal(html+`<div class="row"><button class="primary" data-v="1">${btn}</button></div>`);
+// Swipe-Hilfe
+function onSwipe(el,cb){let sx=0,sy=0,act=false;
+  el.addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;act=true;},{passive:true});
+  el.addEventListener('touchmove',e=>{if(!act)return;const t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))>22){cb(Math.abs(dx)>Math.abs(dy)?(dx>0?'r':'l'):(dy>0?'d':'u'));act=false;}e.preventDefault();},{passive:false});
+  el.addEventListener('touchend',()=>act=false);}
+setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
+
+function showHelp(){if(!window.HELP)return;return modal(`<div class="help">${window.HELP}</div><div class="row"><button class="primary" data-v="1">Los geht's!</button></div>`);}
+$('#btnHelp').onclick=showHelp;
+function initHelp(id){if(window.HELP&&!KIT.get('help-seen-'+id,false)){KIT.set('help-seen-'+id,true);setTimeout(showHelp,350);}}
+
+
+window.HELP=`<h2>🐉 So spielst du Dragon World Deluxe</h2>
+<p>Brüte Dracheneier aus, kümmere dich um deine Drachen und sammle alle Drachenarten!</p>
+<h3>🥚 Eier</h3><ul><li>Kaufe Eier im <b>Laden</b>. Im <b>Nest</b> brüten sie von selbst aus – tippe sie an, um sie zu wärmen, dann geht es schneller!</li><li>Gewöhnliche, seltene und <b>legendäre</b> Eier – aus legendären schlüpft vielleicht ein 🌈 <b>Regenbogendrache</b>!</li></ul>
+<h3>💖 Pflege</h3><ul><li><b>🍖 Füttern</b> gegen Hunger, <b>🎾 Spielen</b> macht glücklich (und bringt Diamanten!), <b>🫧 Waschen</b> macht sauber, <b>😴 Schlafen</b> gibt Energie.</li><li>Tippe deinen Drachen an zum <b>Streicheln</b> ❤️.</li><li>Die Werte sinken langsam mit der Zeit – auch wenn das Spiel zu ist. Keine Sorge: Deine Drachen sterben nie, sie werden nur traurig.</li><li>Mit jeder Pflege bekommt dein Drache <b>Erfahrung</b>. Ab Level 5 wird er ein <b>Jungdrache</b>, ab Level 10 ein <b>großer Drache</b> mit Hörnern!</li></ul>
+<h3>💎 Diamanten</h3><ul><li>Glückliche Drachen <b>sammeln Diamanten</b> – hol sie mit „Einsammeln“ ab.</li><li>Beim Spielen fängst du Diamanten, und jeden Tag gibt es einen <b>🎁 Tagesbonus</b>.</li></ul>
+<h3>💾 Spielstand</h3><ul><li>Dein Spiel wird automatisch auf diesem Gerät gespeichert. Jeder Spieler hat seinen eigenen Spielstand.</li><li>Unter <b>💾 Speichern</b> bekommst du einen <b>Code</b>. Damit kannst du deinen Spielstand sichern oder auf einem anderen Handy weiterspielen.</li></ul>`;
+/* ===== Daten ===== */
+const EL={feuer:{n:'Feuerdrache',e:'🔥',c:'#ff6a3d',b:'#ffd08a',w:'#c43d1f',bg:['#3a1208','#ff8a3d'],r:1},wasser:{n:'Wasserdrache',e:'💧',c:'#3ba7ff',b:'#c8ecff',w:'#1d6fb8',bg:['#062a4a','#3bb4ff'],r:1},
+  erde:{n:'Waldrache',e:'🌿',c:'#4caf50',b:'#d7f0b0',w:'#2e7d32',bg:['#0c2a10','#67c26b'],r:1},luft:{n:'Wolkendrache',e:'☁️',c:'#a9c7e8',b:'#ffffff',w:'#6f93bd',bg:['#2a3f5c','#cfe6ff'],r:1},
+  eis:{n:'Eisdrache',e:'❄️',c:'#8fe3ff',b:'#ffffff',w:'#4fb3d9',bg:['#0e2f45','#d8f6ff'],r:2},blitz:{n:'Blitzdrache',e:'⚡',c:'#ffd23f',b:'#fff3b0',w:'#c9a000',bg:['#201a00','#ffd23f'],r:2},
+  nacht:{n:'Nachtdrache',e:'🌙',c:'#6b4fd8',b:'#c9b8ff',w:'#3b2a8f',bg:['#0a0620','#5b3fc4'],r:2},
+  kristall:{n:'Kristalldrache',e:'💎',c:'#7fe0ff',b:'#eaffff',w:'#ff6ad5',bg:['#1a0a2a','#7fe0ff'],r:3},regenbogen:{n:'Regenbogendrache',e:'🌈',c:'url(#rb)',b:'#ffffff',w:'url(#rbw)',bg:['#2a0a3a','#ff6ad5'],r:3}};
+const EGGS=[{k:'g',n:'Gewöhnliches Ei',p:60,t:60,pool:['feuer','wasser','erde','luft'],col:'#e8d8b8',spot:'#b08a5a',d:'Feuer, Wasser, Wald oder Wolke'},
+  {k:'s',n:'Seltenes Ei',p:180,t:180,pool:['eis','blitz','nacht','eis','blitz','nacht','feuer','wasser'],col:'#bfe6ff',spot:'#6b4fd8',d:'Meistens Eis, Blitz oder Nacht'},
+  {k:'l',n:'Legendäres Ei',p:500,t:360,pool:['regenbogen','kristall','regenbogen','eis','blitz','nacht'],col:'#ffe08a',spot:'#ff6ad5',d:'Chance auf Regenbogen- oder Kristalldrache!'}];
+const FOOD=[{k:'beere',n:'Beeren',e:'🍓',p:5,h:20,j:0},{k:'fisch',n:'Fisch',e:'🐟',p:10,h:35,j:5},{k:'fleisch',n:'Fleisch',e:'🍖',p:15,h:50,j:5},{k:'kuchen',n:'Drachenkuchen',e:'🎂',p:30,h:40,j:30}];
+const NAMES=['Funki','Glitzer','Flammi','Puste','Saphir','Blubb','Moosi','Sturmi','Frosty','Zappi','Luna','Ember','Nebel','Kiesel','Funkel','Rubi','Opal','Schuppi','Donner','Mira'];
+const AV=['🦁','🐯','🐼','🦊','🐸','🐵','🦄','🐲','🐬','🦉'];
+/* ===== Profile & Speichern ===== */
+const PKEY='dw-profiles';let profiles=KIT.get(PKEY,[]),S=null,curId=null;
+function blank(name){return {v:1,name,av:AV[Math.floor(Math.random()*AV.length)],gems:100,dragons:[],eggs:[{k:'g',start:Date.now(),t:15,starter:true}],found:[],daily:'',streak:0,last:Date.now(),sel:0,created:Date.now()};}
+function save(){if(!S)return;S.last=Date.now();KIT.set('dw-save-'+curId,S);const p=profiles.find(x=>x.id===curId);if(p){p.name=S.name;p.av=S.av;p.n=S.dragons.length;KIT.set(PKEY,profiles);}}
+function load(id){const s=KIT.get('dw-save-'+id,null);if(!s)return false;S=s;curId=id;offline();return true;}
+const enc=o=>'DWD1:'+btoa(unescape(encodeURIComponent(JSON.stringify(o))));
+const dec=t=>{t=t.trim();if(!t.startsWith('DWD1:'))throw 0;return JSON.parse(decodeURIComponent(escape(atob(t.slice(5)))));};
+function renderProfiles(){
+  $('#profList').innerHTML=profiles.length?profiles.map(p=>`<div class="prof" data-id="${p.id}"><span class="av">${p.av||'🐉'}</span><div><b>${esc(p.name)}</b><small>${p.n||0} Drachen</small></div><button class="small del" data-del="${p.id}">🗑</button></div>`).join(''):'<p class="note">Noch keine Spieler auf diesem Gerät – leg los!</p>';
+}
+$('#profList').onclick=async e=>{const d=e.target.closest('[data-del]');if(d){e.stopPropagation();const p=profiles.find(x=>x.id===d.dataset.del);
+    if(await confirmBox(`Spielstand von <b>${esc(p.name)}</b> wirklich löschen? Das geht nicht rückgängig!`,'Löschen')){profiles=profiles.filter(x=>x!==p);KIT.set(PKEY,profiles);try{localStorage.removeItem('bs-dw-save-'+p.id);}catch(err){}renderProfiles();}return;}
+  const c=e.target.closest('.prof');if(c&&load(c.dataset.id))enterGame();};
+$('#btnNew').onclick=()=>{const n=$('#newName').value.trim();if(!n){$('#newName').focus();return;}const id='p'+Date.now();S=blank(n);curId=id;profiles.push({id,name:n,av:S.av,n:0});save();$('#newName').value='';enterGame();};
+$('#btnImport').onclick=()=>modal(`<h2>📥 Spielstand laden</h2><p>Füge hier deinen Spielstand-Code ein (beginnt mit <b>DWD1:</b>).</p><textarea class="txt" id="impTxt"></textarea><div class="row"><button data-v="0">Abbrechen</button><button class="primary" id="impOk">Laden</button></div>`,(box,close)=>{
+  box.querySelector('#impOk').onclick=()=>{try{const s=dec(box.querySelector('#impTxt').value);if(!s.dragons)throw 0;const id='p'+Date.now();S=s;curId=id;profiles.push({id,name:s.name,av:s.av,n:s.dragons.length});save();close();enterGame();toast('Spielstand geladen! 🎉');}
+    catch(err){box.querySelector('#impTxt').style.borderColor='#e5564b';}};});
+$('#btnSwitch').onclick=()=>{save();$('#vGame').classList.add('hidden');$('#vProfiles').classList.remove('hidden');renderProfiles();};
+/* ===== Zeit & Werte ===== */
+const clamp=v=>Math.max(0,Math.min(100,v));
+function stage(d){return d.lv>=10?2:d.lv>=5?1:0;}
+function decay(d,min,offlineMode){
+  const f=offlineMode?.6:1;
+  if(d.sleep){d.en=clamp(d.en+3*min);if(d.en>=100)d.sleep=false;d.hu=clamp(d.hu-.5*min*f);}
+  else{d.hu=clamp(d.hu-1.1*min*f);d.en=clamp(d.en-.6*min*f);}
+  d.jo=clamp(d.jo-.8*min*f);d.cl=clamp(d.cl-.5*min*f);
+  if(offlineMode)for(const k of['hu','jo','en','cl'])d[k]=Math.max(d[k],12);
+  const avg=(d.hu+d.jo+d.en+d.cl)/4;if(avg>45&&!d.sleep||d.sleep&&avg>40){d.store=Math.min(d.lv*25+20,(d.store||0)+(0.4+d.lv*.15)*min);}
+}
+function offline(){const min=Math.min(60*24*3,(Date.now()-S.last)/60000);if(min>0.2)S.dragons.forEach(d=>decay(d,min,true));S.last=Date.now();}
+let lastTick=Date.now();
+setInterval(()=>{if(!S)return;const now=Date.now(),min=(now-lastTick)/60000;lastTick=now;S.dragons.forEach(d=>decay(d,min,false));updateLive();if(Math.random()<.2)save();},1000);
+/* ===== Drachen-Grafik ===== */
+function dragonSVG(d,size,mood){
+  const E=EL[d.el],st=stage(d),sc=[.72,.86,1][st],sad=mood==='sad',sleepy=d.sleep;
+  const defs=`<defs><linearGradient id="rb" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#ff5f6d"/><stop offset=".25" stop-color="#ffc371"/><stop offset=".5" stop-color="#5ff5a0"/><stop offset=".75" stop-color="#5fb4ff"/><stop offset="1" stop-color="#c06bff"/></linearGradient>
+   <linearGradient id="rbw" x1="0" x2="1"><stop offset="0" stop-color="#c06bff"/><stop offset="1" stop-color="#ff5f9e"/></linearGradient></defs>`;
+  const eyes=sleepy?`<path d="M88 78 q6 5 12 0 M118 78 q6 5 12 0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/>`:
+    `<ellipse cx="94" cy="76" rx="7" ry="${sad?6:8}" fill="#fff"/><ellipse cx="124" cy="76" rx="7" ry="${sad?6:8}" fill="#fff"/><circle cx="95" cy="${sad?78:77}" r="4" fill="#222"/><circle cx="125" cy="${sad?78:77}" r="4" fill="#222"/><circle cx="96.5" cy="75" r="1.5" fill="#fff"/><circle cx="126.5" cy="75" r="1.5" fill="#fff"/>`+(sad?`<path d="M86 66 l12 4 M132 66 l-12 4" stroke="#222" stroke-width="2.5" stroke-linecap="round"/>`:'');
+  const mouth=sleepy?`<ellipse cx="110" cy="96" rx="3" ry="2" fill="#222"/>`:sad?`<path d="M100 98 q10 -7 20 0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/>`:`<path d="M98 92 q12 12 24 0" stroke="#222" stroke-width="3" fill="${'#ff7b9c'}" stroke-linecap="round"/>`;
+  const horns=st>=1?`<path d="M92 54 l-6 -${st===2?22:12} l12 ${st===2?14:8}Z M128 54 l6 -${st===2?22:12} l-12 ${st===2?14:8}Z" fill="#fff3d6" stroke="rgba(0,0,0,.2)"/>`:'';
+  const spikes=[0,1,2,3].map(k=>`<path d="M${150+k*8} ${118+k*10} l10 -6 l-2 12Z" fill="${E.w}"/>`).join('');
+  return `<svg viewBox="0 0 220 220" width="${size}" height="${size}">${defs}<g transform="translate(110 ${200-180*sc/2-10}) scale(${sc}) translate(-110 -110)">
+   <path class="wingL" d="M70 110 C30 70 10 90 20 120 C35 115 45 125 60 135 Z" fill="${E.w}" stroke="rgba(0,0,0,.15)"/>
+   <path class="wingR" d="M150 110 C190 70 210 90 200 120 C185 115 175 125 160 135 Z" fill="${E.w}" stroke="rgba(0,0,0,.15)"/>
+   <path d="M150 160 C185 165 195 140 205 130 C200 155 190 180 150 178Z" fill="${E.c}"/>${spikes}
+   <g class="breath"><ellipse cx="110" cy="145" rx="48" ry="44" fill="${E.c}"/><ellipse cx="110" cy="152" rx="30" ry="32" fill="${E.b}" opacity=".9"/>
+   <path d="M95 140 h30 M93 152 h34 M95 164 h30" stroke="rgba(0,0,0,.12)" stroke-width="3"/>
+   <ellipse cx="82" cy="186" rx="14" ry="9" fill="${E.c}"/><ellipse cx="138" cy="186" rx="14" ry="9" fill="${E.c}"/>
+   ${horns}<circle cx="110" cy="82" r="38" fill="${E.c}"/><ellipse cx="110" cy="98" rx="24" ry="16" fill="${E.b}" opacity=".85"/>
+   <circle cx="100" cy="94" r="2" fill="rgba(0,0,0,.4)"/><circle cx="120" cy="94" r="2" fill="rgba(0,0,0,.4)"/>
+   ${eyes}${mouth}<circle cx="80" cy="92" r="6" fill="#ff7b9c" opacity="${sad?0:.45}"/><circle cx="140" cy="92" r="6" fill="#ff7b9c" opacity="${sad?0:.45}"/></g></g></svg>`;
+}
+function eggSVG(egg,cls=''){const E=EGGS.find(x=>x.k===egg.k);return `<svg class="egg ${cls}" viewBox="0 0 90 110"><ellipse cx="45" cy="62" rx="36" ry="45" fill="${E.col}" stroke="rgba(0,0,0,.15)" stroke-width="2"/>
+  <circle cx="30" cy="50" r="7" fill="${E.spot}" opacity=".7"/><circle cx="56" cy="38" r="5" fill="${E.spot}" opacity=".7"/><circle cx="58" cy="75" r="8" fill="${E.spot}" opacity=".7"/><circle cx="34" cy="84" r="4" fill="${E.spot}" opacity=".7"/>
+  <ellipse cx="32" cy="40" rx="6" ry="10" fill="#fff" opacity=".45"/></svg>`;}
+/* ===== Spiel ===== */
+let tab='dr';
+function enterGame(){$('#vProfiles').classList.add('hidden');$('#vGame').classList.remove('hidden');lastTick=Date.now();if(S.sel>=S.dragons.length)S.sel=0;setTab(S.dragons.length?'dr':'nest');save();}
+function setTab(t){tab=t;$$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));for(const [k,id] of [['dr','tDr'],['nest','tNest'],['shop','tShop'],['book','tBook'],['save','tSave']])$('#'+id).classList.toggle('hidden',k!==t);render();}
+$('#tabs').onclick=e=>{const b=e.target.closest('button');if(b)setTab(b.dataset.t);};
+function toast(t){const el=document.createElement('div');el.textContent=t;el.style.cssText='position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--card);border:1px solid var(--line);padding:10px 16px;border-radius:12px;z-index:90;font-weight:800;box-shadow:0 8px 20px var(--shadow)';document.body.appendChild(el);setTimeout(()=>el.remove(),2200);}
+function topBar(){$('#who').textContent=`${S.av} ${S.name}`;$('#gems').textContent=`💎 ${Math.floor(S.gems)}`;const today=new Date().toDateString();$('#btnDaily').disabled=S.daily===today;$('#btnDaily').textContent=S.daily===today?'🎁 Morgen wieder':'🎁 Tagesbonus';}
+function moodOf(d){const avg=(d.hu+d.jo+d.en+d.cl)/4;if(d.sleep)return['sleep','schläft gerade … 😴'];if(d.hu<25)return['sad','hat großen Hunger! 🍖'];if(d.cl<25)return['sad','möchte gewaschen werden 🫧'];if(d.en<20)return['sad','ist sehr müde 😴'];if(d.jo<25)return['sad','ist traurig und möchte spielen 🥺'];if(avg>75)return['happy','ist super glücklich! 😄'];return['ok','geht es gut 🙂'];}
+function render(){topBar();if(tab==='dr')renderDr();else if(tab==='nest')renderNest();else if(tab==='shop')renderShop();else if(tab==='book')renderBook();else renderSave();}
+function renderDr(){
+  topBar();
+  const el=$('#tDr');if(!S.dragons.length){el.innerHTML=`<div class="card" style="text-align:center"><div class="big">🥚</div><h2>Noch kein Drache</h2><p>Dein erstes Ei liegt im Nest und schlüpft gleich!</p><button class="primary" onclick="setTab('nest')">Zum Nest</button></div>`;return;}
+  const d=S.dragons[S.sel],E=EL[d.el],[mood,txt]=moodOf(d),need=d.lv*50;
+  el.innerHTML=`<div class="habitat" id="hab"><div class="bg" style="background:linear-gradient(180deg,${E.bg[0]},${E.bg[1]})"></div><div class="ground" style="background:${E.w};opacity:.55"></div>
+     <div class="dragon ${d.sleep?'sleep':''}" id="drg">${dragonSVG(d,250,mood)}</div>${d.sleep?'<div class="zzz">Z z z</div>':''}</div>
+   <div class="nameRow"><h2>${E.e} ${esc(d.name)}</h2><button class="small" id="btnRen">✏️</button><span class="lv">Lv ${d.lv}</span></div>
+   <div class="mood" id="moodTxt">${esc(d.name)} ${txt} · ${['Babydrache','Jungdrache','Großer Drache'][stage(d)]} · ${E.n}</div>
+   <div class="xp"><i style="width:${Math.min(100,d.xp/need*100)}%"></i></div>
+   <div class="stats4">${[['hu','🍖 Hunger','#ff9f1c'],['jo','💖 Freude','#ff6ad5'],['en','⚡ Energie','#ffd23f'],['cl','🫧 Sauber','#3bb4ff']].map(([k,n,c])=>`<div class="st">${n}<div class="bar"><i id="b_${k}" style="width:${d[k]}%;background:${c}"></i></div></div>`).join('')}</div>
+   <div class="acts"><button id="aFeed"><span>🍖</span>Füttern</button><button id="aPlay"><span>🎾</span>Spielen</button><button id="aWash"><span>🫧</span>Waschen</button>
+     <button id="aSleep"><span>${d.sleep?'☀️':'😴'}</span>${d.sleep?'Aufwecken':'Schlafen'}</button><button id="aCollect"><span>💎</span><b id="storeTxt">${Math.floor(d.store||0)}</b> einsammeln</button><button id="aPet"><span>❤️</span>Streicheln</button></div>
+   <div class="dlist">${S.dragons.map((x,i)=>`<div class="dchip ${i===S.sel?'on':''}" data-i="${i}">${dragonSVG(x,56,moodOf(x)[0])}<div>${esc(x.name)}</div><div style="color:var(--mut)">Lv ${x.lv}</div></div>`).join('')}</div>`;
+  $('.dlist').onclick=e=>{const c=e.target.closest('.dchip');if(c){S.sel=+c.dataset.i;save();renderDr();}};
+  $('#drg').onclick=pet;$('#aPet').onclick=pet;$('#aFeed').onclick=feedMenu;$('#aWash').onclick=wash;$('#aSleep').onclick=sleepT;$('#aCollect').onclick=collect;$('#aPlay').onclick=playGame;
+  $('#btnRen').onclick=()=>modal(`<h2>✏️ Neuer Name</h2><input class="txt" id="rn" maxlength="14" value="${esc(d.name)}"><div class="row"><button data-v="0">Abbrechen</button><button class="primary" id="rnOk">Speichern</button></div>`,(box,close)=>{box.querySelector('#rnOk').onclick=()=>{const v=box.querySelector('#rn').value.trim();if(v){d.name=v;save();}close();renderDr();};});
+}
+function updateLive(){if(tab!=='dr'||!S.dragons.length||!$('#b_hu'))return;const d=S.dragons[S.sel];for(const k of['hu','jo','en','cl'])$('#b_'+k).style.width=d[k]+'%';const st=$('#storeTxt');if(st)st.textContent=Math.floor(d.store||0);
+  const [,txt]=moodOf(d);const m=$('#moodTxt');if(m)m.textContent=`${d.name} ${txt} · ${['Babydrache','Jungdrache','Großer Drache'][stage(d)]} · ${EL[d.el].n}`;
+  if(!d.sleep&&$('.zzz'))renderDr();if(tab==='nest')renderNestTimers();}
+function floatFx(txt,n=1){const h=$('#hab');if(!h)return;for(let k=0;k<n;k++){const f=document.createElement('div');f.className='float';f.textContent=txt;f.style.left=(35+Math.random()*30)+'%';f.style.top=(30+Math.random()*25)+'%';f.style.animationDelay=(k*.12)+'s';h.appendChild(f);setTimeout(()=>f.remove(),1600);}}
+function bounce(){const g=$('#drg');if(!g)return;g.classList.remove('bounce');void g.offsetWidth;g.classList.add('bounce');}
+function addXp(d,x){d.xp+=x;let up=false;while(d.xp>=d.lv*50&&d.lv<30){d.xp-=d.lv*50;d.lv++;up=true;}
+  if(up){const st=stage(d);[523,659,784,1046].forEach((f,k)=>tone(f,.15,k*.1));setTimeout(()=>{renderDr();floatFx('⭐',5);},50);
+    toast(d.lv===5?`🎉 ${d.name} ist jetzt ein Jungdrache!`:d.lv===10?`🎉 ${d.name} ist jetzt ein großer Drache!`:`⭐ ${d.name} ist jetzt Level ${d.lv}!`);if(d.lv===5||d.lv===10)confetti();}}
+let lastPet=0;
+function pet(){const d=S.dragons[S.sel];if(d.sleep){toast('Psst … er schläft 😴');return;}if(Date.now()-lastPet<800)return;lastPet=Date.now();d.jo=clamp(d.jo+4);addXp(d,1);bounce();floatFx('❤️',2);tone(880,.06,0,'sine',.12);tone(1175,.08,.06,'sine',.1);save();updateLive();}
+function feedMenu(){const d=S.dragons[S.sel];if(d.sleep){toast('Er schläft gerade 😴');return;}
+  modal(`<h2>🍖 Was soll ${esc(d.name)} essen?</h2><div class="grid2">${FOOD.map(f=>`<div class="item"><div class="ico">${f.e}</div><h3>${f.n}</h3><p>+${f.h} Hunger${f.j?` · +${f.j} Freude`:''}</p><button class="primary small" data-f="${f.k}" ${S.gems<f.p?'disabled':''}>💎 ${f.p}</button></div>`).join('')}</div><div class="row"><button data-v="0">Schließen</button></div>`,(box,close)=>{
+    box.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{const f=FOOD.find(x=>x.k===b.dataset.f);if(S.gems<f.p)return;if(d.hu>=98){toast(`${d.name} ist schon satt 😋`);return;}
+      S.gems-=f.p;d.hu=clamp(d.hu+f.h);d.jo=clamp(d.jo+f.j);addXp(d,6);close();renderDr();bounce();floatFx(f.e,3);tone(400,.06);tone(500,.06,.1);tone(600,.08,.2);save();});});}
+function wash(){const d=S.dragons[S.sel];if(d.sleep){toast('Er schläft gerade 😴');return;}if(d.cl>=97){toast('Schon blitzsauber ✨');return;}
+  d.cl=clamp(d.cl+45);d.jo=clamp(d.jo+3);addXp(d,5);const h=$('#hab');for(let k=0;k<14;k++){const b=document.createElement('div');b.className='bubble';const s=10+Math.random()*24;b.style.cssText=`width:${s}px;height:${s}px;left:${30+Math.random()*40}%;top:${45+Math.random()*35}%;animation-delay:${k*.06}s`;h.appendChild(b);setTimeout(()=>b.remove(),2200);}
+  [900,1100,1300].forEach((f,k)=>tone(f,.05,k*.08,'sine',.08));save();updateLive();}
+function sleepT(){const d=S.dragons[S.sel];d.sleep=!d.sleep;if(d.sleep){tone(300,.3,0,'sine',.1);toast(`${d.name} schläft jetzt 😴`);}else tone(700,.1);save();renderDr();}
+function collect(){const d=S.dragons[S.sel],n=Math.floor(d.store||0);if(n<1){toast(`${d.name} hat noch keine Diamanten gesammelt. Glückliche Drachen sammeln mehr!`);return;}S.gems+=n;d.store-=n;floatFx('💎',Math.min(6,n));[1200,1500].forEach((f,k)=>tone(f,.06,k*.06));topBar();save();updateLive();}
+$('#btnDaily').onclick=()=>{const today=new Date().toDateString();if(S.daily===today)return;const y=new Date(Date.now()-864e5).toDateString();S.streak=S.daily===y?S.streak+1:1;S.daily=today;const g=40+Math.min(S.streak,7)*10;S.gems+=g;save();topBar();confetti();sWin();
+  infoBox(`<div class="big">🎁</div><h2 style="text-align:center">+${g} 💎</h2><p style="text-align:center">Tag ${S.streak} in Folge! Komm morgen wieder – dann gibt es noch mehr.</p>`,'Danke!');};
+/* Mini-Spiel */
+function playGame(){const d=S.dragons[S.sel];if(d.sleep){toast('Er schläft gerade 😴');return;}if(d.en<15){toast(`${d.name} ist zu müde zum Spielen. Lass ihn schlafen 😴`);return;}
+  const m=$('#mini'),F=$('#miniF');m.classList.remove('hidden');F.innerHTML='';let score=0,t=20,alive=true;$('#miniS').textContent='💎 0';$('#miniT').textContent='⏱ 20';
+  const spawn=()=>{if(!alive)return;const g=document.createElement('div');g.className='gem';const big=Math.random()<.12;g.textContent=big?'🌟':'💎';g.style.left=(5+Math.random()*80)+'%';g.style.top='-50px';F.appendChild(g);
+    const dur=2200+Math.random()*1600;g.animate([{top:'-50px'},{top:'110%'}],{duration:dur,easing:'linear'}).onfinish=()=>g.remove();
+    g.onpointerdown=()=>{score+=big?5:1;$('#miniS').textContent='💎 '+score;tone(big?1400:1000+Math.random()*300,.05,0,'sine',.12);g.remove();};setTimeout(spawn,350+Math.random()*350);};
+  spawn();const iv=setInterval(()=>{t--;$('#miniT').textContent='⏱ '+t;if(t<=0){clearInterval(iv);alive=false;setTimeout(()=>{m.classList.add('hidden');F.innerHTML='';
+    S.gems+=score;d.jo=clamp(d.jo+25);d.en=clamp(d.en-15);addXp(d,10+Math.floor(score/3));save();renderDr();floatFx('💖',3);
+    infoBox(`<div class="big">🎾</div><h2 style="text-align:center">+${score} 💎</h2><p style="text-align:center">${esc(d.name)} hatte riesig Spaß! 💖</p>`,'Super!');},400);}},1000);}
+/* Nest */
+function renderNest(){
+  const el=$('#tNest');
+  el.innerHTML=`<div class="card"><h2>🥚 Nest (${S.eggs.length}/4)</h2><p>Eier brüten von selbst aus. <b>Tippe ein Ei an</b>, um es zu wärmen – dann schlüpft es schneller!</p>
+    ${S.eggs.length?`<div class="grid2">${S.eggs.map((g,i)=>`<div class="item"><div data-egg="${i}">${eggSVG(g,'wobble')}</div><h3>${EGGS.find(x=>x.k===g.k).n}</h3><div class="tbar"><i id="et${i}"></i></div><p id="el${i}"></p></div>`).join('')}</div>`:'<p class="note">Kein Ei im Nest. Kauf eins im 🛒 Laden!</p>'}</div>
+    <div class="card"><h2>🐉 Deine Drachen (${S.dragons.length}/8)</h2>${S.dragons.length?`<div class="dlist" style="margin:0">${S.dragons.map((x,i)=>`<div class="dchip" data-i="${i}">${dragonSVG(x,56,moodOf(x)[0])}<div>${esc(x.name)}</div></div>`).join('')}</div>`:'<p class="note">Noch keine – gleich schlüpft dein erster!</p>'}</div>`;
+  el.querySelectorAll('[data-egg]').forEach(n=>n.onclick=()=>warm(+n.dataset.egg));
+  const dl=el.querySelector('.dlist');if(dl)dl.onclick=e=>{const c=e.target.closest('.dchip');if(c){S.sel=+c.dataset.i;setTab('dr');}};
+  renderNestTimers();
+}
+function eggLeft(g){return Math.max(0,g.t-(Date.now()-g.start)/1000);}
+function renderNestTimers(){S.eggs.forEach((g,i)=>{const left=eggLeft(g),b=$('#et'+i),l=$('#el'+i);if(!b)return;b.style.width=(100-left/g.t*100)+'%';
+  l.textContent=left<=0?'✨ Bereit! Tippen zum Schlüpfen':`noch ${left>=60?Math.floor(left/60)+' Min ':''}${Math.ceil(left%60)} Sek`;});}
+async function warm(i){const g=S.eggs[i];if(!g)return;
+  if(eggLeft(g)>0){g.start-=1500;tone(500+Math.random()*200,.04,0,'sine',.1);const n=$(`[data-egg="${i}"] svg`);if(n){n.classList.remove('crack');void n.getBBox();n.classList.add('crack');}renderNestTimers();save();return;}
+  if(S.dragons.length>=8){toast('Dein Drachenhort ist voll (8 Drachen).');return;}
+  // schlüpfen!
+  const E=EGGS.find(x=>x.k===g.k);let el;
+  if(g.starter)el=g.el||['feuer','wasser','erde'][Math.floor(Math.random()*3)];else el=E.pool[Math.floor(Math.random()*E.pool.length)];
+  S.eggs.splice(i,1);const used=new Set(S.dragons.map(d=>d.name));const name=NAMES.filter(n=>!used.has(n))[Math.floor(Math.random()*10)]||'Drachi';
+  const d={id:Date.now(),name,el,lv:1,xp:0,hu:80,jo:90,en:90,cl:90,store:0,sleep:false,born:Date.now()};S.dragons.push(d);S.sel=S.dragons.length-1;
+  const isNew=!S.found.includes(el);if(isNew)S.found.push(el);save();confetti();[523,659,784,1046,1318].forEach((f,k)=>tone(f,.15,k*.1));
+  await infoBox(`<div style="text-align:center">${dragonSVG(d,190,'happy')}</div><h2 style="text-align:center">🎉 Ein ${EL[el].n} ist geschlüpft!</h2><p style="text-align:center">${EL[el].r===3?'🌟 <b>LEGENDÄR!</b> ':EL[el].r===2?'✨ <b>Selten!</b> ':''}Er heißt <b>${esc(name)}</b>.${isNew?'<br>📖 Neu im Drachenbuch!':''}</p>`,'Hallo '+name+'!');
+  setTab('dr');
+}
+/* Laden */
+function renderShop(){
+  $('#tShop').innerHTML=`<div class="card"><h2>🥚 Dracheneier</h2><div class="grid2">${EGGS.map(e=>`<div class="item">${eggSVG({k:e.k})}<h3>${e.n}</h3><p>${e.d}<br>⏱ ${e.t>=60?e.t/60+' Min':e.t+' Sek'}</p><button class="primary small" data-buy="${e.k}" ${S.gems<e.p?'disabled':''}>💎 ${e.p}</button></div>`).join('')}</div></div>
+   <div class="card"><h2>🍖 Futter</h2><p>Futter kaufst du direkt beim Füttern deines Drachen.</p><div class="grid2">${FOOD.map(f=>`<div class="item"><div class="ico">${f.e}</div><h3>${f.n}</h3><p>+${f.h} Hunger${f.j?` · +${f.j} Freude`:''} · 💎 ${f.p}</p></div>`).join('')}</div></div>`;
+  $$('[data-buy]').forEach(b=>b.onclick=()=>{const e=EGGS.find(x=>x.k===b.dataset.buy);if(S.gems<e.p)return;if(S.eggs.length>=4){toast('Das Nest ist voll (4 Eier).');return;}
+    S.gems-=e.p;S.eggs.push({k:e.k,start:Date.now(),t:e.t});save();tone(600,.06);tone(900,.08,.07);toast(`🥚 ${e.n} liegt jetzt im Nest!`);render();});
+}
+function renderBook(){const all=Object.keys(EL);$('#tBook').innerHTML=`<div class="card book"><h2>📖 Drachenbuch (${S.found.length}/${all.length})</h2><p>Sammle alle Drachenarten!</p><div class="grid2">${all.map(k=>{const got=S.found.includes(k);
+  return `<div class="item ${got?'got':''}">${got?dragonSVG({el:k,lv:10,sleep:false},110,'happy'):'<div class="ico" style="font-size:60px;padding:20px 0">❓</div>'}<h3>${got?EL[k].e+' '+EL[k].n:'???'}</h3><p>${['','Gewöhnlich','✨ Selten','🌟 Legendär'][EL[k].r]}</p></div>`;}).join('')}</div></div>`;
+  if(S.found.length===all.length)$('#tBook').insertAdjacentHTML('afterbegin','<div class="card" style="text-align:center"><h2>🏆 Alle Drachen gesammelt! Du bist ein echter Drachenmeister!</h2></div>');}
+function renderSave(){const code=enc(S);
+  $('#tSave').innerHTML=`<div class="card"><h2>💾 Dein Spielstand</h2><p>Dein Spiel wird <b>automatisch</b> auf diesem Gerät gespeichert – auch wenn du die Seite schließt. Jeder Spieler hat seinen eigenen Spielstand.</p>
+   <p>Wenn du den Browser-Verlauf löschst oder ein neues Handy hast, ist der Spielstand weg. Darum: <b>Kopiere dir ab und zu diesen Code</b> (z. B. in eine Notiz). Damit kannst du jederzeit weiterspielen – auch auf einem anderen Gerät, unter „📥 Spielstand mit Code laden“.</p>
+   <textarea class="txt" readonly id="code">${code}</textarea><div class="row" style="margin-top:8px"><button class="primary small" id="cp">📋 Code kopieren</button></div></div>
+   <div class="card"><h2>👤 Spieler</h2><div class="row"><input class="txt" id="pn" maxlength="14" value="${esc(S.name)}" style="flex:1"><button class="small" id="pnOk">Name ändern</button></div>
+   <div class="row" style="margin-top:8px">${AV.map(a=>`<button class="small" data-av="${a}" style="${a===S.av?'border-color:var(--acc)':''}">${a}</button>`).join('')}</div></div>`;
+  $('#cp').onclick=async()=>{try{await navigator.clipboard.writeText(code);toast('Code kopiert ✅');}catch(e){$('#code').select();toast('Bitte den Code markieren und kopieren');}};
+  $('#pnOk').onclick=()=>{const v=$('#pn').value.trim();if(v){S.name=v;save();topBar();toast('Name geändert');}};
+  $$('[data-av]').forEach(b=>b.onclick=()=>{S.av=b.dataset.av;save();renderSave();topBar();});}
+window.onTheme=()=>{};applyTheme();renderProfiles();
+if(profiles.length===1&&load(profiles[0].id))enterGame();
+document.addEventListener('visibilitychange',()=>{if(document.hidden)save();else if(S){offline();lastTick=Date.now();render();}});
+
+initHelp('dragon-world');
+</script>
+</body>
+</html>
