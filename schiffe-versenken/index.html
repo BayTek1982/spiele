@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schiffe versenken</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('bs-theme'))||'dark';}catch(e){document.documentElement.dataset.theme='dark';}</script>
+<style>
+:root{--acc:#3ba7ff;--acc-ink:#ffffff}
+:root{--bg1:#1f2630;--bg2:#141920;--card:#27303b;--card2:#2f3946;--line:#3a4552;--txt:#eef1f5;--mut:#a7b1bd;--cell:#1b222b;--shadow:rgba(0,0,0,.45)}
+[data-theme=light]{--bg1:#f4f1ea;--bg2:#e9e4d8;--card:#ffffff;--card2:#f2eee6;--line:#ddd5c6;--txt:#1f2630;--mut:#6b7380;--cell:#f7f4ee;--shadow:rgba(60,50,30,.18)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--txt);min-height:100vh;transition:background .3s,color .3s;
+ background:radial-gradient(900px 500px at 12% -10%,color-mix(in srgb,var(--acc) 16%,transparent),transparent 60%),radial-gradient(700px 500px at 110% 15%,rgba(33,195,230,.08),transparent 60%),linear-gradient(180deg,var(--bg1),var(--bg2)) fixed}
+#app{max-width:var(--maxw,640px);margin:0 auto;padding:14px 12px 40px}
+.hidden{display:none!important}
+a.back{color:var(--mut);text-decoration:none;font-weight:700;font-size:14px;display:inline-block;margin:0 0 8px 2px}
+header{display:flex;align-items:center;gap:10px;margin:4px 2px 14px}
+header .logo{font-size:26px}
+header h1{font-family:'JetBrains Mono',monospace;font-size:21px;margin:0;font-weight:800;letter-spacing:-.5px}
+header h1 b{color:var(--acc)}
+.hbtns{margin-left:auto;display:flex;gap:6px}
+.ib{padding:7px 10px!important;font-size:17px!important;line-height:1}
+button{font:inherit;cursor:pointer;border-radius:12px;padding:10px 14px;font-weight:800;color:var(--txt);background:var(--card2);border:1px solid var(--line);transition:filter .15s,transform .1s}
+button:hover:not(:disabled){filter:brightness(1.06)}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--acc);color:var(--acc-ink,#14181e);border-color:var(--acc)}
+button.small{padding:7px 12px;font-size:14px;border-radius:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.card h2{margin:0 0 8px;font-size:18px}
+.card p{margin:0 0 8px;color:var(--mut);line-height:1.45}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin:0 0 6px}
+.seg{display:flex;background:var(--bg2);border-radius:12px;padding:3px;border:1px solid var(--line)}
+.seg button{flex:1;background:transparent;border:0;padding:8px 6px;border-radius:9px;color:var(--mut);font-size:14px}
+.seg button.on{background:var(--card2);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.opts{display:grid;gap:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stats{display:flex;gap:8px;margin-bottom:10px}
+.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;text-align:center}
+.stat .k{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+.stat .v{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800}
+.note{font-size:14px;color:var(--mut);margin-top:8px;line-height:1.45}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+.modal .box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:420px;width:100%;max-height:88vh;overflow:auto;color:var(--txt)}
+.modal .box h2{margin:0 0 10px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.modal .box p,.modal .box li{line-height:1.5}
+.modal .row{justify-content:flex-end;margin-top:14px}
+.big{font-size:46px;text-align:center;margin:2px 0 6px}
+.pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,52px);gap:8px;justify-content:center;margin-top:12px;user-select:none}
+.pad button{font-size:22px;padding:0;touch-action:manipulation}
+.pad .u{grid-column:2}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+.help h2{margin:0 0 6px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.help h3{margin:14px 0 4px;font-size:15px;color:var(--acc)}
+.help p,.help li{line-height:1.5;margin:0 0 6px}
+.help ol,.help ul{margin:0 0 4px;padding-left:20px}
+.help .tip{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:14px}
+
+
+.idea{margin:-6px 2px 14px;font-size:14px;color:var(--mut)}.idea b{color:var(--acc)}
+.grid{display:grid;grid-template-columns:repeat(11,1fr);gap:2px;width:min(94vw,440px);margin:0 auto;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.grid.small{width:min(70vw,260px)}
+.grid .lab{display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:clamp(9px,2.4vw,12px);color:var(--mut);font-weight:800}
+.c{aspect-ratio:1/1;border-radius:4px;background:linear-gradient(180deg,#14507e,#0f3d63);position:relative;display:flex;align-items:center;justify-content:center;font-size:clamp(11px,3.4vw,18px)}
+[data-theme=light] .c{background:linear-gradient(180deg,#6cb6ef,#4a9ad8)}
+.target .c.free{cursor:crosshair}
+.target .c.free:hover{box-shadow:inset 0 0 0 2px #ffd23f}
+.c.ship{background:linear-gradient(180deg,#9aa6b2,#6d7883)}
+.c.prev{box-shadow:inset 0 0 0 2px #2fbf6a;background:rgba(47,191,106,.45)}
+.c.bad{box-shadow:inset 0 0 0 2px #e5564b;background:rgba(229,86,75,.45)}
+.c.miss::after{content:"";width:28%;height:28%;border-radius:50%;background:rgba(255,255,255,.75)}
+.c.hit{background:linear-gradient(180deg,#e5564b,#a82a20)}
+.c.hit::after{content:"🔥"}
+.c.sunk{background:linear-gradient(180deg,#3b3f46,#1d2025)}
+.c.sunk::after{content:"✖";color:#ff8a7e;font-weight:900}
+.c.last{outline:3px solid #ffd23f;outline-offset:-1px;z-index:2}
+.c.boom{animation:boom .45s}
+@keyframes boom{40%{transform:scale(1.35)}}
+.fleet{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0}
+.fleet span{font-size:12px;font-weight:800;padding:4px 8px;border-radius:999px;background:var(--card);border:1px solid var(--line)}
+.fleet span.dead{text-decoration:line-through;opacity:.45}
+.fleet span.sel{border-color:var(--acc);color:var(--acc)}
+#status{text-align:center;font-weight:900;font-size:17px;min-height:26px;margin:8px 0}
+.boardTitle{text-align:center;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin:12px 0 6px}
+.cover{position:fixed;inset:0;z-index:40;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px}
+.cover h2{margin:0;font-family:'JetBrains Mono',monospace}
+.cover p{color:var(--mut);max-width:320px;line-height:1.5;margin:0}
+.toggle{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:var(--mut);cursor:pointer}
+.toggle input{width:18px;height:18px;accent-color:var(--acc)}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
+  <header><span class="logo">🚢</span><h1>Schiffe <b>versenken</b></h1><div class="hbtns"><button class="ib" id="btnHelp" title="Anleitung">📖</button><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
+
+  <div class="idea">💡 Eine Spielidee von <b>Elijah</b></div>
+  <section id="setup">
+    <div class="card opts">
+      <div><div class="lbl">Spielart</div><div class="seg" id="modeSeg"><button data-v="cpu">🤖 Gegen Computer</button><button data-v="pvp">👥 Zu zweit</button></div></div>
+      <div id="lvlBox"><div class="lbl">Stärke vom Computer</div><div class="seg" id="lvlSeg"><button data-v="1">Leicht</button><button data-v="2">Mittel</button><button data-v="3">Schwer</button></div></div>
+      <label class="toggle"><input type="checkbox" id="again"> Bei Treffer darf man nochmal schießen</label>
+      <label class="toggle"><input type="checkbox" id="touch"> Schiffe dürfen sich nicht berühren</label>
+    </div>
+    <div class="row"><button class="primary" id="btnStart">Flotte aufstellen</button></div>
+  </section>
+
+  <section id="place" class="hidden">
+    <div id="status2" class="boardTitle" style="font-size:14px;color:var(--txt)"></div>
+    <div class="fleet" id="pfleet"></div>
+    <div class="grid" id="pgrid"></div>
+    <div class="row" style="justify-content:center;margin-top:12px"><button class="small" id="btnRot">🔄 Drehen</button><button class="small" id="btnRand">🎲 Zufällig</button><button class="small" id="btnClear">Leeren</button><button class="primary small" id="btnReady" disabled>Fertig ✓</button></div>
+    <div class="note" style="text-align:center">Schiff oben auswählen, dann aufs Meer tippen. „Drehen“ wechselt zwischen waagrecht und senkrecht. Auf ein gesetztes Schiff tippen = wieder wegnehmen.</div>
+  </section>
+
+  <section id="battle" class="hidden">
+    <div id="status"></div>
+    <div class="boardTitle" id="tTitle">Gegnerisches Meer – tippe zum Schießen</div>
+    <div class="grid target" id="tgrid"></div>
+    <div class="fleet" id="efleet"></div>
+    <div class="boardTitle" id="oTitle">Deine Flotte</div>
+    <div class="grid small" id="ogrid"></div>
+    <div class="row" style="justify-content:center;margin-top:12px"><button class="small" id="btnMenu">‹ Menü</button></div>
+  </section>
+  <div class="cover hidden" id="cover"></div>
+
+  <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
+</div>
+<script>
+const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const KIT={get(k,d){try{const v=JSON.parse(localStorage.getItem('bs-'+k));return v??d;}catch(e){return d;}},set(k,v){try{localStorage.setItem('bs-'+k,JSON.stringify(v));}catch(e){}}};
+let theme=KIT.get('theme','dark'),soundOn=KIT.get('sound',true);
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function applyTheme(){document.documentElement.dataset.theme=theme;$('#btnTheme').textContent=theme==='dark'?'☀️':'🌙';if(window.onTheme)window.onTheme();}
+$('#btnTheme').onclick=()=>{theme=theme==='dark'?'light':'dark';KIT.set('theme',theme);applyTheme();};
+$('#btnSound').onclick=()=>{soundOn=!soundOn;KIT.set('sound',soundOn);$('#btnSound').textContent=soundOn?'🔊':'🔇';};
+$('#btnSound').textContent=soundOn?'🔊':'🔇';
+let actx=null;
+document.addEventListener('pointerdown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}},{passive:true});
+document.addEventListener('keydown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}});
+function tone(f,d=.1,delay=0,type='triangle',v=.18){if(!soundOn||!actx||actx.state!=='running')return;try{const t=actx.currentTime+delay,o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+d+.03);}catch(e){}}
+const sWin=()=>[523,659,784,1046].forEach((f,k)=>tone(f,.18,k*.12));
+const sLose=()=>[392,330,262].forEach((f,k)=>tone(f,.22,k*.15,'sine'));
+function confetti(){try{
+  const c=document.createElement('canvas'),dpr=window.devicePixelRatio||1;c.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:80';document.body.appendChild(c);
+  const ctx=c.getContext('2d'),W=c.width=innerWidth*dpr,H=c.height=innerHeight*dpr,cols=['#e8b04b','#21c3e6','#e0453a','#2fa35a','#f2c21b','#ffffff','#7b5cff'];
+  const ps=Array.from({length:150},()=>({x:W/2+(Math.random()-.5)*W*.3,y:H*.4,vx:(Math.random()-.5)*W*.03,vy:-Math.random()*H*.028-H*.008,r:Math.random()*6,vr:(Math.random()-.5)*.3,s:(6+Math.random()*7)*dpr,c:cols[Math.random()*cols.length|0]}));
+  let t=0;(function f(){t++;ctx.clearRect(0,0,W,H);for(const p of ps){p.vy+=H*.0008;p.vx*=.985;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);ctx.restore();}if(t<170)requestAnimationFrame(f);else c.remove();})();
+}catch(e){}}
+function modal(html,setup,dismiss=true){return new Promise(res=>{const m=$('#modal'),box=$('#modalBox');box.innerHTML=html;m.classList.remove('hidden');
+  const close=v=>{m.classList.add('hidden');box.innerHTML='';m.onclick=null;res(v);};
+  box.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>close(b.dataset.v));if(setup)setup(box,close);
+  m.onclick=e=>{if(e.target===m&&dismiss)close(null);};});}
+const confirmBox=(text,yes='Ja',no='Abbrechen')=>modal(`<p>${text}</p><div class="row"><button data-v="0">${no}</button><button class="primary" data-v="1">${yes}</button></div>`).then(v=>v==='1');
+const infoBox=(html,btn='OK')=>modal(html+`<div class="row"><button class="primary" data-v="1">${btn}</button></div>`);
+// Swipe-Hilfe
+function onSwipe(el,cb){let sx=0,sy=0,act=false;
+  el.addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;act=true;},{passive:true});
+  el.addEventListener('touchmove',e=>{if(!act)return;const t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))>22){cb(Math.abs(dx)>Math.abs(dy)?(dx>0?'r':'l'):(dy>0?'d':'u'));act=false;}e.preventDefault();},{passive:false});
+  el.addEventListener('touchend',()=>act=false);}
+setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
+
+function showHelp(){if(!window.HELP)return;return modal(`<div class="help">${window.HELP}</div><div class="row"><button class="primary" data-v="1">Los geht's!</button></div>`);}
+$('#btnHelp').onclick=showHelp;
+function initHelp(id){if(window.HELP&&!KIT.get('help-seen-'+id,false)){KIT.set('help-seen-'+id,true);setTimeout(showHelp,350);}}
+
+
+window.HELP=`<h2>🚢 So spielst du Schiffe versenken</h2>
+<h3>Ziel</h3><p>Versenke alle Schiffe deines Gegners, bevor er deine versenkt!</p>
+<h3>1. Flotte aufstellen</h3><ul><li>Jeder hat 5 Schiffe: <b>Schlachtschiff (5)</b>, <b>Kreuzer (4)</b>, <b>2 Zerstörer (3)</b> und ein <b>U-Boot (2)</b>.</li><li>Schiff oben antippen, dann aufs Meer tippen. Mit <b>🔄 Drehen</b> stellst du es senkrecht oder waagrecht. Grün = passt, Rot = geht nicht.</li><li>Keine Lust? <b>🎲 Zufällig</b> verteilt alles automatisch.</li></ul>
+<h3>2. Schießen</h3><ul><li>Tippe auf ein Feld im <b>gegnerischen Meer</b>.</li><li>⚪ Weißer Punkt = <b>Wasser</b> (daneben). 🔥 = <b>Treffer</b>! ✖ auf Schwarz = Schiff <b>versenkt</b>.</li><li>Unten siehst du deine eigene Flotte und wohin der Gegner geschossen hat.</li></ul>
+<h3>Spielarten</h3><ul><li><b>🤖 Gegen Computer:</b> Leicht schießt wild herum, Mittel sucht nach einem Treffer die Nachbarfelder ab, Schwer rechnet aus, wo Schiffe am wahrscheinlichsten liegen.</li><li><b>👥 Zu zweit:</b> Am selben Handy. Zwischen den Zügen kommt ein Bildschirm zum Weitergeben, damit keiner die Schiffe des anderen sieht.</li></ul>
+<div class="tip">💡 Tipp: Schieß am Anfang im <b>Schachbrett-Muster</b> (jedes zweite Feld) – so findest du Schiffe schneller. Hast du einen Treffer, probier die Felder daneben!</div>`;
+const N=10,SHIPS=[{n:'Schlachtschiff',l:5},{n:'Kreuzer',l:4},{n:'Zerstörer',l:3},{n:'Zerstörer',l:3},{n:'U-Boot',l:2}];
+const COLS='ABCDEFGHIJ';
+let cfg=KIT.get('schiffe-cfg',{mode:'cpu',lvl:2,again:true,touch:true});
+function renderSetup(){$$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.mode));$$('#lvlSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.v===cfg.lvl));
+  $('#lvlBox').classList.toggle('hidden',cfg.mode!=='cpu');$('#again').checked=cfg.again;$('#touch').checked=cfg.touch;}
+$('#modeSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;cfg.mode=b.dataset.v;KIT.set('schiffe-cfg',cfg);renderSetup();};
+$('#lvlSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;cfg.lvl=+b.dataset.v;KIT.set('schiffe-cfg',cfg);renderSetup();};
+$('#again').onchange=e=>{cfg.again=e.target.checked;KIT.set('schiffe-cfg',cfg);};$('#touch').onchange=e=>{cfg.touch=e.target.checked;KIT.set('schiffe-cfg',cfg);};
+/* Spieler-Daten: ships=[{l,n,cells:[idx],hits:0}], shots=Set (Schüsse AUF diesen Spieler) */
+const newPlayer=name=>({name,ships:[],shots:new Map(),cpu:false});
+function cellsFor(r,c,l,vert){const out=[];for(let k=0;k<l;k++){const rr=r+(vert?k:0),cc=c+(vert?0:k);if(rr>=N||cc>=N)return null;out.push(rr*N+cc);}return out;}
+function canPlace(p,cells,ignore){if(!cells)return false;const occ=new Set();p.ships.forEach(s=>{if(s===ignore)return;s.cells.forEach(i=>{occ.add(i);if(cfg.touch){const r=i/N|0,c=i%N;for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const rr=r+dr,cc=c+dc;if(rr>=0&&rr<N&&cc>=0&&cc<N)occ.add(rr*N+cc);}}});});return cells.every(i=>!occ.has(i));}
+function randomFleet(p){for(let tries=0;tries<200;tries++){p.ships=[];let ok=true;for(const s of SHIPS){let placed=false;for(let t=0;t<300&&!placed;t++){const v=Math.random()<.5,cells=cellsFor(Math.random()*N|0,Math.random()*N|0,s.l,v);if(canPlace(p,cells)){p.ships.push({...s,cells,hits:0});placed=true;}}if(!placed){ok=false;break;}}if(ok)return;}}
+const shipAt=(p,i)=>p.ships.find(s=>s.cells.includes(i));
+const alive=p=>p.ships.filter(s=>s.hits<s.l).length;
+function gridHTML(id){let h='<div class="lab"></div>'+[...COLS].map(c=>`<div class="lab">${c}</div>`).join('');for(let r=0;r<N;r++){h+=`<div class="lab">${r+1}</div>`;for(let c=0;c<N;c++)h+=`<div class="c" data-i="${r*N+c}"></div>`;}$(id).innerHTML=h;}
+/* ===== Aufstellen ===== */
+let P=[],placing=0,selShip=0,vert=false,hoverI=null;
+function startSetup(){
+  P=[newPlayer(cfg.mode==='cpu'?'Du':'Spieler 1'),newPlayer(cfg.mode==='cpu'?'Computer':'Spieler 2')];if(cfg.mode==='cpu'){P[1].cpu=true;randomFleet(P[1]);}
+  placing=0;$('#setup').classList.add('hidden');beginPlace();
+}
+async function beginPlace(){
+  if(cfg.mode==='pvp')await cover(`<h2>🚢 ${P[placing].name}</h2><p>Stell jetzt deine Flotte auf.<br>${P[1-placing].name}: bitte wegschauen! 🙈</p>`,'Los');
+  $('#place').classList.remove('hidden');$('#battle').classList.add('hidden');selShip=0;vert=false;gridHTML('#pgrid');renderPlace();
+}
+function placedIdx(){const p=P[placing];return SHIPS.map((s,k)=>p.ships.find(x=>x.k===k));}
+function renderPlace(){
+  const p=P[placing],pl=placedIdx();if(pl[selShip])selShip=pl.findIndex(x=>!x);if(selShip<0)selShip=0;
+  $('#status2').textContent=`${p.name}: Stell deine Flotte auf (${p.ships.length}/5)`;
+  $('#pfleet').innerHTML=SHIPS.map((s,k)=>`<span class="${pl[k]?'dead':''} ${k===selShip&&!pl[k]?'sel':''}" data-k="${k}">${s.n} ${'■'.repeat(s.l)}</span>`).join('');
+  const cells=$$('#pgrid .c');cells.forEach(c=>c.className='c');p.ships.forEach(s=>s.cells.forEach(i=>cells[i].classList.add('ship')));
+  if(hoverI!==null&&!pl[selShip]){const r=hoverI/N|0,c=hoverI%N,cs=cellsFor(r,c,SHIPS[selShip].l,vert);const ok=canPlace(p,cs);(cs||[]).forEach(i=>cells[i].classList.add(ok?'prev':'bad'));}
+  $('#btnReady').disabled=p.ships.length<5;$('#btnRot').textContent=vert?'🔄 Senkrecht':'🔄 Waagrecht';
+}
+$('#pfleet').onclick=e=>{const s=e.target.closest('span');if(!s)return;const k=+s.dataset.k;if(placedIdx()[k])return;selShip=k;renderPlace();};
+$('#pgrid').addEventListener('pointermove',e=>{const c=e.target.closest('.c');if(!c||e.pointerType==='touch')return;hoverI=+c.dataset.i;renderPlace();});
+$('#pgrid').addEventListener('pointerleave',()=>{hoverI=null;renderPlace();});
+$('#pgrid').onclick=e=>{const c=e.target.closest('.c');if(!c)return;const i=+c.dataset.i,p=P[placing],s=shipAt(p,i);
+  if(s){p.ships=p.ships.filter(x=>x!==s);selShip=s.k;tone(300,.05);hoverI=null;renderPlace();return;}
+  const pl=placedIdx();if(pl[selShip])return;const cs=cellsFor(i/N|0,i%N,SHIPS[selShip].l,vert);
+  if(!canPlace(p,cs)){tone(200,.1);$('#status2').textContent=cfg.touch?'Passt nicht – Schiffe dürfen sich nicht berühren!':'Passt hier nicht hin!';return;}
+  p.ships.push({...SHIPS[selShip],k:selShip,cells:cs,hits:0});tone(520,.06);hoverI=null;renderPlace();};
+$('#btnRot').onclick=()=>{vert=!vert;renderPlace();};
+$('#btnRand').onclick=()=>{const p=P[placing];randomFleet(p);p.ships.forEach((s,k)=>s.k=k);tone(600,.06);renderPlace();};
+$('#btnClear').onclick=()=>{P[placing].ships=[];renderPlace();};
+$('#btnReady').onclick=()=>{P[placing].ships.forEach(s=>s.hits=0);
+  if(cfg.mode==='pvp'&&placing===0){placing=1;$('#place').classList.add('hidden');beginPlace();return;}
+  $('#place').classList.add('hidden');startBattle();};
+function cover(html,btn){return new Promise(res=>{const c=$('#cover');c.innerHTML=html+`<button class="primary">${btn}</button>`;c.classList.remove('hidden');c.querySelector('button').onclick=()=>{c.classList.add('hidden');res();};});}
+/* ===== Schlacht ===== */
+let turn=0,busy=false,over=false,lastShot=[null,null],token=0;
+function startBattle(){token++;turn=0;over=false;busy=false;lastShot=[null,null];$('#battle').classList.remove('hidden');gridHTML('#tgrid');gridHTML('#ogrid');
+  sTone();if(cfg.mode==='pvp')turnCover();else renderBattle();}
+const sTone=()=>{tone(392,.1);tone(523,.15,.1);};
+async function turnCover(){busy=true;$('#battle').classList.add('hidden');await cover(`<h2>🎯 ${P[turn].name} ist dran</h2><p>Gib das Handy an ${P[turn].name}.<br>Nicht schummeln! 😉</p>`,'Ich bin bereit');$('#battle').classList.remove('hidden');busy=false;renderBattle();}
+function renderBattle(){
+  const me=P[turn],en=P[1-turn],view=cfg.mode==='cpu'?P[0]:me,foe=cfg.mode==='cpu'?P[1]:en;
+  // Zielgitter = Schüsse auf den Gegner
+  const tc=$$('#tgrid .c');tc.forEach((c,i)=>{const r=foe.shots.get(i);let cl='c';if(!r)cl+=' free';else if(r==='miss')cl+=' miss';else{const s=shipAt(foe,i);cl+=s.hits>=s.l?' sunk':' hit';}if(lastShot[cfg.mode==='cpu'?0:turn]===i)cl+=' last';c.className=cl;});
+  if(over)foe.ships.forEach(s=>s.cells.forEach(i=>{if(!foe.shots.get(i))tc[i].classList.add('ship');}));
+  const oc=$$('#ogrid .c');oc.forEach((c,i)=>{const s=shipAt(view,i),r=view.shots.get(i);let cl='c';if(s)cl+=s.hits>=s.l&&r?' sunk':r?' hit':' ship';else if(r)cl+=' miss';if(lastShot[cfg.mode==='cpu'?1:1-turn]===i)cl+=' last';c.className=cl;});
+  $('#efleet').innerHTML=foe.ships.map(s=>`<span class="${s.hits>=s.l?'dead':''}">${s.n} ${'■'.repeat(s.l)}</span>`).join('');
+  $('#tTitle').textContent=cfg.mode==='cpu'?'Meer vom Computer – tippe zum Schießen':`Meer von ${foe.name} – tippe zum Schießen`;$('#oTitle').textContent=cfg.mode==='cpu'?'Deine Flotte':`Flotte von ${view.name}`;
+  if(!over)$('#status').textContent=cfg.mode==='cpu'?(turn===0?'🎯 Du bist dran!':'🤖 Computer zielt …'):`🎯 ${me.name} schießt`;
+}
+$('#tgrid').onclick=e=>{const c=e.target.closest('.c');if(!c||busy||over)return;if(cfg.mode==='cpu'&&turn!==0)return;fire(+c.dataset.i);};
+async function fire(i){
+  const shooter=turn,foe=P[1-shooter];if(foe.shots.has(i))return;busy=true;const tk=token;
+  const s=shipAt(foe,i);foe.shots.set(i,s?'hit':'miss');lastShot[shooter]=i;let msg;
+  if(s){s.hits++;if(s.hits>=s.l){msg=`💥 Versenkt! ${s.n} (${s.l})`;[200,150,110].forEach((f,k)=>tone(f,.2,k*.1,'sawtooth',.12));
+      if(cfg.touch)s.cells.forEach(ci=>{const r=ci/N|0,c=ci%N;for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const rr=r+dr,cc=c+dc;if(rr>=0&&rr<N&&cc>=0&&cc<N&&!foe.shots.has(rr*N+cc))foe.shots.set(rr*N+cc,'miss');}});}
+    else{msg='🔥 Treffer!';tone(160,.2,0,'sawtooth',.14);}}
+  else{msg='💦 Wasser.';tone(700,.06,0,'sine',.1);tone(500,.1,.05,'sine',.08);}
+  const who=cfg.mode==='cpu'?(shooter===0?'':'🤖 Computer: '):`${P[shooter].name}: `;
+  renderBattle();const grid=(cfg.mode==='cpu'&&shooter===1)?'#ogrid':'#tgrid';const el=$$(grid+' .c')[i];if(el)el.classList.add('boom');
+  $('#status').textContent=who+msg;
+  if(!alive(foe)){over=true;renderBattle();
+    if(cfg.mode==='cpu'){if(shooter===0){$('#status').textContent='🏆 Gewonnen! Du hast die ganze Flotte versenkt!';confetti();sWin();}else{$('#status').textContent='😕 Der Computer hat deine Flotte versenkt. Nochmal?';sLose();}}
+    else{$('#status').textContent=`🏆 ${P[shooter].name} gewinnt!`;confetti();sWin();}
+    endButtons();return;}
+  await sleep(cfg.mode==='cpu'&&shooter===1?700:(cfg.mode==='pvp'?1100:350));if(tk!==token)return;
+  const again=s&&cfg.again;
+  if(!again)turn=1-turn;
+  busy=false;
+  if(cfg.mode==='pvp'){if(!again)turnCover();else renderBattle();}
+  else{renderBattle();if(turn===1){busy=true;await sleep(600);if(tk!==token)return;busy=false;fire(cpuPick());}}
+}
+function endButtons(){$('#status').insertAdjacentHTML('beforeend','<div class="row" style="justify-content:center;margin-top:10px"><button class="primary small" id="bAgain">Nochmal</button></div>');$('#bAgain').onclick=()=>startSetup();}
+/* ===== Computer-Ziel ===== */
+function cpuPick(){
+  const foe=P[0],free=[];for(let i=0;i<N*N;i++)if(!foe.shots.has(i))free.push(i);
+  const rnd=a=>a[Math.floor(Math.random()*a.length)];
+  if(cfg.lvl===1&&Math.random()<.75)return rnd(free);
+  // offene Treffer (nicht versenkte Schiffe)
+  const open=[];foe.shots.forEach((v,i)=>{if(v==='hit'){const s=shipAt(foe,i);if(s.hits<s.l)open.push(i);}});
+  if(open.length){
+    const cand=new Map();const add=(i,w)=>{if(i>=0&&!foe.shots.has(i))cand.set(i,(cand.get(i)||0)+w);};
+    for(const i of open){const r=i/N|0,c=i%N;
+      // Linie verlängern, wenn zwei Treffer nebeneinander
+      const H=open.some(j=>j===i-1&&c>0||j===i+1&&c<N-1),V=open.some(j=>j===i-N||j===i+N);
+      if(c>0)add(i-1,H?5:1);if(c<N-1)add(i+1,H?5:1);if(r>0)add(i-N,V?5:1);if(r<N-1)add(i+N,V?5:1);}
+    if(cand.size){const best=Math.max(...cand.values());return rnd([...cand].filter(([,w])=>w===best).map(([i])=>i));}
+  }
+  if(cfg.lvl===3){ // Wahrscheinlichkeits-Karte
+    const left=foe.ships.filter(s=>s.hits<s.l).map(s=>s.l),score=new Array(N*N).fill(0);
+    for(const L of left)for(let r=0;r<N;r++)for(let c=0;c<N;c++)for(const v of[false,true]){const cs=cellsFor(r,c,L,v);if(!cs)continue;if(cs.every(i=>!foe.shots.has(i)))cs.forEach(i=>score[i]++);}
+    const best=Math.max(...free.map(i=>score[i]));return rnd(free.filter(i=>score[i]===best));}
+  const parity=free.filter(i=>((i/N|0)+i%N)%2===0);return rnd(parity.length?parity:free);
+}
+$('#btnStart').onclick=startSetup;
+$('#btnMenu').onclick=async()=>{if(!over&&!(await confirmBox('Spiel abbrechen?','Abbrechen','Weiterspielen')))return;token++;$('#battle').classList.add('hidden');$('#place').classList.add('hidden');$('#setup').classList.remove('hidden');renderSetup();};
+window.onTheme=()=>{};applyTheme();renderSetup();
+
+initHelp('schiffe-versenken');
+</script>
+</body>
+</html>
