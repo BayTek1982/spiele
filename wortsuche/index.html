@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wortsuche</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('bs-theme'))||'dark';}catch(e){document.documentElement.dataset.theme='dark';}</script>
+<style>
+:root{--acc:#ff9f1c;--acc-ink:#14181e}
+:root{--bg1:#1f2630;--bg2:#141920;--card:#27303b;--card2:#2f3946;--line:#3a4552;--txt:#eef1f5;--mut:#a7b1bd;--cell:#1b222b;--shadow:rgba(0,0,0,.45)}
+[data-theme=light]{--bg1:#f4f1ea;--bg2:#e9e4d8;--card:#ffffff;--card2:#f2eee6;--line:#ddd5c6;--txt:#1f2630;--mut:#6b7380;--cell:#f7f4ee;--shadow:rgba(60,50,30,.18)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--txt);min-height:100vh;transition:background .3s,color .3s;
+ background:radial-gradient(900px 500px at 12% -10%,color-mix(in srgb,var(--acc) 16%,transparent),transparent 60%),radial-gradient(700px 500px at 110% 15%,rgba(33,195,230,.08),transparent 60%),linear-gradient(180deg,var(--bg1),var(--bg2)) fixed}
+#app{max-width:var(--maxw,640px);margin:0 auto;padding:14px 12px 40px}
+.hidden{display:none!important}
+a.back{color:var(--mut);text-decoration:none;font-weight:700;font-size:14px;display:inline-block;margin:0 0 8px 2px}
+header{display:flex;align-items:center;gap:10px;margin:4px 2px 14px}
+header .logo{font-size:26px}
+header h1{font-family:'JetBrains Mono',monospace;font-size:21px;margin:0;font-weight:800;letter-spacing:-.5px}
+header h1 b{color:var(--acc)}
+.hbtns{margin-left:auto;display:flex;gap:6px}
+.ib{padding:7px 10px!important;font-size:17px!important;line-height:1}
+button{font:inherit;cursor:pointer;border-radius:12px;padding:10px 14px;font-weight:800;color:var(--txt);background:var(--card2);border:1px solid var(--line);transition:filter .15s,transform .1s}
+button:hover:not(:disabled){filter:brightness(1.06)}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--acc);color:var(--acc-ink,#14181e);border-color:var(--acc)}
+button.small{padding:7px 12px;font-size:14px;border-radius:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.card h2{margin:0 0 8px;font-size:18px}
+.card p{margin:0 0 8px;color:var(--mut);line-height:1.45}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin:0 0 6px}
+.seg{display:flex;background:var(--bg2);border-radius:12px;padding:3px;border:1px solid var(--line)}
+.seg button{flex:1;background:transparent;border:0;padding:8px 6px;border-radius:9px;color:var(--mut);font-size:14px}
+.seg button.on{background:var(--card2);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.opts{display:grid;gap:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stats{display:flex;gap:8px;margin-bottom:10px}
+.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;text-align:center}
+.stat .k{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+.stat .v{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800}
+.note{font-size:14px;color:var(--mut);margin-top:8px;line-height:1.45}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+.modal .box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:420px;width:100%;max-height:88vh;overflow:auto;color:var(--txt)}
+.modal .box h2{margin:0 0 10px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.modal .box p,.modal .box li{line-height:1.5}
+.modal .row{justify-content:flex-end;margin-top:14px}
+.big{font-size:46px;text-align:center;margin:2px 0 6px}
+.pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,52px);gap:8px;justify-content:center;margin-top:12px;user-select:none}
+.pad button{font-size:22px;padding:0;touch-action:manipulation}
+.pad .u{grid-column:2}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+.help h2{margin:0 0 6px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.help h3{margin:14px 0 4px;font-size:15px;color:var(--acc)}
+.help p,.help li{line-height:1.5;margin:0 0 6px}
+.help ol,.help ul{margin:0 0 4px;padding-left:20px}
+.help .tip{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:14px}
+
+
+.seat{display:flex;gap:8px;margin-bottom:8px;align-items:center}
+.seat .dot{width:20px;height:20px;border-radius:50%;flex:none}
+.seat input{flex:1;min-width:0;font:inherit;font-weight:700;background:var(--bg2);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:7px 10px}
+.players{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.pc{flex:1;min-width:76px;padding:7px 8px;border-radius:12px;background:var(--card);border:2px solid var(--line);text-align:center;font-weight:800;font-size:13px}
+.pc b{display:block;font-family:'JetBrains Mono',monospace;font-size:20px}
+.pc.cur{box-shadow:0 0 16px -4px var(--pcol)}
+.timer{height:10px;border-radius:6px;background:var(--line);overflow:hidden;margin-bottom:8px}.timer i{display:block;height:100%;width:100%;background:var(--acc)}
+.timer.warn i{background:#e5564b}
+#status{text-align:center;font-weight:900;font-size:16px;min-height:24px;margin-bottom:8px}
+#grid{display:grid;gap:3px;width:min(94vw,500px);margin:0 auto;touch-action:none;user-select:none;-webkit-user-select:none;position:relative}
+.ch{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;border-radius:7px;background:var(--card);border:1px solid var(--line);font-weight:900;font-family:'JetBrains Mono',monospace;font-size:clamp(13px,4.2vw,22px);transition:background .15s,transform .1s}
+.ch.sel{background:color-mix(in srgb,var(--acc) 55%,var(--card));color:#111;transform:scale(1.07)}
+.ch.bad{animation:shk .3s}
+@keyframes shk{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.ch.found{color:#fff}
+.ch.hint{animation:hint 1s ease-in-out 2}
+@keyframes hint{50%{background:#ffd23f;color:#111}}
+.words{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}
+.words span{padding:5px 10px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-weight:800;font-size:13.5px;font-family:'JetBrains Mono',monospace;letter-spacing:.5px}
+.words span.got{text-decoration:line-through;color:#fff;border-color:transparent}
+.cover{position:fixed;inset:0;z-index:40;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px}
+.cover h2{margin:0;font-family:'JetBrains Mono',monospace}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
+  <header><span class="logo">🔎</span><h1>Wort<b>suche</b></h1><div class="hbtns"><button class="ib" id="btnHelp" title="Anleitung">📖</button><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
+
+  <section id="setup">
+    <div class="card opts">
+      <div><div class="lbl">Spielart</div><div class="seg" id="modeSeg"><button data-v="cpu">🤖 Gegen Computer</button><button data-v="fam">👥 Mit Freunden</button><button data-v="solo">⏱ Allein</button></div></div>
+      <div id="namesBox"><div class="lbl">Spieler</div><div id="names"></div></div>
+      <div id="lvlBox"><div class="lbl">Wie schnell ist der Computer?</div><div class="seg" id="lvlSeg"><button data-v="1">Gemütlich</button><button data-v="2">Flott</button><button data-v="3">Profi</button></div></div>
+      <div id="timeBox"><div class="lbl">Zeit pro Zug</div><div class="seg" id="timeSeg"><button data-v="30">30 s</button><button data-v="60">1 Min</button><button data-v="90">1:30</button><button data-v="120">2 Min</button><button data-v="0">∞</button></div></div>
+      <div><div class="lbl">Thema</div><div class="seg" id="themeSeg" style="flex-wrap:wrap"></div></div>
+      <div><div class="lbl">Schwierigkeit</div><div class="seg" id="diffSeg"><button data-v="1">🙂 Leicht</button><button data-v="2">😎 Mittel</button><button data-v="3">🔥 Schwer</button></div><div class="note" id="diffInfo"></div></div>
+    </div>
+    <div class="row"><button class="primary" id="btnStart">Rätsel starten 🔎</button></div>
+  </section>
+  <section id="game" class="hidden">
+    <div class="players" id="players"></div>
+    <div class="timer" id="timer"><i id="tfill"></i></div>
+    <div id="status"></div>
+    <div id="grid"></div>
+    <div class="words" id="words"></div>
+    <div class="row" style="justify-content:center;margin-top:12px"><button class="small" id="btnHint">💡 Tipp</button><button class="small" id="btnSkip">⏭ Zug abgeben</button><button class="small" id="btnMenu">‹ Menü</button></div>
+  </section>
+  <div class="cover hidden" id="cover"></div>
+
+  <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
+</div>
+<script>
+const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const KIT={get(k,d){try{const v=JSON.parse(localStorage.getItem('bs-'+k));return v??d;}catch(e){return d;}},set(k,v){try{localStorage.setItem('bs-'+k,JSON.stringify(v));}catch(e){}}};
+let theme=KIT.get('theme','dark'),soundOn=KIT.get('sound',true);
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function applyTheme(){document.documentElement.dataset.theme=theme;$('#btnTheme').textContent=theme==='dark'?'☀️':'🌙';if(window.onTheme)window.onTheme();}
+$('#btnTheme').onclick=()=>{theme=theme==='dark'?'light':'dark';KIT.set('theme',theme);applyTheme();};
+$('#btnSound').onclick=()=>{soundOn=!soundOn;KIT.set('sound',soundOn);$('#btnSound').textContent=soundOn?'🔊':'🔇';};
+$('#btnSound').textContent=soundOn?'🔊':'🔇';
+let actx=null;
+document.addEventListener('pointerdown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}},{passive:true});
+document.addEventListener('keydown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}});
+function tone(f,d=.1,delay=0,type='triangle',v=.18){if(!soundOn||!actx||actx.state!=='running')return;try{const t=actx.currentTime+delay,o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+d+.03);}catch(e){}}
+const sWin=()=>[523,659,784,1046].forEach((f,k)=>tone(f,.18,k*.12));
+const sLose=()=>[392,330,262].forEach((f,k)=>tone(f,.22,k*.15,'sine'));
+function confetti(){try{
+  const c=document.createElement('canvas'),dpr=window.devicePixelRatio||1;c.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:80';document.body.appendChild(c);
+  const ctx=c.getContext('2d'),W=c.width=innerWidth*dpr,H=c.height=innerHeight*dpr,cols=['#e8b04b','#21c3e6','#e0453a','#2fa35a','#f2c21b','#ffffff','#7b5cff'];
+  const ps=Array.from({length:150},()=>({x:W/2+(Math.random()-.5)*W*.3,y:H*.4,vx:(Math.random()-.5)*W*.03,vy:-Math.random()*H*.028-H*.008,r:Math.random()*6,vr:(Math.random()-.5)*.3,s:(6+Math.random()*7)*dpr,c:cols[Math.random()*cols.length|0]}));
+  let t=0;(function f(){t++;ctx.clearRect(0,0,W,H);for(const p of ps){p.vy+=H*.0008;p.vx*=.985;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);ctx.restore();}if(t<170)requestAnimationFrame(f);else c.remove();})();
+}catch(e){}}
+function modal(html,setup,dismiss=true){return new Promise(res=>{const m=$('#modal'),box=$('#modalBox');box.innerHTML=html;m.classList.remove('hidden');
+  const close=v=>{m.classList.add('hidden');box.innerHTML='';m.onclick=null;res(v);};
+  box.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>close(b.dataset.v));if(setup)setup(box,close);
+  m.onclick=e=>{if(e.target===m&&dismiss)close(null);};});}
+const confirmBox=(text,yes='Ja',no='Abbrechen')=>modal(`<p>${text}</p><div class="row"><button data-v="0">${no}</button><button class="primary" data-v="1">${yes}</button></div>`).then(v=>v==='1');
+const infoBox=(html,btn='OK')=>modal(html+`<div class="row"><button class="primary" data-v="1">${btn}</button></div>`);
+// Swipe-Hilfe
+function onSwipe(el,cb){let sx=0,sy=0,act=false;
+  el.addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;act=true;},{passive:true});
+  el.addEventListener('touchmove',e=>{if(!act)return;const t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))>22){cb(Math.abs(dx)>Math.abs(dy)?(dx>0?'r':'l'):(dy>0?'d':'u'));act=false;}e.preventDefault();},{passive:false});
+  el.addEventListener('touchend',()=>act=false);}
+setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
+
+function showHelp(){if(!window.HELP)return;return modal(`<div class="help">${window.HELP}</div><div class="row"><button class="primary" data-v="1">Los geht's!</button></div>`);}
+$('#btnHelp').onclick=showHelp;
+function initHelp(id){if(window.HELP&&!KIT.get('help-seen-'+id,false)){KIT.set('help-seen-'+id,true);setTimeout(showHelp,350);}}
+
+
+window.HELP=`<h2>🔎 So spielst du Wortsuche</h2>
+<h3>Ziel</h3><p>Im Buchstaben-Kasten sind Wörter versteckt. Unten steht, welche Wörter du suchen musst. Finde sie!</p>
+<h3>Wort markieren</h3><ul><li><b>Wischen:</b> Finger auf den ersten Buchstaben legen und bis zum letzten Buchstaben ziehen.</li><li><b>Oder tippen:</b> erst den ersten, dann den letzten Buchstaben antippen.</li><li>Wörter stehen in geraden Linien – je nach Schwierigkeit waagrecht, senkrecht, schräg oder sogar rückwärts.</li></ul>
+<h3>Abwechselnd spielen</h3><ul><li>Jeder Spieler hat pro Zug eine <b>begrenzte Zeit</b> (30 Sekunden, 1 Minute … du kannst sie vorher wählen).</li><li>Findest du ein Wort, bekommst du <b>Punkte</b> (lange Wörter bringen mehr) – dann ist der Nächste dran.</li><li>Läuft die Zeit ab, ist ohne Punkt der Nächste dran.</li><li>Wenn alle Wörter gefunden sind, gewinnt, wer die meisten Punkte hat.</li></ul>
+<h3>Spielarten</h3><ul><li><b>🤖 Gegen Computer:</b> Du und der Computer sucht abwechselnd.</li><li><b>👥 Mit Freunden:</b> 2 bis 4 Spieler am selben Handy – reihum weitergeben.</li><li><b>⏱ Allein:</b> Finde alle Wörter so schnell du kannst.</li></ul>
+<div class="tip">💡 Der <b>Tipp</b>-Knopf zeigt dir kurz den ersten Buchstaben eines Wortes – kostet aber 1 Punkt.</div>`;
+const THEMES={
+ tiere:{n:'🐾 Tiere',w:['HUND','KATZE','MAUS','PFERD','KUH','SCHWEIN','ZIEGE','SCHAF','LOEWE','TIGER','ELEFANT','GIRAFFE','AFFE','ZEBRA','BAER','FUCHS','WOLF','HASE','IGEL','ADLER','PINGUIN','DELFIN','HAI','WAL','KROKODIL','SCHLANGE','FROSCH','BIENE','EULE','PANDA']},
+ essen:{n:'🍕 Essen',w:['PIZZA','NUDELN','BROT','KAESE','WURST','APFEL','BANANE','BIRNE','KIRSCHE','TOMATE','GURKE','KAROTTE','SUPPE','REIS','SALAT','KUCHEN','TORTE','EIS','HONIG','BUTTER','MILCH','JOGHURT','DOENER','BREZE','PAPRIKA','ZWIEBEL','KARTOFFEL','MELONE','TRAUBE','KEKS']},
+ schule:{n:'🎒 Schule',w:['LEHRER','TAFEL','KREIDE','HEFT','BUCH','STIFT','LINEAL','PAUSE','KLASSE','MATHE','DEUTSCH','SPORT','MUSIK','KUNST','ZEUGNIS','RANZEN','RADIERER','SCHERE','KLEBER','FERIEN','NOTE','TEST','LESEN','RECHNEN','SCHREIBEN','GLOCKE','PAUSENHOF','MAPPE']},
+ sport:{n:'⚽ Sport',w:['FUSSBALL','TOR','BALL','TENNIS','BOXEN','JUDO','KARATE','SKI','RODELN','SCHWIMMEN','LAUFEN','SPRINT','HANDBALL','GOLF','RUGBY','SIEG','POKAL','MEDAILLE','TRAINER','STADION','ELFMETER','EISHOCKEY','TURNEN','RINGEN','RADFAHREN','REITEN','SURFEN','VOLLEYBALL']},
+ welt:{n:'🚀 Weltraum',w:['SONNE','MOND','STERN','PLANET','ERDE','MARS','VENUS','JUPITER','SATURN','NEPTUN','URANUS','MERKUR','RAKETE','KOMET','GALAXIE','ASTRONAUT','ORBIT','KRATER','METEOR','TELESKOP','ALL','UFO','SATELLIT','LICHTJAHR','ROVER','STATION']},
+ auto:{n:'🚗 Fahrzeuge',w:['AUTO','BUS','ZUG','BAHN','FAHRRAD','ROLLER','LKW','TRAKTOR','BAGGER','KRAN','FLUGZEUG','SCHIFF','BOOT','TAXI','RAKETE','MOTORRAD','REIFEN','LENKRAD','MOTOR','BREMSE','TANK','HUPE','BLINKER','KUPPLUNG','GETRIEBE','AMPEL','STRASSE','GARAGE']},
+ natur:{n:'🌳 Natur',w:['BAUM','BLUME','WALD','WIESE','BERG','FLUSS','SEE','MEER','STRAND','WOLKE','REGEN','SCHNEE','WIND','BLITZ','DONNER','ROSE','TULPE','EICHE','TANNE','MOOS','PILZ','STEIN','SAND','INSEL','WUESTE','VULKAN','HIMMEL','REGENBOGEN']},
+ bunt:{n:'🎲 Gemischt',w:[]}};
+for(const t of Object.values(THEMES))t.w=t.w.map(w=>w.replace(/AE/g,'Ä').replace(/OE/g,'Ö').replace(/UE/g,'Ü'));
+THEMES.bunt.w=[...new Set(Object.values(THEMES).flatMap(t=>t.w))];
+const DIFF={1:{n:'Leicht',size:8,cnt:7,dirs:[[1,0],[0,1]],info:'8×8 Felder · 7 Wörter · nur waagrecht → und senkrecht ↓'},2:{n:'Mittel',size:10,cnt:9,dirs:[[1,0],[0,1],[1,1],[1,-1]],info:'10×10 · 9 Wörter · auch schräg ↘ ↗'},
+  3:{n:'Schwer',size:12,cnt:12,dirs:[[1,0],[0,1],[1,1],[1,-1],[-1,0],[0,-1],[-1,-1],[-1,1]],info:'12×12 · 12 Wörter · in alle Richtungen, auch rückwärts!'}};
+const PCOL=['#ff4d5e','#3b82f6','#2fbf6a','#a970ff'];
+const LETTERS='EEEEEENNNNIIIISSSRRRAAAATTTDDHHUULLCGGMOOBWFKZPVJÄÖÜ';
+const show=w=>w;
+let cfg=KIT.get('ws-cfg',{mode:'cpu',lvl:2,time:60,theme:'tiere',diff:2,names:['','','','']});
+function renderSetup(){
+  $$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.mode));$$('#lvlSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.v===cfg.lvl));
+  $$('#timeSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.v===cfg.time));$$('#diffSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.v===cfg.diff));
+  $('#themeSeg').innerHTML=Object.entries(THEMES).map(([k,t])=>`<button data-v="${k}" class="${cfg.theme===k?'on':''}">${t.n}</button>`).join('');
+  $('#diffInfo').textContent=DIFF[cfg.diff].info;
+  $('#lvlBox').classList.toggle('hidden',cfg.mode!=='cpu');$('#timeBox').classList.toggle('hidden',cfg.mode==='solo');
+  const n=cfg.mode==='fam'?4:1;$('#names').innerHTML=Array.from({length:n},(_,i)=>`<div class="seat"><span class="dot" style="background:${PCOL[i]}"></span><input data-i="${i}" maxlength="12" placeholder="${cfg.mode==='fam'?'Spieler '+(i+1)+(i>=2?' (optional)':''):'Dein Name'}" value="${esc(cfg.names[i]||'')}"></div>`).join('');
+}
+for(const [id,k,num] of [['modeSeg','mode',0],['lvlSeg','lvl',1],['timeSeg','time',1],['diffSeg','diff',1],['themeSeg','theme',0]])
+  $('#'+id).onclick=e=>{const b=e.target.closest('button');if(!b)return;cfg[k]=num?+b.dataset.v:b.dataset.v;KIT.set('ws-cfg',cfg);renderSetup();};
+$('#names').oninput=e=>{cfg.names[+e.target.dataset.i]=e.target.value.trim();KIT.set('ws-cfg',cfg);};
+/* ===== Rätsel bauen ===== */
+function buildPuzzle(){
+  const D=DIFF[cfg.diff],N=D.size;
+  for(let attempt=0;attempt<50;attempt++){
+    const pool=THEMES[cfg.theme].w.filter(w=>w.length<=N&&w.length>=3).sort(()=>Math.random()-.5);
+    const grid=Array.from({length:N},()=>Array(N).fill(''));const placed=[];
+    for(const w of pool){if(placed.length>=D.cnt)break;let ok=false;
+      for(let t=0;t<150&&!ok;t++){const [dx,dy]=D.dirs[Math.floor(Math.random()*D.dirs.length)];const x=Math.floor(Math.random()*N),y=Math.floor(Math.random()*N);
+        const ex=x+dx*(w.length-1),ey=y+dy*(w.length-1);if(ex<0||ey<0||ex>=N||ey>=N)continue;
+        let fits=true;for(let k=0;k<w.length;k++){const c=grid[y+dy*k][x+dx*k];if(c&&c!==w[k]){fits=false;break;}}
+        if(!fits)continue;const cells=[];for(let k=0;k<w.length;k++){grid[y+dy*k][x+dx*k]=w[k];cells.push((y+dy*k)*N+x+dx*k);}placed.push({w,cells,by:null});ok=true;}}
+    if(placed.length<D.cnt)continue;
+    for(let y=0;y<N;y++)for(let x=0;x<N;x++)if(!grid[y][x])grid[y][x]=LETTERS[Math.floor(Math.random()*LETTERS.length)];
+    return {N,grid,words:placed};
+  }
+}
+/* ===== Spiel ===== */
+let G=null,timer=null,cpuT=null,tEnd=0,sel=null,dragging=false,tapStart=null,token=0;
+function start(){
+  let players;
+  if(cfg.mode==='cpu')players=[{n:cfg.names[0]||'Du'},{n:'Computer',cpu:true}];
+  else if(cfg.mode==='solo')players=[{n:cfg.names[0]||'Du'}];
+  else{players=cfg.names.map(n=>({n})).filter((p,i)=>i<2||p.n);players.forEach((p,i)=>p.n=p.n||'Spieler '+(i+1));}
+  players.forEach((p,i)=>{p.pts=0;p.c=PCOL[i];p.cnt=0;});
+  const P=buildPuzzle();G={...P,players,cur:0,over:false,t0:Date.now()};token++;
+  $('#setup').classList.add('hidden');$('#game').classList.remove('hidden');
+  $('#grid').style.gridTemplateColumns=`repeat(${G.N},1fr)`;
+  $('#grid').innerHTML=G.grid.flat().map((c,i)=>`<div class="ch" data-i="${i}">${c}</div>`).join('');
+  $('#timer').classList.toggle('hidden',cfg.mode==='solo'||!cfg.time);$('#btnSkip').classList.toggle('hidden',cfg.mode==='solo');
+  renderWords();if(cfg.mode==='fam')turnCover();else beginTurn();
+}
+function renderPlayers(){
+  if(cfg.mode==='solo'){const s=Math.floor((Date.now()-G.t0)/1000);$('#players').innerHTML=`<div class="pc">Gefunden<b>${G.players[0].cnt}/${G.words.length}</b></div><div class="pc">Zeit<b id="soloT">${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}</b></div>`;return;}
+  $('#players').innerHTML=G.players.map((p,i)=>`<div class="pc ${i===G.cur&&!G.over?'cur':''}" style="--pcol:${p.c};border-color:${i===G.cur&&!G.over?p.c:'var(--line)'}"><span style="color:${p.c}">●</span> ${p.cpu?'🤖 ':''}${esc(p.n)}<b>${p.pts}</b></div>`).join('');}
+function renderWords(){$('#words').innerHTML=G.words.map(w=>`<span class="${w.by!==null?'got':''}" style="${w.by!==null?`background:${G.players[w.by].c}`:''}">${show(w.w)}</span>`).join('');
+  G.words.forEach(w=>{if(w.by===null)return;w.cells.forEach(i=>{const el=$$('#grid .ch')[i];el.classList.add('found');el.style.background=G.players[w.by].c;});});}
+async function turnCover(){const p=G.players[G.cur];const c=$('#cover');c.innerHTML=`<h2 style="color:${p.c}">● ${esc(p.n)} ist dran</h2><p class="note">Gib das Handy an ${esc(p.n)}. ${cfg.time?`Du hast ${cfg.time>=60?cfg.time/60+' Min':cfg.time+' Sekunden'} Zeit!`:''}</p><button class="primary">Los!</button>`;c.classList.remove('hidden');
+  await new Promise(r=>c.querySelector('button').onclick=r);c.classList.add('hidden');beginTurn();}
+function beginTurn(){
+  clearInterval(timer);clearTimeout(cpuT);const p=G.players[G.cur],tk=token;renderPlayers();
+  if(cfg.mode==='solo'){$('#status').textContent='Finde alle Wörter!';timer=setInterval(()=>{const el=$('#soloT');if(el){const s=Math.floor((Date.now()-G.t0)/1000);el.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}},1000);return;}
+  $('#status').innerHTML=p.cpu?'<span style="opacity:.8">🤖 Computer sucht …</span>':(cfg.mode==='cpu'?'Du bist dran – finde ein Wort!':`<span style="color:${p.c}">${esc(p.n)}</span> sucht ein Wort!`);
+  if(cfg.time){tEnd=Date.now()+cfg.time*1000;timer=setInterval(()=>{const left=tEnd-Date.now();$('#tfill').style.width=Math.max(0,left/(cfg.time*10))+'%';$('#timer').classList.toggle('warn',left<cfg.time*250);
+    if(left<=0){clearInterval(timer);timeUp();}else if(left<5000&&Math.ceil(left/1000)!==G.tick){G.tick=Math.ceil(left/1000);tone(880,.04,0,'sine',.08);}},100);}
+  if(p.cpu){const lv=cfg.lvl,[a,b]=[[0,0],[14,30],[7,16],[3,8]][lv];let d=(a+Math.random()*(b-a))*1000;
+    // längere Wörter brauchen länger; leichte Computer verpassen manchmal
+    cpuT=setTimeout(()=>{if(tk!==token||G.over)return;const open=G.words.filter(w=>w.by===null);if(!open.length)return;const w=open.sort((x,y)=>x.w.length-y.w.length)[Math.floor(Math.random()*Math.min(open.length,lv+1))];cpuFind(w);},cfg.time?Math.min(d,cfg.time*1000*(lv===1&&Math.random()<.35?1.2:.92)):d);}
+}
+async function cpuFind(w){const els=$$('#grid .ch');for(const i of w.cells){els[i].classList.add('sel');tone(500+Math.random()*200,.03,0,'sine',.06);await sleep(140);}await sleep(250);w.cells.forEach(i=>els[i].classList.remove('sel'));found(w);}
+function timeUp(){if(G.over)return;clearTimeout(cpuT);$('#status').textContent='⏰ Zeit um!';tone(300,.2,0,'sine',.1);sel=null;clearSel();setTimeout(()=>nextPlayer(),900);}
+function nextPlayer(){if(G.over)return;G.cur=(G.cur+1)%G.players.length;if(cfg.mode==='fam')turnCover();else beginTurn();}
+function found(w){const p=G.players[G.cur];w.by=G.cur;const pts=w.w.length>=7?3:w.w.length>=5?2:1;p.pts+=pts;p.cnt++;
+  [660,880,1100].forEach((f,k)=>tone(f,.08,k*.07));renderWords();
+  $('#status').innerHTML=`✅ <span style="color:${p.c}">${esc(p.n)}</span> findet <b>${show(w.w)}</b> ${cfg.mode!=='solo'?`(+${pts})`:''}`;renderPlayers();
+  if(G.words.every(x=>x.by!==null))return finish();
+  if(cfg.mode!=='solo'){clearInterval(timer);clearTimeout(cpuT);setTimeout(()=>nextPlayer(),1100);}}
+function finish(){G.over=true;clearInterval(timer);clearTimeout(cpuT);renderPlayers();
+  if(cfg.mode==='solo'){const s=Math.floor((Date.now()-G.t0)/1000),k='ws-best-'+cfg.diff,b=KIT.get(k,null),rec=!b||s<b;if(rec)KIT.set(k,s);
+    $('#status').textContent=`🎉 Alle gefunden in ${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}!${rec?' 🏆 Rekord!':''}`;confetti();sWin();return;}
+  const max=Math.max(...G.players.map(p=>p.pts)),win=G.players.filter(p=>p.pts===max);
+  if(win.length>1){$('#status').textContent='🤝 Unentschieden!';}
+  else if(win[0].cpu){$('#status').textContent='🤖 Der Computer gewinnt!';sLose();return;}
+  else{$('#status').innerHTML=`🏆 <span style="color:${win[0].c}">${esc(win[0].n)}</span> gewinnt!`;}
+  confetti();sWin();}
+/* Auswahl */
+const cellAt=e=>{const el=document.elementFromPoint(e.clientX,e.clientY);return el&&el.classList.contains('ch')?+el.dataset.i:null;};
+function lineCells(a,b){const N=G.N,ax=a%N,ay=a/N|0,bx=b%N,by=b/N|0,dx=Math.sign(bx-ax),dy=Math.sign(by-ay),len=Math.max(Math.abs(bx-ax),Math.abs(by-ay));
+  if(!(ax===bx||ay===by||Math.abs(bx-ax)===Math.abs(by-ay)))return null;const out=[];for(let k=0;k<=len;k++)out.push((ay+dy*k)*N+ax+dx*k);return out;}
+function clearSel(){$$('#grid .ch.sel').forEach(e=>e.classList.remove('sel'));}
+function paintSel(cells){clearSel();(cells||[]).forEach(i=>$$('#grid .ch')[i].classList.add('sel'));}
+const canPlay=()=>G&&!G.over&&!G.players[G.cur].cpu;
+$('#grid').addEventListener('pointerdown',e=>{if(!canPlay())return;const i=cellAt(e);if(i===null)return;e.preventDefault();dragging=true;sel={a:i,b:i};paintSel([i]);});
+$('#grid').addEventListener('pointermove',e=>{if(!dragging)return;const i=cellAt(e);if(i===null)return;const l=lineCells(sel.a,i);if(l){sel.b=i;paintSel(l);}});
+window.addEventListener('pointerup',()=>{if(!dragging)return;dragging=false;if(!sel)return;
+  if(sel.a===sel.b){ // Tippen: erst Anfang, dann Ende
+    if(tapStart===null){tapStart=sel.a;paintSel([sel.a]);return;}const l=lineCells(tapStart,sel.a);const s=tapStart;tapStart=null;if(!l){paintSel([]);return;}check(l);return;}
+  tapStart=null;check(lineCells(sel.a,sel.b));});
+function check(cells){if(!cells){clearSel();return;}const els=$$('#grid .ch');
+  const key=cells.join(','),rev=cells.slice().reverse().join(',');
+  const w=G.words.find(w=>w.by===null&&(w.cells.join(',')===key||w.cells.join(',')===rev));
+  if(w){clearSel();found(w);}else{cells.forEach(i=>{els[i].classList.add('bad');setTimeout(()=>els[i].classList.remove('bad'),300);});tone(200,.1);setTimeout(clearSel,250);}}
+$('#btnHint').onclick=()=>{if(!canPlay())return;const open=G.words.filter(w=>w.by===null);if(!open.length)return;const w=open[Math.floor(Math.random()*open.length)];const el=$$('#grid .ch')[w.cells[0]];el.classList.remove('hint');void el.offsetWidth;el.classList.add('hint');
+  if(cfg.mode!=='solo'){const p=G.players[G.cur];p.pts=Math.max(0,p.pts-1);renderPlayers();}$('#status').textContent=`💡 Ein Wort beginnt beim blinkenden Buchstaben …`;};
+$('#btnSkip').onclick=()=>{if(!canPlay())return;clearInterval(timer);nextPlayer();};
+$('#btnMenu').onclick=async()=>{if(G&&!G.over&&!(await confirmBox('Spiel beenden?','Beenden','Weiterspielen')))return;token++;clearInterval(timer);clearTimeout(cpuT);$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');renderSetup();};
+$('#btnStart').onclick=start;
+window.onTheme=()=>{};applyTheme();renderSetup();
+
+initHelp('wortsuche');
+</script>
+</body>
+</html>

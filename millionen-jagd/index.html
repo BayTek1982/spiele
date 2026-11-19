@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Millionen-Jagd</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('bs-theme'))||'dark';}catch(e){document.documentElement.dataset.theme='dark';}</script>
+<style>
+:root{--acc:#f2c21b;--acc-ink:#14181e}
+:root{--bg1:#1f2630;--bg2:#141920;--card:#27303b;--card2:#2f3946;--line:#3a4552;--txt:#eef1f5;--mut:#a7b1bd;--cell:#1b222b;--shadow:rgba(0,0,0,.45)}
+[data-theme=light]{--bg1:#f4f1ea;--bg2:#e9e4d8;--card:#ffffff;--card2:#f2eee6;--line:#ddd5c6;--txt:#1f2630;--mut:#6b7380;--cell:#f7f4ee;--shadow:rgba(60,50,30,.18)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--txt);min-height:100vh;transition:background .3s,color .3s;
+ background:radial-gradient(900px 500px at 12% -10%,color-mix(in srgb,var(--acc) 16%,transparent),transparent 60%),radial-gradient(700px 500px at 110% 15%,rgba(33,195,230,.08),transparent 60%),linear-gradient(180deg,var(--bg1),var(--bg2)) fixed}
+#app{max-width:var(--maxw,640px);margin:0 auto;padding:14px 12px 40px}
+.hidden{display:none!important}
+a.back{color:var(--mut);text-decoration:none;font-weight:700;font-size:14px;display:inline-block;margin:0 0 8px 2px}
+header{display:flex;align-items:center;gap:10px;margin:4px 2px 14px}
+header .logo{font-size:26px}
+header h1{font-family:'JetBrains Mono',monospace;font-size:21px;margin:0;font-weight:800;letter-spacing:-.5px}
+header h1 b{color:var(--acc)}
+.hbtns{margin-left:auto;display:flex;gap:6px}
+.ib{padding:7px 10px!important;font-size:17px!important;line-height:1}
+button{font:inherit;cursor:pointer;border-radius:12px;padding:10px 14px;font-weight:800;color:var(--txt);background:var(--card2);border:1px solid var(--line);transition:filter .15s,transform .1s}
+button:hover:not(:disabled){filter:brightness(1.06)}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--acc);color:var(--acc-ink,#14181e);border-color:var(--acc)}
+button.small{padding:7px 12px;font-size:14px;border-radius:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.card h2{margin:0 0 8px;font-size:18px}
+.card p{margin:0 0 8px;color:var(--mut);line-height:1.45}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin:0 0 6px}
+.seg{display:flex;background:var(--bg2);border-radius:12px;padding:3px;border:1px solid var(--line)}
+.seg button{flex:1;background:transparent;border:0;padding:8px 6px;border-radius:9px;color:var(--mut);font-size:14px}
+.seg button.on{background:var(--card2);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.opts{display:grid;gap:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stats{display:flex;gap:8px;margin-bottom:10px}
+.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;text-align:center}
+.stat .k{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+.stat .v{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800}
+.note{font-size:14px;color:var(--mut);margin-top:8px;line-height:1.45}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+.modal .box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:420px;width:100%;max-height:88vh;overflow:auto;color:var(--txt)}
+.modal .box h2{margin:0 0 10px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.modal .box p,.modal .box li{line-height:1.5}
+.modal .row{justify-content:flex-end;margin-top:14px}
+.big{font-size:46px;text-align:center;margin:2px 0 6px}
+.pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,52px);gap:8px;justify-content:center;margin-top:12px;user-select:none}
+.pad button{font-size:22px;padding:0;touch-action:manipulation}
+.pad .u{grid-column:2}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+.help h2{margin:0 0 6px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.help h3{margin:14px 0 4px;font-size:15px;color:var(--acc)}
+.help p,.help li{line-height:1.5;margin:0 0 6px}
+.help ol,.help ul{margin:0 0 4px;padding-left:20px}
+.help .tip{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:14px}
+
+
+.idea{margin:-6px 2px 14px;font-size:14px;color:var(--mut)}.idea b{color:var(--acc)}
+.stage{position:relative;border-radius:20px;overflow:hidden;padding:16px 14px 18px;background:radial-gradient(ellipse at 50% 0%,#3a2a8f 0%,#160f3d 55%,#08061c 100%);color:#fff;border:1px solid #3a2a8f;box-shadow:0 10px 30px var(--shadow)}
+.stage::before{content:"";position:absolute;inset:0;background:conic-gradient(from 0deg at 50% -10%,transparent 0 40deg,rgba(120,160,255,.10) 45deg,transparent 50deg 80deg,rgba(120,160,255,.08) 85deg,transparent 90deg 360deg);animation:spot 12s linear infinite;pointer-events:none}
+@keyframes spot{to{transform:rotate(360deg)}}
+.prize{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;position:relative}
+.prize .lvl{font-family:'JetBrains Mono',monospace;font-size:12px;color:#b8b4ff;letter-spacing:1px}
+.prize .amt{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:22px;color:#ffd23f;text-shadow:0 0 12px rgba(255,210,63,.5)}
+.jokers{display:flex;gap:8px;justify-content:center;margin-bottom:14px;position:relative}
+.jk{width:62px;height:42px;border-radius:50%;border:2px solid #8fa2ff;background:radial-gradient(#2c2575,#140f3a);color:#fff;font-weight:900;font-size:14px;padding:0;display:flex;align-items:center;justify-content:center}
+.jk.used{opacity:.3;text-decoration:line-through}
+.qbox{position:relative;padding:18px 18px;margin:0 6px 14px;background:linear-gradient(180deg,#1b1650,#0d0a2c);border:2px solid #8fa2ff;clip-path:polygon(4% 0,96% 0,100% 50%,96% 100%,4% 100%,0 50%);text-align:center;font-weight:800;font-size:clamp(16px,4.6vw,21px);line-height:1.35;min-height:84px;display:flex;align-items:center;justify-content:center}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:10px;position:relative}
+@media(max-width:480px){.answers{grid-template-columns:1fr}}
+.an{position:relative;text-align:left;padding:12px 16px 12px 22px;background:linear-gradient(180deg,#1b1650,#0d0a2c);color:#fff;border:2px solid #8fa2ff;clip-path:polygon(5% 0,95% 0,100% 50%,95% 100%,5% 100%,0 50%);border-radius:0;font-weight:800;font-size:15.5px;min-height:50px}
+.an b{color:#ffd23f;margin-right:8px;font-family:'JetBrains Mono',monospace}
+.an.lock{background:linear-gradient(180deg,#ff9f1c,#c66d00);border-color:#ffd23f;color:#111}.an.lock b{color:#111}
+.an.ok{background:linear-gradient(180deg,#2fbf6a,#1a7a42);border-color:#9dffc2;animation:blink .3s 4}
+.an.no{background:linear-gradient(180deg,#e5564b,#8e241c)}
+.an.gone{visibility:hidden}
+@keyframes blink{50%{filter:brightness(1.6)}}
+.ctl{display:flex;gap:8px;justify-content:center;margin-top:14px;position:relative}
+.ctl button{background:#241d63;color:#fff;border-color:#5c55c9}
+.ladder{display:grid;gap:2px;font-family:'JetBrains Mono',monospace;font-size:13px}
+.ladder div{display:flex;justify-content:space-between;padding:4px 10px;border-radius:8px;color:var(--mut)}
+.ladder div.safe{color:var(--txt);font-weight:800}
+.ladder div.done{color:#2fbf6a}
+.ladder div.cur{background:var(--acc);color:#111;font-weight:800}
+.bars{display:flex;gap:14px;justify-content:center;align-items:flex-end;height:150px;margin:10px 0}
+.bars div{width:44px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-weight:800}
+.bars i{display:block;width:100%;background:linear-gradient(180deg,#ffd23f,#ff9f1c);border-radius:6px 6px 0 0;transition:height 1.2s}
+.split{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:900px){.split{grid-template-columns:1fr 220px}}
+#ladderBox{display:none}
+@media(min-width:900px){#ladderBox{display:block}}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
+  <header><span class="logo">💰</span><h1>Millionen-<b>Jagd</b></h1><div class="hbtns"><button class="ib" id="btnHelp" title="Anleitung">📖</button><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
+
+  <div class="idea">💡 Eine Spielidee von <b>Isajah</b></div>
+  <section id="start">
+    <div class="card" style="text-align:center"><div class="big">💰</div><h2>Schaffst du die Million?</h2><p>15 Fragen – von 1 € bis 1.000.000 €. Jede Frage wird schwerer. Du hast 3 Joker!</p>
+      <button class="primary" id="btnStart">Spiel starten</button><div class="note" id="best"></div></div>
+  </section>
+  <section id="game" class="hidden">
+    <div class="split">
+      <div>
+        <div class="stage">
+          <div class="prize"><span class="lvl" id="lvl"></span><span class="amt" id="amt"></span></div>
+          <div class="jokers"><button class="jk" id="j50" title="50:50">50:50</button><button class="jk" id="jPub" title="Publikum">👥</button><button class="jk" id="jTel" title="Telefon">📞</button></div>
+          <div class="qbox" id="q"></div>
+          <div class="answers" id="ans"></div>
+          <div class="ctl"><button class="small" id="btnQuit">💰 Aussteigen</button><button class="small" id="btnLadder">📶 Gewinnstufen</button></div>
+        </div>
+      </div>
+      <div class="card" id="ladderBox"><div class="lbl">Gewinnstufen</div><div class="ladder" id="ladder"></div></div>
+    </div>
+  </section>
+
+  <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
+</div>
+<script>
+const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const KIT={get(k,d){try{const v=JSON.parse(localStorage.getItem('bs-'+k));return v??d;}catch(e){return d;}},set(k,v){try{localStorage.setItem('bs-'+k,JSON.stringify(v));}catch(e){}}};
+let theme=KIT.get('theme','dark'),soundOn=KIT.get('sound',true);
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function applyTheme(){document.documentElement.dataset.theme=theme;$('#btnTheme').textContent=theme==='dark'?'☀️':'🌙';if(window.onTheme)window.onTheme();}
+$('#btnTheme').onclick=()=>{theme=theme==='dark'?'light':'dark';KIT.set('theme',theme);applyTheme();};
+$('#btnSound').onclick=()=>{soundOn=!soundOn;KIT.set('sound',soundOn);$('#btnSound').textContent=soundOn?'🔊':'🔇';};
+$('#btnSound').textContent=soundOn?'🔊':'🔇';
+let actx=null;
+document.addEventListener('pointerdown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}},{passive:true});
+document.addEventListener('keydown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}});
+function tone(f,d=.1,delay=0,type='triangle',v=.18){if(!soundOn||!actx||actx.state!=='running')return;try{const t=actx.currentTime+delay,o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+d+.03);}catch(e){}}
+const sWin=()=>[523,659,784,1046].forEach((f,k)=>tone(f,.18,k*.12));
+const sLose=()=>[392,330,262].forEach((f,k)=>tone(f,.22,k*.15,'sine'));
+function confetti(){try{
+  const c=document.createElement('canvas'),dpr=window.devicePixelRatio||1;c.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:80';document.body.appendChild(c);
+  const ctx=c.getContext('2d'),W=c.width=innerWidth*dpr,H=c.height=innerHeight*dpr,cols=['#e8b04b','#21c3e6','#e0453a','#2fa35a','#f2c21b','#ffffff','#7b5cff'];
+  const ps=Array.from({length:150},()=>({x:W/2+(Math.random()-.5)*W*.3,y:H*.4,vx:(Math.random()-.5)*W*.03,vy:-Math.random()*H*.028-H*.008,r:Math.random()*6,vr:(Math.random()-.5)*.3,s:(6+Math.random()*7)*dpr,c:cols[Math.random()*cols.length|0]}));
+  let t=0;(function f(){t++;ctx.clearRect(0,0,W,H);for(const p of ps){p.vy+=H*.0008;p.vx*=.985;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);ctx.restore();}if(t<170)requestAnimationFrame(f);else c.remove();})();
+}catch(e){}}
+function modal(html,setup,dismiss=true){return new Promise(res=>{const m=$('#modal'),box=$('#modalBox');box.innerHTML=html;m.classList.remove('hidden');
+  const close=v=>{m.classList.add('hidden');box.innerHTML='';m.onclick=null;res(v);};
+  box.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>close(b.dataset.v));if(setup)setup(box,close);
+  m.onclick=e=>{if(e.target===m&&dismiss)close(null);};});}
+const confirmBox=(text,yes='Ja',no='Abbrechen')=>modal(`<p>${text}</p><div class="row"><button data-v="0">${no}</button><button class="primary" data-v="1">${yes}</button></div>`).then(v=>v==='1');
+const infoBox=(html,btn='OK')=>modal(html+`<div class="row"><button class="primary" data-v="1">${btn}</button></div>`);
+// Swipe-Hilfe
+function onSwipe(el,cb){let sx=0,sy=0,act=false;
+  el.addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;act=true;},{passive:true});
+  el.addEventListener('touchmove',e=>{if(!act)return;const t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))>22){cb(Math.abs(dx)>Math.abs(dy)?(dx>0?'r':'l'):(dy>0?'d':'u'));act=false;}e.preventDefault();},{passive:false});
+  el.addEventListener('touchend',()=>act=false);}
+setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
+
+function showHelp(){if(!window.HELP)return;return modal(`<div class="help">${window.HELP}</div><div class="row"><button class="primary" data-v="1">Los geht's!</button></div>`);}
+$('#btnHelp').onclick=showHelp;
+function initHelp(id){if(window.HELP&&!KIT.get('help-seen-'+id,false)){KIT.set('help-seen-'+id,true);setTimeout(showHelp,350);}}
+
+
+window.HELP=`<h2>💰 So spielst du Millionen-Jagd</h2>
+<h3>Ziel</h3><p>Beantworte 15 Fragen hintereinander richtig – dann gewinnst du <b>1.000.000 €</b> (natürlich nur zum Spaß 😉). Jede Frage ist mehr wert und wird schwerer.</p>
+<h3>So geht's</h3><ol><li>Tippe eine Antwort an. Das Spiel fragt: <b>„Ist das deine endgültige Antwort?“</b></li><li>Richtig? Weiter zur nächsten Stufe! Falsch? Dann fällst du auf die letzte <b>Sicherheitsstufe</b> zurück.</li><li>Sicherheitsstufen sind <b>500 €</b> und <b>16.000 €</b> – die behältst du auf jeden Fall.</li><li>Bist du dir unsicher, kannst du <b>💰 Aussteigen</b> und das bisher erspielte Geld mitnehmen.</li></ol>
+<h3>Die 3 Joker (je einmal pro Spiel)</h3><ul><li><b>50:50</b> – zwei falsche Antworten verschwinden.</li><li><b>👥 Publikum</b> – das Publikum stimmt ab. Bei leichten Fragen weiß es fast immer die Lösung, bei schweren nicht unbedingt!</li><li><b>📞 Telefon</b> – du rufst einen Freund an. Er sagt dir, was er denkt – aber auch er kann sich irren.</li></ul>`;
+const RAW=`#1
+Welche Farbe hat eine reife Banane normalerweise?|Gelb|Blau|Lila|Schwarz
+Wie viele Beine hat ein Hund?|4|2|6|8
+Was trinkt ein Kälbchen am Anfang?|Milch|Kaffee|Limo|Tee
+Was setzt man bei Regen auf, damit der Kopf trocken bleibt?|Kapuze|Topf|Teller|Socke
+Womit putzt man sich die Zähne?|Zahnbürste|Haarbürste|Gabel|Kamm
+Welches Tier sagt „Miau“?|Katze|Hund|Kuh|Ente
+Was ist kalt und weiß und fällt im Winter vom Himmel?|Schnee|Sand|Zucker|Mehl
+Wie viele Tage hat eine Woche?|7|5|10|12
+Was braucht ein Auto mit Verbrennungsmotor zum Fahren?|Benzin oder Diesel|Wasser|Milch|Sand
+Welche Farbe hat Gras?|Grün|Rot|Orange|Pink
+Wo wohnt ein Fisch?|Im Wasser|Im Baum|In der Wüste|Im Kühlschrank
+Was hat ein Fahrrad normalerweise?|2 Räder|4 Räder|6 Räder|1 Rad
+Welcher Monat kommt nach Januar?|Februar|März|Dezember|April
+Wie heißt das Gegenteil von „heiß“?|Kalt|Warm|Laut|Schnell
+Wer legt im Märchen goldene Eier?|Die Gans|Der Hund|Die Katze|Das Pferd
+Welches Obst ist rund und rot oder grün und wächst am Baum?|Apfel|Banane|Ananas|Kokosnuss
+#2
+Wie viele Minuten hat eine Stunde?|60|100|30|24
+Welches Tier ist das größte Landtier?|Elefant|Giraffe|Nashorn|Nilpferd
+Wie viele Farben hat die deutsche Flagge?|3|2|4|5
+Was ist 12 + 8?|20|18|22|21
+In welcher Jahreszeit fallen die Blätter von den Bäumen?|Herbst|Frühling|Sommer|Winter
+Welcher Planet ist unser Zuhause?|Erde|Mars|Venus|Jupiter
+Wie heißt der Vater von deinem Vater?|Opa|Onkel|Cousin|Neffe
+Welches Tier hat einen Rüssel?|Elefant|Löwe|Zebra|Bär
+Wie viele Ecken hat ein Dreieck?|3|4|5|6
+Woraus wird Brot hauptsächlich gemacht?|Mehl|Zucker|Reis|Schokolade
+Was zeigt eine rote Ampel?|Stehen bleiben|Gehen|Schneller fahren|Hupen
+Welches Gerät benutzt man zum Telefonieren?|Handy|Toaster|Föhn|Mixer
+Was macht eine Biene?|Honig|Milch|Butter|Käse
+Welcher Tag kommt nach Samstag?|Sonntag|Montag|Freitag|Dienstag
+#3
+Wie heißt die Hauptstadt von Deutschland?|Berlin|München|Hamburg|Köln
+Wie viele Spieler hat eine Fußballmannschaft auf dem Platz?|11|9|10|12
+Was ist 6 × 7?|42|36|48|49
+Welches ist das größte Meer der Erde?|Pazifik|Atlantik|Nordsee|Mittelmeer
+Welches Tier ist ein Säugetier?|Delfin|Hai|Forelle|Thunfisch
+Wie viele Kontinente gibt es?|7|5|6|9
+In welchem Land steht der Eiffelturm?|Frankreich|Italien|Spanien|England
+Wie nennt man ein Baby-Schaf?|Lamm|Fohlen|Kalb|Ferkel
+Welcher Vogel kann nicht fliegen?|Pinguin|Spatz|Adler|Taube
+Wie viele Stunden hat ein Tag?|24|12|36|48
+Was ist gefrorenes Wasser?|Eis|Dampf|Nebel|Tau
+Wer schrieb die Märchen „Rotkäppchen“ auf?|Die Brüder Grimm|Goethe|Mozart|Einstein
+#4
+Wie heißt die Hauptstadt von Italien?|Rom|Mailand|Venedig|Neapel
+Welches Gas atmen wir zum Leben ein?|Sauerstoff|Stickstoff|Helium|Kohlendioxid
+Wie viele Zentimeter hat ein Meter?|100|10|1.000|50
+Welcher Planet ist der Sonne am nächsten?|Merkur|Venus|Mars|Saturn
+Wie viele Seiten hat ein Würfel?|6|4|8|12
+Welche Sprache spricht man in Österreich hauptsächlich?|Deutsch|Österreichisch|Französisch|Italienisch
+Wer malte die „Mona Lisa“?|Leonardo da Vinci|Picasso|Van Gogh|Michelangelo
+Wie viele Bundesländer hat Deutschland?|16|12|15|20
+Welches Instrument hat 88 Tasten?|Klavier|Gitarre|Geige|Trompete
+Wo hat BMW seinen Hauptsitz?|München|Stuttgart|Wolfsburg|Berlin
+Welches Tier ist das schnellste an Land?|Gepard|Löwe|Pferd|Strauß
+Bei wie viel Grad Celsius gefriert Wasser?|0 °C|10 °C|−10 °C|4 °C
+#5
+Welcher ist der höchste Berg Deutschlands?|Zugspitze|Watzmann|Brocken|Feldberg
+In welchem Jahr fiel die Berliner Mauer?|1989|1979|1991|1999
+Wie heißt der längste Fluss der Welt nach gängiger Messung?|Nil|Rhein|Donau|Amazonas
+Was ist die chemische Formel für Wasser?|H₂O|CO₂|O₂|NaCl
+Wie viele Knochen hat ein erwachsener Mensch ungefähr?|206|106|306|56
+Welches Land hat die meisten Einwohner?|Indien|USA|Russland|Brasilien
+Wer war der erste Mensch auf dem Mond?|Neil Armstrong|Juri Gagarin|Buzz Aldrin|Elon Musk
+Wie heißt die Hauptstadt von Spanien?|Madrid|Barcelona|Sevilla|Lissabon
+Welcher Planet hat große, auffällige Ringe?|Saturn|Mars|Merkur|Venus
+Wie viele Tage hat ein Schaltjahr?|366|365|364|360
+Welches Organ pumpt das Blut?|Herz|Lunge|Leber|Magen
+#6
+Wie heißt die Hauptstadt von Australien?|Canberra|Sydney|Melbourne|Perth
+Welches Metall ist bei Raumtemperatur flüssig?|Quecksilber|Eisen|Kupfer|Gold
+Wer entwickelte die Relativitätstheorie?|Albert Einstein|Isaac Newton|Galileo Galilei|Nikola Tesla
+In welcher Stadt fanden 1972 die Olympischen Sommerspiele statt?|München|Berlin|Rom|London
+Welches chemische Symbol hat Gold?|Au|Ag|Go|Gd
+Wie viele Herzen hat ein Krake?|3|1|2|8
+Welcher Fluss fließt durch Wien?|Donau|Rhein|Elbe|Moldau
+Wer komponierte die „Kleine Nachtmusik“?|Mozart|Beethoven|Bach|Wagner
+Welches Tier legt Eier, obwohl es ein Säugetier ist?|Schnabeltier|Fledermaus|Känguru|Delfin
+In welchem Jahr wurde Deutschland wiedervereinigt?|1990|1989|1991|1985
+#7
+Wie heißt die Hauptstadt von Kanada?|Ottawa|Toronto|Vancouver|Montreal
+Welches Gas macht den größten Teil der Erdatmosphäre aus?|Stickstoff|Sauerstoff|Kohlendioxid|Argon
+Wer erfand den Buchdruck mit beweglichen Lettern in Europa?|Johannes Gutenberg|Martin Luther|Carl Benz|Albrecht Dürer
+Wie viele Saiten hat eine normale Geige?|4|5|6|3
+Welcher ist der größte Planet unseres Sonnensystems?|Jupiter|Saturn|Neptun|Uranus
+Wer schrieb „Faust“?|Johann Wolfgang von Goethe|Friedrich Schiller|Thomas Mann|Bertolt Brecht
+Welche Stadt ist Regierungssitz von Niederbayern?|Landshut|Passau|Straubing|Regensburg
+In welcher Einheit misst man elektrische Spannung?|Volt|Watt|Ampere|Ohm
+Wie heißt das berühmte Schloss von König Ludwig II. bei Füssen?|Neuschwanstein|Sanssouci|Linderhof|Herrenchiemsee
+Wie viele Spieler stehen beim Volleyball pro Team auf dem Feld?|6|5|7|8
+#8
+Wie heißt die kleinste Einheit eines chemischen Elements?|Atom|Molekül|Zelle|Ion
+Welcher Physiker formulierte die drei Bewegungsgesetze?|Isaac Newton|Albert Einstein|Max Planck|Niels Bohr
+Wer entdeckte 1895 die Röntgenstrahlen?|Wilhelm Conrad Röntgen|Marie Curie|Robert Koch|Max Planck
+Welches Land hat die Form eines Stiefels?|Italien|Griechenland|Portugal|Chile
+Wie lang ist ein Marathon?|42,195 km|40 km|45 km|50 km
+Welche Stadt liegt auf zwei Kontinenten?|Istanbul|Kairo|Moskau|Athen
+Welcher Vogel kann rückwärts fliegen?|Kolibri|Specht|Falke|Schwalbe
+Welche Währung hat die Schweiz?|Franken|Euro|Krone|Pfund
+Wie nennt man ein Vieleck mit zwölf Seiten?|Dodekagon|Dekagon|Oktagon|Hexagon
+Welches Organ ist das größte des Menschen?|Haut|Leber|Lunge|Darm
+#9
+Wer gilt als Erfinder des ersten Automobils mit Benzinmotor (1886)?|Carl Benz|Henry Ford|Rudolf Diesel|Ferdinand Porsche
+In welchem Jahr landeten Menschen zum ersten Mal auf dem Mond?|1969|1965|1972|1959
+Wie heißt der größte Mond des Saturn?|Titan|Ganymed|Europa|Io
+Welches Element hat das chemische Symbol Fe?|Eisen|Fluor|Francium|Fermium
+Wie viele Felder hat ein Schachbrett?|64|81|100|49
+Welcher Komponist wurde fast taub und komponierte trotzdem weiter?|Ludwig van Beethoven|Franz Schubert|Joseph Haydn|Frédéric Chopin
+Wie heißt die Hauptstadt der Türkei?|Ankara|Istanbul|Izmir|Antalya
+Auf welcher Insel liegt der Vulkan Ätna?|Sizilien|Sardinien|Kreta|Korsika
+Wie heißt die längste Mauer der Welt?|Chinesische Mauer|Hadrianswall|Berliner Mauer|Limes
+Was misst ein Seismograf?|Erdbeben|Luftdruck|Temperatur|Windstärke
+#10
+Wer war der erste Bundeskanzler der Bundesrepublik Deutschland?|Konrad Adenauer|Willy Brandt|Ludwig Erhard|Helmut Kohl
+Wie heißt das leichteste chemische Element?|Wasserstoff|Helium|Lithium|Sauerstoff
+Welches Volk baute Machu Picchu?|Die Inka|Die Maya|Die Azteken|Die Olmeken
+Wie viel sind 2 hoch 10?|1.024|1.000|512|2.048
+Wer schrieb „Romeo und Julia“?|William Shakespeare|Charles Dickens|Oscar Wilde|Goethe
+Welches Land hat flächenmäßig die größte Fläche der Welt?|Russland|Kanada|China|USA
+Wie heißt die US-Raumfahrtbehörde?|NASA|ESA|ISS|NOAA
+Welcher Fluss fließt durch Landshut?|Isar|Donau|Inn|Vils
+Wie viele Tasten hat ein normales Klavier?|88|76|92|64
+Aus welchem Land stammte Vincent van Gogh?|Niederlande|Belgien|Frankreich|Deutschland
+#11
+Welche Stadt wurde 79 n. Chr. vom Vesuv verschüttet?|Pompeji|Rom|Athen|Karthago
+Wer war der erste Mensch im Weltall?|Juri Gagarin|Neil Armstrong|Alan Shepard|John Glenn
+Wer verbesserte die Dampfmaschine entscheidend?|James Watt|Thomas Edison|George Stephenson|Nikola Tesla
+Wie heißt das Gerät, das Luftdruck misst?|Barometer|Hygrometer|Thermometer|Anemometer
+Welcher Zwergplanet galt bis 2006 als neunter Planet?|Pluto|Ceres|Eris|Makemake
+Welche Blutgruppe gilt als Universalspender?|0 negativ|AB positiv|A positiv|B negativ
+Wie heißt der römische Gott des Krieges?|Mars|Jupiter|Merkur|Neptun
+Wer schrieb die „Vier Jahreszeiten“?|Antonio Vivaldi|Johann Sebastian Bach|Georg Friedrich Händel|Antonio Salieri
+#12
+Wie schnell ist das Licht im Vakuum ungefähr?|300.000 km pro Sekunde|30.000 km pro Sekunde|3 Millionen km pro Sekunde|3.000 km pro Sekunde
+Wer erfand den Dieselmotor?|Rudolf Diesel|Nikolaus Otto|Wilhelm Maybach|Gottlieb Daimler
+Wie heißt der erste künstliche Erdsatellit von 1957?|Sputnik 1|Explorer 1|Apollo 1|Wostok 1
+Welches Reich gründete Dschingis Khan?|Mongolisches Reich|Osmanisches Reich|Persisches Reich|Römisches Reich
+In welcher Stadt wurde John F. Kennedy 1963 erschossen?|Dallas|Washington|New York|Chicago
+Welches Tier hat blaues Blut?|Krake|Hai|Delfin|Schildkröte
+Wie viele Zähne hat ein Erwachsener mit Weisheitszähnen?|32|28|30|36
+Wer schlug 1517 seine Thesen in Wittenberg an?|Martin Luther|Johannes Calvin|Ulrich Zwingli|Philipp Melanchthon
+#13
+Wie heißt die Hauptstadt von Neuseeland?|Wellington|Auckland|Christchurch|Queenstown
+Welches Element hat die Ordnungszahl 1 im Periodensystem?|Wasserstoff|Helium|Kohlenstoff|Sauerstoff
+Wie viele Grad hat die Winkelsumme in einem Viereck?|360°|180°|270°|540°
+Welcher Planet dreht sich „auf der Seite liegend“?|Uranus|Neptun|Saturn|Venus
+Welches Land hat die meisten Zeitzonen (mit Überseegebieten)?|Frankreich|Russland|USA|China
+Wie heißt der kleinste Knochen im menschlichen Körper?|Steigbügel|Amboss|Hammer|Elle
+Welche Programmiersprache ist nach einer britischen Comedy-Gruppe benannt?|Python|Java|Ruby|Swift
+Wer komponierte die Oper „Die Zauberflöte“?|Wolfgang Amadeus Mozart|Richard Wagner|Giuseppe Verdi|Ludwig van Beethoven
+#14
+In welchem Jahr wurde die Bundesrepublik Deutschland gegründet?|1949|1945|1955|1961
+Wie heißt die Wissenschaft von den Pilzen?|Mykologie|Ornithologie|Entomologie|Herpetologie
+Welcher Kontinent hat die meisten Länder?|Afrika|Asien|Europa|Südamerika
+Wie heißt der tiefste Punkt der Weltmeere?|Challengertief im Marianengraben|Puerto-Rico-Graben|Tongagraben|Kermadecgraben
+Wie viele Herzkammern hat das menschliche Herz?|4|2|3|6
+Welcher Wissenschaftler stellte das Periodensystem 1869 vor?|Dmitri Mendelejew|Antoine Lavoisier|Niels Bohr|John Dalton
+Welches ist das häufigste chemische Element im Universum?|Wasserstoff|Helium|Sauerstoff|Kohlenstoff
+#15
+Wie viele Sekunden hat ein Tag?|86.400|36.000|72.000|100.000
+Welche Zahl ist die kleinste Primzahl?|2|1|3|0
+In welchem Jahr endete der Dreißigjährige Krieg?|1648|1618|1748|1555
+Wie heißt der größte Mond des Jupiter?|Ganymed|Io|Kallisto|Titan
+Welches Edelgas wird oft in Leuchtreklamen verwendet und leuchtet rot-orange?|Neon|Argon|Xenon|Krypton
+Wer formulierte das Gesetz der Schwerkraft nach dem Apfel-Erlebnis (Legende)?|Isaac Newton|Galileo Galilei|Johannes Kepler|Nikolaus Kopernikus
+Wie viele Nullen hat eine Milliarde?|9|6|12|8`;
+const TIERS={};let curT=0;RAW.split('\n').forEach(l=>{l=l.trim();if(!l)return;if(l[0]==='#'){curT=+l.slice(1);TIERS[curT]=[];return;}const p=l.split('|');TIERS[curT].push({q:p[0],a:p[1],w:p.slice(2)});});
+const PRIZES=[1,50,100,200,500,1000,2000,4000,8000,16000,32000,64000,125000,500000,1000000];const SAFE=[4,9];
+const fmt=n=>n.toLocaleString('de-DE')+' €';
+let G=null,busy=false;
+function ladder(){$('#ladder').innerHTML=PRIZES.map((p,i)=>({p,i})).reverse().map(({p,i})=>`<div class="${i===G?.lv?'cur':''} ${G&&i<G.lv?'done':''} ${SAFE.includes(i)?'safe':''}"><span>${i+1}</span><span>${SAFE.includes(i)?'🔒 ':''}${fmt(p)}</span></div>`).join('');}
+function best(){const b=KIT.get('mio-best',0);$('#best').textContent=b?`Dein bester Gewinn: ${fmt(b)}`:'';}
+function startGame(){G={lv:0,j50:true,jPub:true,jTel:true,used:new Set()};$('#start').classList.add('hidden');$('#game').classList.remove('hidden');music.start();showQ();}
+function pickQ(lv){const pool=TIERS[lv+1].filter(q=>!G.used.has(q.q));const q=pool[Math.floor(Math.random()*pool.length)];G.used.add(q.q);return q;}
+function showQ(){
+  busy=false;const q=pickQ(G.lv);G.q=q;G.opts=[q.a,...q.w].sort(()=>Math.random()-.5);
+  $('#lvl').textContent=`FRAGE ${G.lv+1} VON 15`;$('#amt').textContent=fmt(PRIZES[G.lv]);$('#q').textContent=q.q;
+  $('#ans').innerHTML=G.opts.map((o,k)=>`<button class="an" data-k="${k}"><b>${'ABCD'[k]}:</b>${esc(o)}</button>`).join('');
+  $('#j50').classList.toggle('used',!G.j50);$('#jPub').classList.toggle('used',!G.jPub);$('#jTel').classList.toggle('used',!G.jTel);
+  ladder();music.level(G.lv);tone(392,.15);tone(523,.2,.12);
+}
+$('#ans').onclick=async e=>{const b=e.target.closest('.an');if(!b||busy)return;const k=+b.dataset.k;busy=true;
+  $$('#ans .an').forEach(x=>x.classList.remove('lock'));b.classList.add('lock');tone(600,.08);
+  const ok=await modal(`<h2>🤔 Endgültige Antwort?</h2><p>Ist <b>${'ABCD'[k]}: ${esc(G.opts[k])}</b> deine endgültige Antwort?</p><div class="row"><button data-v="0">Nein, nochmal</button><button class="primary" data-v="1">Ja, eingeloggt!</button></div>`,null,false);
+  if(ok!=='1'){b.classList.remove('lock');busy=false;return;}
+  music.stop();music.suspense();await sleep(G.lv>=9?2600:1700);
+  const right=G.opts.indexOf(G.q.a);$$('#ans .an')[right].classList.add('ok');
+  if(k===right){winTune(G.lv);await sleep(1600);
+    if(G.lv===14){finish(PRIZES[14],true);return;}
+    G.lv++;if(SAFE.includes(G.lv-1)){await infoBox(`<div class="big">🔒</div><h2 style="text-align:center">Sicherheitsstufe!</h2><p style="text-align:center"><b>${fmt(PRIZES[G.lv-1])}</b> sind dir jetzt sicher!</p>`,'Weiter');}
+    music.start();showQ();}
+  else{b.classList.remove('lock');b.classList.add('no');loseTune();await sleep(2000);const safe=G.lv>9?PRIZES[9]:G.lv>4?PRIZES[4]:0;finish(safe,false);}
+};
+$('#btnQuit').onclick=async()=>{if(busy)return;const have=G.lv>0?PRIZES[G.lv-1]:0;if(!(await confirmBox(`Wirklich aussteigen? Du nimmst <b>${fmt(have)}</b> mit.`,'Aussteigen','Weiterspielen')))return;
+  const right=G.opts.indexOf(G.q.a);$$('#ans .an')[right].classList.add('ok');await sleep(1300);finish(have,false,true);};
+$('#btnLadder').onclick=()=>infoBox(`<h2>📶 Gewinnstufen</h2><div class="ladder">${$('#ladder').innerHTML}</div>`,'Zurück');
+$('#j50').onclick=()=>{if(!G.j50||busy)return;G.j50=false;const right=G.opts.indexOf(G.q.a);const wrong=[0,1,2,3].filter(k=>k!==right).sort(()=>Math.random()-.5).slice(0,2);wrong.forEach(k=>$$('#ans .an')[k].classList.add('gone'));G.gone=wrong;$('#j50').classList.add('used');tone(700,.08);tone(900,.1,.08);};
+$('#jPub').onclick=()=>{if(!G.jPub||busy)return;G.jPub=false;$('#jPub').classList.add('used');const right=G.opts.indexOf(G.q.a);
+  const acc=Math.max(.3,.9-G.lv*.045);const vis=[0,1,2,3].filter(k=>!$$('#ans .an')[k].classList.contains('gone'));
+  let votes=vis.map(k=>({k,v:Math.random()*(1-acc)*100}));const r=votes.find(x=>x.k===right);r.v+=acc*100*(.7+Math.random()*.3);
+  if(Math.random()>acc+.15){const o=votes.filter(x=>x.k!==right);if(o.length){o[0].v+=r.v*.6;}}
+  const sum=votes.reduce((a,b)=>a+b.v,0);votes.forEach(x=>x.p=Math.round(x.v/sum*100));
+  modal(`<h2>👥 Das Publikum stimmt ab …</h2><div class="bars">${[0,1,2,3].map(k=>{const v=votes.find(x=>x.k===k);return `<div><span>${v?v.p+'%':''}</span><i data-h="${v?v.p:0}" style="height:0%"></i><span>${'ABCD'[k]}</span></div>`;}).join('')}</div><div class="row"><button class="primary" data-v="1">Danke!</button></div>`,box=>{setTimeout(()=>box.querySelectorAll('.bars i').forEach(i=>i.style.height=i.dataset.h+'%'),60);});
+  [300,350,320,380].forEach((f,k)=>tone(f,.15,k*.12,'sine',.05));};
+$('#jTel').onclick=()=>{if(!G.jTel||busy)return;G.jTel=false;$('#jTel').classList.add('used');const right=G.opts.indexOf(G.q.a);
+  const sure=Math.random()<Math.max(.35,.95-G.lv*.05);const vis=[0,1,2,3].filter(k=>!$$('#ans .an')[k].classList.contains('gone'));
+  const guess=sure?right:vis.filter(k=>k!==right)[Math.floor(Math.random()*(vis.length-1))]??right;
+  const names=['Oma','Onkel Ali','Tante Eva','Papa','Opa','Lehrerin Frau Maier'];const nm=names[Math.floor(Math.random()*names.length)];
+  const conf=G.lv<5?'Das ist ganz einfach! Es ist':G.lv<10?'Ich bin mir ziemlich sicher, es ist':'Hmm … schwierig. Ich glaube, es ist';
+  [440,440].forEach((f,k)=>tone(f,.3,k*.5,'sine',.08));
+  setTimeout(()=>infoBox(`<h2>📞 Anruf bei ${nm}</h2><p>„${conf} <b>${'ABCD'[guess]}: ${esc(G.opts[guess])}</b>.“</p>`,'Danke, tschüss!'),1000);};
+function finish(win,mio,quit){music.stop();const b=KIT.get('mio-best',0);if(win>b)KIT.set('mio-best',win);
+  if(mio){confetti();setTimeout(confetti,700);setTimeout(confetti,1400);}else if(win>=16000||quit&&win>0)confetti();
+  modal(`<div class="big">${mio?'🏆':win>0?'💰':'😢'}</div><h2 style="text-align:center">${mio?'DU BIST MILLIONÄR!':quit?'Gut ausgestiegen!':win>0?'Leider falsch!':'Oh nein, falsch!'}</h2><p style="text-align:center">Dein Gewinn:<br><b style="font-size:30px;color:var(--acc);font-family:'JetBrains Mono',monospace">${fmt(win)}</b></p><div class="row"><button data-v="m">Menü</button><button class="primary" data-v="a">Nochmal</button></div>`,null,false)
+  .then(v=>{if(v==='a')startGame();else{$('#game').classList.add('hidden');$('#start').classList.remove('hidden');best();}});}
+/* ===== Klänge (eigene Musik) ===== */
+function winTune(lv){const base=lv>=10?523:392;[0,4,7,12].forEach((s,k)=>tone(base*Math.pow(2,s/12),.25,k*.13,'triangle',.18));if(lv>=9)tone(base*4,.6,.6,'sine',.1);}
+function loseTune(){[311,293,277,261].forEach((f,k)=>tone(f,.35,k*.3,'sawtooth',.08));}
+const music={nodes:[],iv:null,lv:0,
+  start(){this.stop();if(!soundOn||!actx||actx.state!=='running')return;
+    try{const base=[110,110,116.5,123.5,130.8][Math.min(4,Math.floor(this.lv/3))];
+      for(const [f,v] of [[base,.035],[base*1.5,.02],[base*2,.015]]){const o=actx.createOscillator(),g=actx.createGain();o.type='sine';o.frequency.value=f;g.gain.value=0;g.gain.linearRampToValueAtTime(v,actx.currentTime+1);o.connect(g).connect(actx.destination);o.start();this.nodes.push([o,g]);}
+      // Herzschlag ab Frage 10
+      const self=this;let n=0;this.iv=setInterval(()=>{n++;if(self.lv>=7){tone(60,.12,0,'sine',.12+self.lv*.006);tone(55,.1,.18,'sine',.1);}else if(n%2===0)tone(220,.05,0,'sine',.02);},self.lv>=12?600:850);}catch(e){}},
+  stop(){clearInterval(this.iv);this.nodes.forEach(([o,g])=>{try{g.gain.cancelScheduledValues(actx.currentTime);g.gain.setValueAtTime(g.gain.value,actx.currentTime);g.gain.linearRampToValueAtTime(0,actx.currentTime+.3);o.stop(actx.currentTime+.35);}catch(e){}});this.nodes=[];},
+  level(lv){this.lv=lv;},
+  suspense(){if(!soundOn||!actx)return;try{const o=actx.createOscillator(),g=actx.createGain();o.type='sawtooth';o.frequency.setValueAtTime(110,actx.currentTime);o.frequency.linearRampToValueAtTime(220,actx.currentTime+1.6);g.gain.setValueAtTime(.0001,actx.currentTime);g.gain.exponentialRampToValueAtTime(.06,actx.currentTime+1.2);g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+1.8);const f=actx.createBiquadFilter();f.type='lowpass';f.frequency.value=700;o.connect(f).connect(g).connect(actx.destination);o.start();o.stop(actx.currentTime+1.9);}catch(e){}}};
+$('#btnStart').onclick=startGame;
+window.onTheme=()=>{};applyTheme();best();G=null;ladder();
+
+initHelp('millionen-jagd');
+</script>
+</body>
+</html>
