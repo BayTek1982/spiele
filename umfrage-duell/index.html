@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Umfrage-Duell</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('bs-theme'))||'dark';}catch(e){document.documentElement.dataset.theme='dark';}</script>
+<style>
+:root{--acc:#ff6ad5;--acc-ink:#2a0820}
+:root{--bg1:#1f2630;--bg2:#141920;--card:#27303b;--card2:#2f3946;--line:#3a4552;--txt:#eef1f5;--mut:#a7b1bd;--cell:#1b222b;--shadow:rgba(0,0,0,.45)}
+[data-theme=light]{--bg1:#f4f1ea;--bg2:#e9e4d8;--card:#ffffff;--card2:#f2eee6;--line:#ddd5c6;--txt:#1f2630;--mut:#6b7380;--cell:#f7f4ee;--shadow:rgba(60,50,30,.18)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--txt);min-height:100vh;transition:background .3s,color .3s;
+ background:radial-gradient(900px 500px at 12% -10%,color-mix(in srgb,var(--acc) 16%,transparent),transparent 60%),radial-gradient(700px 500px at 110% 15%,rgba(33,195,230,.08),transparent 60%),linear-gradient(180deg,var(--bg1),var(--bg2)) fixed}
+#app{max-width:var(--maxw,640px);margin:0 auto;padding:14px 12px 40px}
+.hidden{display:none!important}
+a.back{color:var(--mut);text-decoration:none;font-weight:700;font-size:14px;display:inline-block;margin:0 0 8px 2px}
+header{display:flex;align-items:center;gap:10px;margin:4px 2px 14px}
+header .logo{font-size:26px}
+header h1{font-family:'JetBrains Mono',monospace;font-size:21px;margin:0;font-weight:800;letter-spacing:-.5px}
+header h1 b{color:var(--acc)}
+.hbtns{margin-left:auto;display:flex;gap:6px}
+.ib{padding:7px 10px!important;font-size:17px!important;line-height:1}
+button{font:inherit;cursor:pointer;border-radius:12px;padding:10px 14px;font-weight:800;color:var(--txt);background:var(--card2);border:1px solid var(--line);transition:filter .15s,transform .1s}
+button:hover:not(:disabled){filter:brightness(1.06)}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--acc);color:var(--acc-ink,#14181e);border-color:var(--acc)}
+button.small{padding:7px 12px;font-size:14px;border-radius:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.card h2{margin:0 0 8px;font-size:18px}
+.card p{margin:0 0 8px;color:var(--mut);line-height:1.45}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin:0 0 6px}
+.seg{display:flex;background:var(--bg2);border-radius:12px;padding:3px;border:1px solid var(--line)}
+.seg button{flex:1;background:transparent;border:0;padding:8px 6px;border-radius:9px;color:var(--mut);font-size:14px}
+.seg button.on{background:var(--card2);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.opts{display:grid;gap:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stats{display:flex;gap:8px;margin-bottom:10px}
+.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;text-align:center}
+.stat .k{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+.stat .v{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800}
+.note{font-size:14px;color:var(--mut);margin-top:8px;line-height:1.45}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+.modal .box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:420px;width:100%;max-height:88vh;overflow:auto;color:var(--txt)}
+.modal .box h2{margin:0 0 10px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.modal .box p,.modal .box li{line-height:1.5}
+.modal .row{justify-content:flex-end;margin-top:14px}
+.big{font-size:46px;text-align:center;margin:2px 0 6px}
+.pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,52px);gap:8px;justify-content:center;margin-top:12px;user-select:none}
+.pad button{font-size:22px;padding:0;touch-action:manipulation}
+.pad .u{grid-column:2}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+.help h2{margin:0 0 6px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.help h3{margin:14px 0 4px;font-size:15px;color:var(--acc)}
+.help p,.help li{line-height:1.5;margin:0 0 6px}
+.help ol,.help ul{margin:0 0 4px;padding-left:20px}
+.help .tip{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:14px}
+
+
+.qhead{text-align:center;font-weight:900;font-size:clamp(18px,5vw,23px);line-height:1.3;margin:6px 6px 12px}
+.qhead small{display:block;color:var(--mut);font-size:13px;font-weight:700;margin-bottom:4px;font-family:'JetBrains Mono',monospace;letter-spacing:1px}
+.board{display:grid;gap:7px;background:linear-gradient(180deg,#24124a,#120826);padding:10px;border-radius:16px;border:2px solid #ff6ad5;box-shadow:0 0 22px rgba(255,106,213,.25)}
+.slot{display:flex;align-items:center;gap:8px;height:46px;border-radius:10px;background:linear-gradient(180deg,#3b2a8a,#24186b);color:#fff;font-weight:900;padding:0 12px;position:relative;cursor:default;perspective:600px}
+.slot .nr{width:28px;height:28px;border-radius:50%;background:#ff6ad5;color:#2a0820;display:flex;align-items:center;justify-content:center;font-size:14px}
+.slot .t{flex:1;font-size:16px}
+.slot .p{font-family:'JetBrains Mono',monospace;font-size:18px;background:#120826;border-radius:8px;padding:3px 8px;min-width:44px;text-align:center}
+.slot.hid .t,.slot.hid .p{visibility:hidden}
+.slot.open{animation:flip .5s}
+.slot.missed{background:linear-gradient(180deg,#5a5a6a,#3a3a48)}
+.host .slot.hid .t{visibility:visible;opacity:.45;font-style:italic}
+.host .slot.hid{cursor:pointer;outline:2px dashed rgba(255,255,255,.25)}
+@keyframes flip{from{transform:rotateX(90deg)}}
+.teams{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.team{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:8px;text-align:center}
+.team.on{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 30%,transparent)}
+.team .n{font-weight:900}.team .s{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:800}
+.xs{display:flex;justify-content:center;gap:10px;height:44px;margin:10px 0}
+.xs span{font-size:38px;font-weight:900;color:#e0453a;font-family:'JetBrains Mono',monospace;opacity:.15}
+.xs span.on{opacity:1;animation:xx .4s}
+@keyframes xx{from{transform:scale(2.4)}}
+.pot{text-align:center;font-family:'JetBrains Mono',monospace;color:var(--mut);margin-top:6px}
+.inp{display:flex;gap:8px;margin-top:10px}
+.inp input{flex:1;min-width:0;font:inherit;font-size:17px;font-weight:700;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);color:var(--txt)}
+.bigX{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:44vw;color:#e0453a;font-weight:900;pointer-events:none;z-index:60;animation:bx .8s forwards;font-family:'JetBrains Mono',monospace}
+@keyframes bx{0%{transform:scale(.3);opacity:0}30%{transform:scale(1);opacity:1}100%{opacity:0}}
+.tin{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tin input{font:inherit;font-weight:700;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);color:var(--txt);min-width:0}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
+  <header><span class="logo">📊</span><h1>Umfrage-<b>Duell</b></h1><div class="hbtns"><button class="ib" id="btnHelp" title="Anleitung">📖</button><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
+
+  <section id="setup">
+    <div class="card opts">
+      <div><div class="lbl">Spielart</div><div class="seg" id="modeSeg"><button data-v="host">🎤 Mit Spielleiter (2 Teams)</button><button data-v="solo">⌨️ Allein raten</button></div></div>
+      <div id="teamBox"><div class="lbl">Team-Namen</div><div class="tin"><input id="t1" value="Team Rot" maxlength="14"><input id="t2" value="Team Blau" maxlength="14"></div></div>
+      <div><div class="lbl">Runden</div><div class="seg" id="roundSeg"><button data-v="3">3</button><button data-v="5">5</button><button data-v="8">8</button></div></div>
+      <div class="row"><button class="primary" id="btnStart">Spiel starten 📊</button></div>
+    </div>
+    <div class="note" id="modeNote"></div>
+  </section>
+  <section id="game" class="hidden">
+    <div class="teams" id="teams"></div>
+    <div class="qhead" id="qhead"></div>
+    <div class="board" id="board"></div>
+    <div class="xs" id="xs"><span>✕</span><span>✕</span><span>✕</span></div>
+    <div id="hostCtl" class="row" style="justify-content:center"><button id="btnX" style="background:#e0453a;color:#fff;border-color:#e0453a">✕ Falsch</button><button class="small" id="btnSwitch">⇄ Team wechseln</button><button class="small" id="btnReveal">👁 Auflösen</button></div>
+    <div id="soloCtl" class="hidden"><div class="inp"><input id="guess" placeholder="Deine Antwort …" autocomplete="off"><button class="primary" id="btnGuess">Raten</button></div><div class="row" style="justify-content:center;margin-top:8px"><button class="small" id="btnGive">🏳️ Aufgeben</button></div></div>
+    <div class="pot" id="pot"></div>
+    <div class="row" style="justify-content:center;margin-top:10px"><button class="primary hidden" id="btnNext">Nächste Frage ➜</button><button class="small" id="btnMenu">‹ Menü</button></div>
+  </section>
+
+  <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
+</div>
+<script>
+const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const KIT={get(k,d){try{const v=JSON.parse(localStorage.getItem('bs-'+k));return v??d;}catch(e){return d;}},set(k,v){try{localStorage.setItem('bs-'+k,JSON.stringify(v));}catch(e){}}};
+let theme=KIT.get('theme','dark'),soundOn=KIT.get('sound',true);
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function applyTheme(){document.documentElement.dataset.theme=theme;$('#btnTheme').textContent=theme==='dark'?'☀️':'🌙';if(window.onTheme)window.onTheme();}
+$('#btnTheme').onclick=()=>{theme=theme==='dark'?'light':'dark';KIT.set('theme',theme);applyTheme();};
+$('#btnSound').onclick=()=>{soundOn=!soundOn;KIT.set('sound',soundOn);$('#btnSound').textContent=soundOn?'🔊':'🔇';};
+$('#btnSound').textContent=soundOn?'🔊':'🔇';
+let actx=null;
+document.addEventListener('pointerdown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}},{passive:true});
+document.addEventListener('keydown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}});
+function tone(f,d=.1,delay=0,type='triangle',v=.18){if(!soundOn||!actx||actx.state!=='running')return;try{const t=actx.currentTime+delay,o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+d+.03);}catch(e){}}
+const sWin=()=>[523,659,784,1046].forEach((f,k)=>tone(f,.18,k*.12));
+const sLose=()=>[392,330,262].forEach((f,k)=>tone(f,.22,k*.15,'sine'));
+function confetti(){try{
+  const c=document.createElement('canvas'),dpr=window.devicePixelRatio||1;c.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:80';document.body.appendChild(c);
+  const ctx=c.getContext('2d'),W=c.width=innerWidth*dpr,H=c.height=innerHeight*dpr,cols=['#e8b04b','#21c3e6','#e0453a','#2fa35a','#f2c21b','#ffffff','#7b5cff'];
+  const ps=Array.from({length:150},()=>({x:W/2+(Math.random()-.5)*W*.3,y:H*.4,vx:(Math.random()-.5)*W*.03,vy:-Math.random()*H*.028-H*.008,r:Math.random()*6,vr:(Math.random()-.5)*.3,s:(6+Math.random()*7)*dpr,c:cols[Math.random()*cols.length|0]}));
+  let t=0;(function f(){t++;ctx.clearRect(0,0,W,H);for(const p of ps){p.vy+=H*.0008;p.vx*=.985;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);ctx.restore();}if(t<170)requestAnimationFrame(f);else c.remove();})();
+}catch(e){}}
+function modal(html,setup,dismiss=true){return new Promise(res=>{const m=$('#modal'),box=$('#modalBox');box.innerHTML=html;m.classList.remove('hidden');
+  const close=v=>{m.classList.add('hidden');box.innerHTML='';m.onclick=null;res(v);};
+  box.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>close(b.dataset.v));if(setup)setup(box,close);
+  m.onclick=e=>{if(e.target===m&&dismiss)close(null);};});}
+const confirmBox=(text,yes='Ja',no='Abbrechen')=>modal(`<p>${text}</p><div class="row"><button data-v="0">${no}</button><button class="primary" data-v="1">${yes}</button></div>`).then(v=>v==='1');
+const infoBox=(html,btn='OK')=>modal(html+`<div class="row"><button class="primary" data-v="1">${btn}</button></div>`);
+// Swipe-Hilfe
+function onSwipe(el,cb){let sx=0,sy=0,act=false;
+  el.addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;act=true;},{passive:true});
+  el.addEventListener('touchmove',e=>{if(!act)return;const t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))>22){cb(Math.abs(dx)>Math.abs(dy)?(dx>0?'r':'l'):(dy>0?'d':'u'));act=false;}e.preventDefault();},{passive:false});
+  el.addEventListener('touchend',()=>act=false);}
+setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
+
+function showHelp(){if(!window.HELP)return;return modal(`<div class="help">${window.HELP}</div><div class="row"><button class="primary" data-v="1">Los geht's!</button></div>`);}
+$('#btnHelp').onclick=showHelp;
+function initHelp(id){if(window.HELP&&!KIT.get('help-seen-'+id,false)){KIT.set('help-seen-'+id,true);setTimeout(showHelp,350);}}
+
+
+window.HELP=`<h2>📊 So spielst du Umfrage-Duell</h2>
+<p>„Wir haben 100 Leute gefragt …“ – findet die <b>beliebtesten Antworten</b>! Je mehr Leute etwas gesagt haben, desto mehr Punkte gibt es.</p>
+<h3>🎤 Mit Spielleiter (2 Teams)</h3><ol><li>Einer ist <b>Spielleiter</b> und hält das Handy. Nur er sieht die Antworten (blass im Hintergrund).</li><li>Das Team, das dran ist, sagt nacheinander Antworten.</li><li>Stimmt eine Antwort? Spielleiter <b>tippt sie an</b> – sie wird aufgedeckt.</li><li>Falsch? <b>✕ Falsch</b> drücken. Nach <b>3 Fehlern</b> darf das andere Team <b>eine</b> Antwort versuchen: Stimmt sie, klaut es alle Punkte der Runde!</li><li>Das Team mit den meisten Punkten am Ende gewinnt.</li></ol>
+<h3>⌨️ Allein raten</h3><p>Tippe deine Antworten ein. Du hast 3 Fehlversuche pro Frage.</p>
+<div class="tip">💡 Die Umfragen sind ausgedacht – es geht ums Spaß haben und Raten, was „die meisten“ sagen würden!</div>`;
+// Frage | Antwort:Punkte:Synonym,Synonym ; ...
+const RAW=`Nenne etwas, das man im Kühlschrank findet.|Milch:30:milch|Käse:20:kaese|Butter:15|Wurst:12:aufschnitt,salami,schinken|Eier:10:ei|Joghurt:8:jogurt,jogurth
+Nenne ein Tier, das man auf dem Bauernhof sieht.|Kuh:32:kühe,kuehe,rind|Schwein:22:schweine,ferkel|Huhn:18:hühner,henne,huehner|Pferd:12:pferde,pony|Schaf:9:schafe|Ziege:7:ziegen
+Was nimmt man mit an den Strand?|Handtuch:30:badetuch|Sonnencreme:24:sonnenmilch,sonnenschutz|Badehose:15:badeanzug,bikini|Sonnenbrille:12|Sonnenschirm:10:schirm|Wasser:9:getränk,trinken
+Nenne etwas, das in jedem Schulranzen ist.|Federmäppchen:30:mäppchen,etui,federmappe,maeppchen|Hefte:24:heft|Bücher:18:buch,buecher|Pausenbrot:14:brotzeit,brotdose,essen|Trinkflasche:8:flasche,trinken|Lineal:6
+Was macht man am Wochenende gern?|Ausschlafen:30:schlafen|Fernsehen:20:tv,serien,filme|Freunde treffen:16:freunde|Spazieren gehen:14:spazieren,wandern|Sport:12:fußball,fussball|Zocken:8:videospiele,spielen,konsole
+Nenne eine Farbe, die viele Autos haben.|Schwarz:32|Weiß:26:weiss|Grau:18|Silber:12|Blau:8|Rot:4
+Was isst man zum Frühstück?|Brot:30:brötchen,semmel,toast,broetchen|Müsli:22:muesli,cornflakes,flocken|Eier:16:ei,spiegelei,rührei|Marmelade:12:nutella,honig|Joghurt:10:jogurt|Obst:7:apfel,banane
+Nenne etwas, das man im Winter anzieht.|Mütze:30:muetze,haube|Handschuhe:24:handschuh|Schal:20|Winterjacke:16:jacke,mantel|Stiefel:7:winterschuhe,schuhe
+Was hat man in der Hosentasche?|Handy:36:smartphone,telefon|Schlüssel:24:schluessel|Geldbeutel:18:geld,portemonnaie,geldbörse|Taschentuch:12:taschentücher,tempo|Kaugummi:6
+Nenne ein Spiel, das man draußen spielt.|Fußball:34:fussball,kicken|Fangen:22:fangerle|Verstecken:18|Seilspringen:10:seilhüpfen|Federball:8:badminton|Gummitwist:5
+Nenne etwas, das man im Bad findet.|Zahnbürste:28:zahnbuerste|Handtuch:22:handtücher|Seife:18:duschgel|Spiegel:14|Toilettenpapier:10:klopapier|Shampoo:6
+Was gibt es auf einem Geburtstag?|Kuchen:38:torte|Geschenke:28:geschenk|Luftballons:14:ballons,ballon|Kerzen:10:kerze|Gäste:6:freunde,party
+Nenne einen Beruf, den Kinder gern haben möchten.|Polizist:28:polizei,polizistin|Feuerwehrmann:22:feuerwehr|Tierarzt:16:tierärztin|Lehrer:12:lehrerin|Fußballer:12:fussballspieler,fußballspieler|Arzt:8:ärztin,doktor
+Was macht man, wenn man nicht einschlafen kann?|Schafe zählen:30:schafe|Lesen:22:buch|Handy:16:handy schauen|Musik hören:14:musik|Etwas trinken:10:wasser,milch,tee|Fernsehen:6
+Nenne etwas, das man an Weihnachten macht.|Geschenke auspacken:34:geschenke,bescherung|Baum schmücken:22:tannenbaum,christbaum,baum|Plätzchen backen:16:plätzchen,kekse,backen|Essen:12:festessen,gans|Kirche:8:gottesdienst|Singen:6:lieder
+Was hat ein Auto?|Räder:34:reifen,rad,raeder|Lenkrad:22:lenker|Motor:18|Sitze:12:sitz|Türen:8:tür,tueren|Scheinwerfer:4:licht,lichter
+Nenne ein Obst.|Apfel:38:äpfel|Banane:26:bananen|Erdbeere:14:erdbeeren|Orange:10:apfelsine|Birne:8:birnen|Traube:4:trauben,weintrauben
+Wo fährt man in den Urlaub hin?|Italien:28|Türkei:22:tuerkei|Spanien:18:mallorca|Kroatien:12|Österreich:10:oesterreich|Griechenland:8
+Nenne etwas, das man im Kino macht.|Popcorn essen:38:popcorn|Film schauen:28:film|Cola trinken:14:trinken,cola|Leise sein:10:still sein,ruhig|Nachos essen:6:nachos
+Was kann fliegen?|Vogel:36:vögel,voegel|Flugzeug:30|Hubschrauber:12:helikopter|Biene:8:insekt,fliege|Drachen:6:drache|Ballon:4:heißluftballon
+Nenne etwas, das man in der Küche benutzt.|Messer:26|Topf:22:töpfe|Pfanne:18|Löffel:14:loeffel|Herd:12:ofen|Kühlschrank:8
+Was macht einen guten Freund aus?|Ehrlich:30:ehrlichkeit|Hilfsbereit:24:hilft|Lustig:18:witzig|Zuhören:14:hört zu|Treue:10:treu
+Nenne ein Haustier.|Hund:38:hunde|Katze:30:katzen|Hase:12:kaninchen,hasen|Hamster:10|Wellensittich:6:vogel|Fisch:4:fische,goldfisch
+Was braucht man zum Kuchenbacken?|Mehl:32|Eier:26:ei|Zucker:20|Butter:14|Milch:8
+Nenne eine Sportart.|Fußball:42:fussball|Tennis:16|Basketball:12|Schwimmen:12|Handball:10|Ski fahren:8:skifahren,ski
+Was sagt man, wenn man jemanden begrüßt?|Hallo:44|Servus:20|Guten Morgen:14:morgen|Grüß Gott:12:gruess gott,grüss gott|Hi:10:hey
+Nenne etwas, das Lärm macht.|Baustelle:26:bohrer,presslufthammer|Baby:20:baby schreit|Hund:16:bellen|Motorrad:14:auto|Feuerwerk:12:böller|Musik:12
+Was nimmt man mit zum Zelten?|Zelt:36|Schlafsack:26|Taschenlampe:16:lampe|Isomatte:12:matte|Essen:10:proviant
+Nenne etwas, das gelb ist.|Banane:34:bananen|Sonne:30|Zitrone:16|Käse:10:kaese|Post:6:postauto,briefkasten|Ente:4:quietscheente
+Was macht man im Schwimmbad?|Schwimmen:38|Rutschen:24:rutsche|Springen:16:vom brett springen,sprungturm|Pommes essen:14:pommes,essen|Sonnen:8:liegen`;
+const Q=RAW.split('\n').map(l=>{const [q,...a]=l.split('|');return {q,a:a.map(x=>{const [t,p,s]=x.split(':');return {t,p:+p,syn:[t,...(s?s.split(','):[])].map(norm)};})};});
+function norm(s){return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ß/g,'ss').replace(/[^a-z0-9 ]/g,'').trim();}
+let cfg={mode:KIT.get('ud-mode','host'),rounds:+KIT.get('ud-r',5)};let G=null;
+function bindSeg(id,val,cb){const el=$(id);const set=v=>{el.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v==String(v)));};set(val);el.onclick=e=>{const b=e.target.closest('button');if(!b)return;set(b.dataset.v);cb(b.dataset.v);};}
+const upd=()=>{$('#teamBox').classList.toggle('hidden',cfg.mode!=='host');$('#modeNote').textContent=cfg.mode==='host'?'🎤 Einer ist Spielleiter und hält das Handy – nur er sieht die Lösungen blass im Hintergrund.':'⌨️ Tippe deine Antworten selbst ein. Rechtschreibung muss nicht perfekt sein.';};
+bindSeg('#modeSeg',cfg.mode,v=>{cfg.mode=v;KIT.set('ud-mode',v);upd();});bindSeg('#roundSeg',cfg.rounds,v=>{cfg.rounds=+v;KIT.set('ud-r',+v);});upd();
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+function start(){const seen=KIT.get('ud-seen',[]);let pool=Q.filter(q=>!seen.includes(q.q));if(pool.length<cfg.rounds)pool=Q.slice();const qs=shuffle(pool).slice(0,cfg.rounds);KIT.set('ud-seen',[...seen,...qs.map(q=>q.q)].slice(-24));
+  G={qs,i:0,team:0,sc:[0,0],names:[$('#t1').value||'Team 1',$('#t2').value||'Team 2'],solo:cfg.mode==='solo',total:0};
+  $('#setup').classList.add('hidden');$('#game').classList.remove('hidden');$('#hostCtl').classList.toggle('hidden',G.solo);$('#soloCtl').classList.toggle('hidden',!G.solo);round();}
+function round(){const q=G.qs[G.i];G.open=new Set();G.x=0;G.steal=false;G.pot=0;G.done=false;
+  $('#qhead').innerHTML=`<small>FRAGE ${G.i+1} VON ${G.qs.length} · 100 LEUTE GEFRAGT</small>${esc(q.q)}`;
+  $('#board').className='board'+(G.solo?'':' host');$('#board').innerHTML=q.a.map((a,k)=>`<div class="slot hid" data-k="${k}"><span class="nr">${k+1}</span><span class="t">${esc(a.t)}</span><span class="p">${a.p}</span></div>`).join('');
+  $('#btnNext').classList.add('hidden');$('#guess').value='';renderTop();if(G.solo)setTimeout(()=>$('#guess').focus(),50);[392,523,659].forEach((f,k)=>tone(f,.15,k*.1));}
+function renderTop(){if(G.solo){$('#teams').innerHTML=`<div class="team on" style="grid-column:1/3"><div class="n">Deine Punkte</div><div class="s">${G.total}</div></div>`;}
+  else $('#teams').innerHTML=G.names.map((n,i)=>`<div class="team ${G.team===i?'on':''}"><div class="n">${i===0?'🔴':'🔵'} ${esc(n)}</div><div class="s">${G.sc[i]}</div></div>`).join('');
+  $$('#xs span').forEach((s,i)=>s.classList.toggle('on',i<G.x));$('#pot').textContent=G.solo?'':G.steal?`⚡ ${G.names[G.team]} darf klauen! (1 Versuch)`:`Punkte in dieser Runde: ${G.pot}`;}
+function reveal(k,silent){if(G.open.has(k))return;G.open.add(k);const el=$$('#board .slot')[k];el.classList.remove('hid');el.classList.add('open');if(!silent){G.pot+=G.qs[G.i].a[k].p;tone(880,.1);tone(1175,.15,.1);}}
+function bigX(){const d=document.createElement('div');d.className='bigX';d.textContent='✕';document.body.appendChild(d);setTimeout(()=>d.remove(),850);tone(140,.35,0,'sawtooth',.12);}
+function finishRound(winner){if(G.done)return;G.done=true;const q=G.qs[G.i];
+  if(!G.solo&&winner!=null){G.sc[winner]+=G.pot;}
+  const slots=$$('#board .slot'),opened=new Set(G.open);setTimeout(()=>{slots.forEach((el,k)=>{if(!opened.has(k)&&el.isConnected){el.classList.remove('hid');el.classList.add('open','missed');}});},500);
+  if(!G.solo&&winner!=null){$('#pot').textContent=`🎉 ${G.names[winner]} bekommt ${G.pot} Punkte!`;sWin();}
+  renderTopOnlyScores();$('#btnNext').classList.remove('hidden');$('#btnNext').textContent=G.i<G.qs.length-1?'Nächste Frage ➜':'🏁 Ergebnis';}
+function renderTopOnlyScores(){const p=$('#pot').textContent;renderTop();$('#pot').textContent=p;}
+$('#board').onclick=e=>{const el=e.target.closest('.slot.hid');if(!el||G.solo||G.done)return;const k=+el.dataset.k;
+  reveal(k);if(G.steal){finishRound(G.team);return;}renderTop();if(G.open.size===G.qs[G.i].a.length)finishRound(G.team);};
+$('#btnX').onclick=()=>{if(G.done)return;bigX();if(G.steal){finishRound(1-G.team);return;}G.x++;renderTop();if(G.x>=3){setTimeout(()=>{G.steal=true;G.team=1-G.team;renderTop();infoBox(`<div class="big">⚡</div><h2 style="text-align:center">3 Fehler!</h2><p style="text-align:center"><b>${esc(G.names[G.team])}</b> darf jetzt <b>eine</b> Antwort versuchen. Stimmt sie, klaut ihr alle ${G.pot} Punkte!</p>`,'Los!');},700);}};
+$('#btnSwitch').onclick=()=>{if(G.done||G.steal)return;G.team=1-G.team;renderTop();};
+$('#btnReveal').onclick=async()=>{if(G.done)return;if(await confirmBox('Runde beenden und alle Antworten zeigen? (Keiner bekommt die Punkte)','Auflösen','Abbrechen'))finishRound(null);};
+function lev(a,b){const m=a.length,n=b.length;const d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);for(let j=1;j<=n;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];}
+function match(g){const x=norm(g);if(!x)return -1;const q=G.qs[G.i];for(let k=0;k<q.a.length;k++){for(const s of q.a[k].syn){if(x===s||(s.length>=5&&lev(x,s)<=Math.floor(s.length/5))||(x.length>=4&&(s.includes(x)&&x.length>=s.length-3||x.includes(s)&&s.length>=4)))return k;}}return -1;}
+function soloGuess(){if(G.done)return;const g=$('#guess').value;if(!g.trim())return;$('#guess').value='';const k=match(g);
+  if(k>=0&&!G.open.has(k)){reveal(k);G.total+=G.qs[G.i].a[k].p;renderTop();if(G.open.size===G.qs[G.i].a.length){sWin();confetti();finishRound(null);}}
+  else if(k>=0){tone(300,.1);$('#pot').textContent='Die hast du schon! 😉';}
+  else{bigX();G.x++;renderTop();$('#pot').textContent=`„${g}“ hat keiner gesagt.`;if(G.x>=3)finishRound(null);}
+  $('#guess').focus();}
+$('#btnGuess').onclick=soloGuess;$('#guess').onkeydown=e=>{if(e.key==='Enter')soloGuess();};
+$('#btnGive').onclick=()=>{if(!G.done)finishRound(null);};
+$('#btnNext').onclick=()=>{G.i++;if(G.i<G.qs.length){if(!G.solo)G.team=G.i%2;round();return;}
+  if(G.solo){const b=KIT.get('ud-best',0);const rec=G.total>b;if(rec)KIT.set('ud-best',G.total);confetti();infoBox(`<div class="big">📊</div><h2 style="text-align:center">${G.total} Punkte!</h2><p style="text-align:center">${rec?'⭐ Neuer Rekord!':'Rekord: '+b}</p>`,'Menü').then(menu);}
+  else{const w=G.sc[0]===G.sc[1]?null:G.sc[0]>G.sc[1]?0:1;sWin();confetti();infoBox(`<div class="big">🏆</div><h2 style="text-align:center">${w==null?'Unentschieden!':esc(G.names[w])+' gewinnt!'}</h2><p style="text-align:center">${esc(G.names[0])}: <b>${G.sc[0]}</b> · ${esc(G.names[1])}: <b>${G.sc[1]}</b></p>`,'Menü').then(menu);}};
+function menu(){$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');}
+$('#btnMenu').onclick=menu;$('#btnStart').onclick=start;applyTheme();
+
+initHelp('umfrage-duell');
+</script>
+</body>
+</html>

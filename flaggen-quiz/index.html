@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flaggen-Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('bs-theme'))||'dark';}catch(e){document.documentElement.dataset.theme='dark';}</script>
+<style>
+:root{--acc:#21c3e6;--acc-ink:#14181e}
+:root{--bg1:#1f2630;--bg2:#141920;--card:#27303b;--card2:#2f3946;--line:#3a4552;--txt:#eef1f5;--mut:#a7b1bd;--cell:#1b222b;--shadow:rgba(0,0,0,.45)}
+[data-theme=light]{--bg1:#f4f1ea;--bg2:#e9e4d8;--card:#ffffff;--card2:#f2eee6;--line:#ddd5c6;--txt:#1f2630;--mut:#6b7380;--cell:#f7f4ee;--shadow:rgba(60,50,30,.18)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--txt);min-height:100vh;transition:background .3s,color .3s;
+ background:radial-gradient(900px 500px at 12% -10%,color-mix(in srgb,var(--acc) 16%,transparent),transparent 60%),radial-gradient(700px 500px at 110% 15%,rgba(33,195,230,.08),transparent 60%),linear-gradient(180deg,var(--bg1),var(--bg2)) fixed}
+#app{max-width:var(--maxw,640px);margin:0 auto;padding:14px 12px 40px}
+.hidden{display:none!important}
+a.back{color:var(--mut);text-decoration:none;font-weight:700;font-size:14px;display:inline-block;margin:0 0 8px 2px}
+header{display:flex;align-items:center;gap:10px;margin:4px 2px 14px}
+header .logo{font-size:26px}
+header h1{font-family:'JetBrains Mono',monospace;font-size:21px;margin:0;font-weight:800;letter-spacing:-.5px}
+header h1 b{color:var(--acc)}
+.hbtns{margin-left:auto;display:flex;gap:6px}
+.ib{padding:7px 10px!important;font-size:17px!important;line-height:1}
+button{font:inherit;cursor:pointer;border-radius:12px;padding:10px 14px;font-weight:800;color:var(--txt);background:var(--card2);border:1px solid var(--line);transition:filter .15s,transform .1s}
+button:hover:not(:disabled){filter:brightness(1.06)}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--acc);color:var(--acc-ink,#14181e);border-color:var(--acc)}
+button.small{padding:7px 12px;font-size:14px;border-radius:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.card h2{margin:0 0 8px;font-size:18px}
+.card p{margin:0 0 8px;color:var(--mut);line-height:1.45}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin:0 0 6px}
+.seg{display:flex;background:var(--bg2);border-radius:12px;padding:3px;border:1px solid var(--line)}
+.seg button{flex:1;background:transparent;border:0;padding:8px 6px;border-radius:9px;color:var(--mut);font-size:14px}
+.seg button.on{background:var(--card2);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.opts{display:grid;gap:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stats{display:flex;gap:8px;margin-bottom:10px}
+.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;text-align:center}
+.stat .k{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+.stat .v{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800}
+.note{font-size:14px;color:var(--mut);margin-top:8px;line-height:1.45}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+.modal .box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:420px;width:100%;max-height:88vh;overflow:auto;color:var(--txt)}
+.modal .box h2{margin:0 0 10px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.modal .box p,.modal .box li{line-height:1.5}
+.modal .row{justify-content:flex-end;margin-top:14px}
+.big{font-size:46px;text-align:center;margin:2px 0 6px}
+.pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,52px);gap:8px;justify-content:center;margin-top:12px;user-select:none}
+.pad button{font-size:22px;padding:0;touch-action:manipulation}
+.pad .u{grid-column:2}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+.help h2{margin:0 0 6px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.help h3{margin:14px 0 4px;font-size:15px;color:var(--acc)}
+.help p,.help li{line-height:1.5;margin:0 0 6px}
+.help ol,.help ul{margin:0 0 4px;padding-left:20px}
+.help .tip{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:14px}
+
+
+.q{text-align:center;margin:8px 0 12px}
+.q .flag{font-size:min(36vw,150px);line-height:1.05;filter:drop-shadow(0 6px 12px var(--shadow))}
+.q .txt{font-size:26px;font-weight:900;margin:20px 0}
+.q .sub{color:var(--mut);font-weight:700}
+.ans{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ans button{padding:14px 8px;font-size:17px;min-height:64px}
+.ans.flags button{font-size:52px;padding:6px;line-height:1.1}
+.ans button.ok{background:#2fa35a;color:#fff;border-color:#2fa35a}
+.ans button.no{background:#e0453a;color:#fff;border-color:#e0453a}
+.prog{height:8px;border-radius:5px;background:var(--line);overflow:hidden;margin-bottom:10px}.prog i{display:block;height:100%;background:var(--acc);transition:width .3s}
+.streak{text-align:center;font-weight:900;color:var(--acc);min-height:24px}
+.album{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:6px;font-size:34px;text-align:center}
+.album span{opacity:.18;filter:grayscale(1)}.album span.got{opacity:1;filter:none}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
+  <header><span class="logo">🌍</span><h1>Flaggen-<b>Quiz</b></h1><div class="hbtns"><button class="ib" id="btnHelp" title="Anleitung">📖</button><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
+
+  <section id="setup">
+    <div class="card opts">
+      <div><div class="lbl">Spielart</div><div class="seg" id="modeSeg" style="flex-wrap:wrap"><button data-v="f2l">🏳️ Flagge → Land</button><button data-v="l2f">🔤 Land → Flagge</button><button data-v="cap">🏛️ Hauptstädte</button></div></div>
+      <div><div class="lbl">Welche Länder?</div><div class="seg" id="regSeg" style="flex-wrap:wrap"><button data-v="1">⭐ Bekannte</button><button data-v="eu">🇪🇺 Europa</button><button data-v="all">🌍 Ganze Welt</button><button data-v="3">🧠 Profi</button></div></div>
+      <div class="row"><button class="primary" id="btnStart">Quiz starten (10 Fragen)</button><button id="btnAlbum">📒 Mein Flaggen-Album</button></div>
+    </div>
+    <div class="note" id="best" style="text-align:center"></div>
+  </section>
+  <section id="game" class="hidden">
+    <div class="prog"><i id="prog"></i></div>
+    <div class="stats"><div class="stat"><div class="k">Frage</div><div class="v" id="qn"></div></div><div class="stat"><div class="k">Punkte</div><div class="v" id="pts">0</div></div></div>
+    <div class="q" id="q"></div>
+    <div class="ans" id="ans"></div>
+    <div class="streak" id="streak"></div>
+    <div class="row" style="justify-content:center;margin-top:8px"><button class="small" id="btnMenu">‹ Menü</button></div>
+  </section>
+
+  <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
+</div>
+<script>
+const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const KIT={get(k,d){try{const v=JSON.parse(localStorage.getItem('bs-'+k));return v??d;}catch(e){return d;}},set(k,v){try{localStorage.setItem('bs-'+k,JSON.stringify(v));}catch(e){}}};
+let theme=KIT.get('theme','dark'),soundOn=KIT.get('sound',true);
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function applyTheme(){document.documentElement.dataset.theme=theme;$('#btnTheme').textContent=theme==='dark'?'☀️':'🌙';if(window.onTheme)window.onTheme();}
+$('#btnTheme').onclick=()=>{theme=theme==='dark'?'light':'dark';KIT.set('theme',theme);applyTheme();};
+$('#btnSound').onclick=()=>{soundOn=!soundOn;KIT.set('sound',soundOn);$('#btnSound').textContent=soundOn?'🔊':'🔇';};
+$('#btnSound').textContent=soundOn?'🔊':'🔇';
+let actx=null;
+document.addEventListener('pointerdown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}},{passive:true});
+document.addEventListener('keydown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}});
+function tone(f,d=.1,delay=0,type='triangle',v=.18){if(!soundOn||!actx||actx.state!=='running')return;try{const t=actx.currentTime+delay,o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+d+.03);}catch(e){}}
+const sWin=()=>[523,659,784,1046].forEach((f,k)=>tone(f,.18,k*.12));
+const sLose=()=>[392,330,262].forEach((f,k)=>tone(f,.22,k*.15,'sine'));
+function confetti(){try{
+  const c=document.createElement('canvas'),dpr=window.devicePixelRatio||1;c.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:80';document.body.appendChild(c);
+  const ctx=c.getContext('2d'),W=c.width=innerWidth*dpr,H=c.height=innerHeight*dpr,cols=['#e8b04b','#21c3e6','#e0453a','#2fa35a','#f2c21b','#ffffff','#7b5cff'];
+  const ps=Array.from({length:150},()=>({x:W/2+(Math.random()-.5)*W*.3,y:H*.4,vx:(Math.random()-.5)*W*.03,vy:-Math.random()*H*.028-H*.008,r:Math.random()*6,vr:(Math.random()-.5)*.3,s:(6+Math.random()*7)*dpr,c:cols[Math.random()*cols.length|0]}));
+  let t=0;(function f(){t++;ctx.clearRect(0,0,W,H);for(const p of ps){p.vy+=H*.0008;p.vx*=.985;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);ctx.restore();}if(t<170)requestAnimationFrame(f);else c.remove();})();
+}catch(e){}}
+function modal(html,setup,dismiss=true){return new Promise(res=>{const m=$('#modal'),box=$('#modalBox');box.innerHTML=html;m.classList.remove('hidden');
+  const close=v=>{m.classList.add('hidden');box.innerHTML='';m.onclick=null;res(v);};
+  box.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>close(b.dataset.v));if(setup)setup(box,close);
+  m.onclick=e=>{if(e.target===m&&dismiss)close(null);};});}
+const confirmBox=(text,yes='Ja',no='Abbrechen')=>modal(`<p>${text}</p><div class="row"><button data-v="0">${no}</button><button class="primary" data-v="1">${yes}</button></div>`).then(v=>v==='1');
+const infoBox=(html,btn='OK')=>modal(html+`<div class="row"><button class="primary" data-v="1">${btn}</button></div>`);
+// Swipe-Hilfe
+function onSwipe(el,cb){let sx=0,sy=0,act=false;
+  el.addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;act=true;},{passive:true});
+  el.addEventListener('touchmove',e=>{if(!act)return;const t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))>22){cb(Math.abs(dx)>Math.abs(dy)?(dx>0?'r':'l'):(dy>0?'d':'u'));act=false;}e.preventDefault();},{passive:false});
+  el.addEventListener('touchend',()=>act=false);}
+setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
+
+function showHelp(){if(!window.HELP)return;return modal(`<div class="help">${window.HELP}</div><div class="row"><button class="primary" data-v="1">Los geht's!</button></div>`);}
+$('#btnHelp').onclick=showHelp;
+function initHelp(id){if(window.HELP&&!KIT.get('help-seen-'+id,false)){KIT.set('help-seen-'+id,true);setTimeout(showHelp,350);}}
+
+
+window.HELP=`<h2>🌍 So spielst du das Flaggen-Quiz</h2>
+<h3>Spielarten</h3><ul><li><b>🏳️ Flagge → Land:</b> Du siehst eine Flagge – zu welchem Land gehört sie?</li><li><b>🔤 Land → Flagge:</b> Du liest ein Land – welche Flagge ist richtig?</li><li><b>🏛️ Hauptstädte:</b> Wie heißt die Hauptstadt?</li></ul>
+<h3>Punkte</h3><p>Jede richtige Antwort gibt <b>10 Punkte</b>. Schnelle Antworten bringen Bonuspunkte, und mehrere richtige hintereinander geben eine 🔥 <b>Serie</b>!</p>
+<h3>📒 Flaggen-Album</h3><p>Jede Flagge, die du richtig erkennst, kommt in dein Album. Schaffst du alle?</p>`;
+// Name|Flagge|Hauptstadt|Kontinent|Stufe
+const RAW=`Deutschland|🇩🇪|Berlin|eu|1
+Österreich|🇦🇹|Wien|eu|1
+Schweiz|🇨🇭|Bern|eu|1
+Frankreich|🇫🇷|Paris|eu|1
+Italien|🇮🇹|Rom|eu|1
+Spanien|🇪🇸|Madrid|eu|1
+Türkei|🇹🇷|Ankara|eu|1
+England|🏴󠁧󠁢󠁥󠁮󠁧󠁿|London|eu|1
+Niederlande|🇳🇱|Amsterdam|eu|1
+Belgien|🇧🇪|Brüssel|eu|2
+Polen|🇵🇱|Warschau|eu|1
+Griechenland|🇬🇷|Athen|eu|1
+Portugal|🇵🇹|Lissabon|eu|1
+Schweden|🇸🇪|Stockholm|eu|1
+Norwegen|🇳🇴|Oslo|eu|2
+Dänemark|🇩🇰|Kopenhagen|eu|2
+Finnland|🇫🇮|Helsinki|eu|2
+Irland|🇮🇪|Dublin|eu|2
+Tschechien|🇨🇿|Prag|eu|2
+Ungarn|🇭🇺|Budapest|eu|2
+Kroatien|🇭🇷|Zagreb|eu|2
+Rumänien|🇷🇴|Bukarest|eu|3
+Bulgarien|🇧🇬|Sofia|eu|3
+Ukraine|🇺🇦|Kiew|eu|1
+Russland|🇷🇺|Moskau|eu|2
+Serbien|🇷🇸|Belgrad|eu|3
+Slowakei|🇸🇰|Bratislava|eu|3
+Slowenien|🇸🇮|Ljubljana|eu|3
+Island|🇮🇸|Reykjavík|eu|3
+Luxemburg|🇱🇺|Luxemburg|eu|3
+Albanien|🇦🇱|Tirana|eu|3
+Litauen|🇱🇹|Vilnius|eu|3
+Lettland|🇱🇻|Riga|eu|3
+Estland|🇪🇪|Tallinn|eu|3
+Bosnien und Herzegowina|🇧🇦|Sarajevo|eu|3
+Nordmazedonien|🇲🇰|Skopje|eu|3
+Monaco|🇲🇨|Monaco|eu|3
+Malta|🇲🇹|Valletta|eu|3
+Zypern|🇨🇾|Nikosia|eu|3
+Schottland|🏴󠁧󠁢󠁳󠁣󠁴󠁿|Edinburgh|eu|3
+USA|🇺🇸|Washington|am|1
+Kanada|🇨🇦|Ottawa|am|1
+Mexiko|🇲🇽|Mexiko-Stadt|am|2
+Brasilien|🇧🇷|Brasília|am|1
+Argentinien|🇦🇷|Buenos Aires|am|2
+Chile|🇨🇱|Santiago|am|3
+Kolumbien|🇨🇴|Bogotá|am|3
+Peru|🇵🇪|Lima|am|3
+Kuba|🇨🇺|Havanna|am|3
+Jamaika|🇯🇲|Kingston|am|2
+Uruguay|🇺🇾|Montevideo|am|3
+Venezuela|🇻🇪|Caracas|am|3
+Japan|🇯🇵|Tokio|as|1
+China|🇨🇳|Peking|as|1
+Indien|🇮🇳|Neu-Delhi|as|2
+Südkorea|🇰🇷|Seoul|as|2
+Thailand|🇹🇭|Bangkok|as|2
+Vietnam|🇻🇳|Hanoi|as|3
+Indonesien|🇮🇩|Jakarta|as|3
+Philippinen|🇵🇭|Manila|as|3
+Saudi-Arabien|🇸🇦|Riad|as|3
+Vereinigte Arabische Emirate|🇦🇪|Abu Dhabi|as|3
+Israel|🇮🇱|Jerusalem|as|2
+Iran|🇮🇷|Teheran|as|3
+Irak|🇮🇶|Bagdad|as|3
+Pakistan|🇵🇰|Islamabad|as|3
+Mongolei|🇲🇳|Ulaanbaatar|as|3
+Nepal|🇳🇵|Kathmandu|as|3
+Katar|🇶🇦|Doha|as|3
+Ägypten|🇪🇬|Kairo|af|2
+Marokko|🇲🇦|Rabat|af|2
+Südafrika|🇿🇦|Pretoria|af|2
+Nigeria|🇳🇬|Abuja|af|3
+Kenia|🇰🇪|Nairobi|af|3
+Ghana|🇬🇭|Accra|af|3
+Tunesien|🇹🇳|Tunis|af|3
+Algerien|🇩🇿|Algier|af|3
+Senegal|🇸🇳|Dakar|af|3
+Äthiopien|🇪🇹|Addis Abeba|af|3
+Kamerun|🇨🇲|Jaunde|af|3
+Australien|🇦🇺|Canberra|oc|1
+Neuseeland|🇳🇿|Wellington|oc|2`;
+const C=RAW.split('\n').map(l=>{const [n,f,c,k,s]=l.split('|');return {n,f,c,k,s:+s};});
+let cfg={mode:KIT.get('fq-mode','f2l'),reg:KIT.get('fq-reg','1')};let G=null;let album=new Set(KIT.get('fq-album',[]));
+function bindSeg(id,val,cb){const el=$(id);const set=v=>{el.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v==String(v)));};set(val);el.onclick=e=>{const b=e.target.closest('button');if(!b)return;set(b.dataset.v);cb(b.dataset.v);};}
+bindSeg('#modeSeg',cfg.mode,v=>{cfg.mode=v;KIT.set('fq-mode',v);});bindSeg('#regSeg',cfg.reg,v=>{cfg.reg=v;KIT.set('fq-reg',v);});
+const pool=()=>cfg.reg==='1'?C.filter(c=>c.s===1):cfg.reg==='eu'?C.filter(c=>c.k==='eu'):cfg.reg==='3'?C.filter(c=>c.s>=2):C;
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+function start(){const p=shuffle(pool().slice());G={qs:p.slice(0,10),i:0,pts:0,streak:0,ok:0};$('#setup').classList.add('hidden');$('#game').classList.remove('hidden');ask();}
+function ask(){const q=G.qs[G.i];G.t0=Date.now();G.lock=false;const p=pool();
+  // Falsche Antworten möglichst aus der gleichen Region
+  let wrong=shuffle(p.filter(c=>c!==q&&c.k===q.k));if(wrong.length<3)wrong=wrong.concat(shuffle(C.filter(c=>c!==q&&!wrong.includes(c))));const opts=shuffle([q,...wrong.slice(0,3)]);G.opts=opts;
+  $('#qn').textContent=`${G.i+1}/10`;$('#prog').style.width=(G.i/10*100)+'%';$('#pts').textContent=G.pts;
+  if(cfg.mode==='f2l'){$('#q').innerHTML=`<div class="flag">${q.f}</div><div class="sub">Welches Land ist das?</div>`;$('#ans').className='ans';$('#ans').innerHTML=opts.map((o,k)=>`<button data-k="${k}">${esc(o.n)}</button>`).join('');}
+  else if(cfg.mode==='l2f'){$('#q').innerHTML=`<div class="txt">${esc(q.n)}</div><div class="sub">Welche Flagge gehört dazu?</div>`;$('#ans').className='ans flags';$('#ans').innerHTML=opts.map((o,k)=>`<button data-k="${k}">${o.f}</button>`).join('');}
+  else{$('#q').innerHTML=`<div class="flag" style="font-size:90px">${q.f}</div><div class="txt" style="margin:6px 0">${esc(q.n)}</div><div class="sub">Wie heißt die Hauptstadt?</div>`;$('#ans').className='ans';$('#ans').innerHTML=opts.map((o,k)=>`<button data-k="${k}">${esc(o.c)}</button>`).join('');}}
+$('#ans').onclick=async e=>{const b=e.target.closest('button');if(!b||G.lock)return;G.lock=true;const q=G.qs[G.i],o=G.opts[+b.dataset.k],right=G.opts.indexOf(q);
+  $$('#ans button')[right].classList.add('ok');
+  if(o===q){G.streak++;G.ok++;const sec=(Date.now()-G.t0)/1000;const bonus=sec<3?5:sec<6?2:0;G.pts+=10+bonus+(G.streak>=3?5:0);album.add(q.n);KIT.set('fq-album',[...album]);
+    tone(660,.08);tone(990,.12,.08);$('#streak').textContent=G.streak>=3?`🔥 ${G.streak}er-Serie! +5`:bonus?`⚡ Schnell! +${bonus}`:'✅ Richtig!';}
+  else{b.classList.add('no');G.streak=0;tone(200,.25,0,'sine');$('#streak').textContent=cfg.mode==='cap'?`Richtig wäre: ${q.c}`:`Das war: ${q.n} ${q.f}`;}
+  $('#pts').textContent=G.pts;await sleep(o===q?900:1800);$('#streak').textContent='';G.i++;if(G.i<10)ask();else end();};
+function end(){$('#prog').style.width='100%';const key=`fq-best-${cfg.mode}-${cfg.reg}`;const b=KIT.get(key,0);const rec=G.pts>b;if(rec)KIT.set(key,G.pts);if(G.ok>=7){sWin();confetti();}else sLose();
+  modal(`<div class="big">${G.ok===10?'🏆':G.ok>=7?'🌟':G.ok>=4?'👍':'📚'}</div><h2 style="text-align:center">${G.ok} von 10 richtig</h2><p style="text-align:center"><b>${G.pts} Punkte</b>${rec?'<br>⭐ Neuer Rekord!':''}<br>Album: ${album.size} von ${C.length} Flaggen</p><div class="row"><button data-v="m">Menü</button><button class="primary" data-v="a">Nochmal</button></div>`,null,false).then(v=>{if(v==='a')start();else menu();});}
+function menu(){$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');$('#best').textContent=`📒 Album: ${album.size} von ${C.length} Flaggen gesammelt`;}
+$('#btnAlbum').onclick=()=>infoBox(`<h2>📒 Flaggen-Album (${album.size}/${C.length})</h2><div class="album">${C.map(c=>`<span class="${album.has(c.n)?'got':''}" title="${album.has(c.n)?esc(c.n):'?'}">${c.f}</span>`).join('')}</div>`,'Schließen');
+$('#btnMenu').onclick=menu;$('#btnStart').onclick=start;applyTheme();menu();
+
+initHelp('flaggen-quiz');
+</script>
+</body>
+</html>

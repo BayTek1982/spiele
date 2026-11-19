@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glückswürfel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('bs-theme'))||'dark';}catch(e){document.documentElement.dataset.theme='dark';}</script>
+<style>
+:root{--acc:#2fa35a;--acc-ink:#ffffff}
+:root{--bg1:#1f2630;--bg2:#141920;--card:#27303b;--card2:#2f3946;--line:#3a4552;--txt:#eef1f5;--mut:#a7b1bd;--cell:#1b222b;--shadow:rgba(0,0,0,.45)}
+[data-theme=light]{--bg1:#f4f1ea;--bg2:#e9e4d8;--card:#ffffff;--card2:#f2eee6;--line:#ddd5c6;--txt:#1f2630;--mut:#6b7380;--cell:#f7f4ee;--shadow:rgba(60,50,30,.18)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--txt);min-height:100vh;transition:background .3s,color .3s;
+ background:radial-gradient(900px 500px at 12% -10%,color-mix(in srgb,var(--acc) 16%,transparent),transparent 60%),radial-gradient(700px 500px at 110% 15%,rgba(33,195,230,.08),transparent 60%),linear-gradient(180deg,var(--bg1),var(--bg2)) fixed}
+#app{max-width:var(--maxw,640px);margin:0 auto;padding:14px 12px 40px}
+.hidden{display:none!important}
+a.back{color:var(--mut);text-decoration:none;font-weight:700;font-size:14px;display:inline-block;margin:0 0 8px 2px}
+header{display:flex;align-items:center;gap:10px;margin:4px 2px 14px}
+header .logo{font-size:26px}
+header h1{font-family:'JetBrains Mono',monospace;font-size:21px;margin:0;font-weight:800;letter-spacing:-.5px}
+header h1 b{color:var(--acc)}
+.hbtns{margin-left:auto;display:flex;gap:6px}
+.ib{padding:7px 10px!important;font-size:17px!important;line-height:1}
+button{font:inherit;cursor:pointer;border-radius:12px;padding:10px 14px;font-weight:800;color:var(--txt);background:var(--card2);border:1px solid var(--line);transition:filter .15s,transform .1s}
+button:hover:not(:disabled){filter:brightness(1.06)}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--acc);color:var(--acc-ink,#14181e);border-color:var(--acc)}
+button.small{padding:7px 12px;font-size:14px;border-radius:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.card h2{margin:0 0 8px;font-size:18px}
+.card p{margin:0 0 8px;color:var(--mut);line-height:1.45}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin:0 0 6px}
+.seg{display:flex;background:var(--bg2);border-radius:12px;padding:3px;border:1px solid var(--line)}
+.seg button{flex:1;background:transparent;border:0;padding:8px 6px;border-radius:9px;color:var(--mut);font-size:14px}
+.seg button.on{background:var(--card2);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.opts{display:grid;gap:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stats{display:flex;gap:8px;margin-bottom:10px}
+.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;text-align:center}
+.stat .k{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+.stat .v{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800}
+.note{font-size:14px;color:var(--mut);margin-top:8px;line-height:1.45}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+.modal .box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:420px;width:100%;max-height:88vh;overflow:auto;color:var(--txt)}
+.modal .box h2{margin:0 0 10px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.modal .box p,.modal .box li{line-height:1.5}
+.modal .row{justify-content:flex-end;margin-top:14px}
+.big{font-size:46px;text-align:center;margin:2px 0 6px}
+.pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,52px);gap:8px;justify-content:center;margin-top:12px;user-select:none}
+.pad button{font-size:22px;padding:0;touch-action:manipulation}
+.pad .u{grid-column:2}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+.help h2{margin:0 0 6px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.help h3{margin:14px 0 4px;font-size:15px;color:var(--acc)}
+.help p,.help li{line-height:1.5;margin:0 0 6px}
+.help ol,.help ul{margin:0 0 4px;padding-left:20px}
+.help .tip{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:14px}
+
+
+.dice{display:flex;gap:8px;justify-content:center;margin:6px 0 10px}
+.die{width:min(16vw,62px);aspect-ratio:1/1;border-radius:14px;background:#fff;border:2px solid #ddd;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:7px;cursor:pointer;box-shadow:0 4px 10px var(--shadow);transition:transform .15s}
+.die i{width:70%;height:70%;margin:auto;border-radius:50%;background:#1f2630;visibility:hidden}
+.die i.on{visibility:visible}
+.die.held{transform:translateY(-8px);border-color:var(--acc);box-shadow:0 0 0 3px var(--acc),0 8px 14px var(--shadow)}
+.die.roll{animation:rl .45s}
+.die.empty{background:var(--card2)}
+@keyframes rl{0%{transform:rotate(0)}40%{transform:rotate(200deg) scale(.8)}100%{transform:rotate(360deg)}}
+.held-l{text-align:center;font-size:13px;color:var(--mut);margin-bottom:6px;min-height:18px}
+.rollBtn{display:block;margin:0 auto 12px;font-size:18px!important;padding:12px 30px!important}
+table.sheet{width:100%;border-collapse:collapse;font-size:14.5px}
+.sheet th,.sheet td{padding:6px 6px;border-bottom:1px solid var(--line);text-align:center}
+.sheet th:first-child,.sheet td:first-child{text-align:left}
+.sheet th{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--mut);font-weight:700}
+.sheet th.cur{color:var(--acc)}
+.sheet td.pick{cursor:pointer;color:var(--acc);font-weight:900;background:color-mix(in srgb,var(--acc) 10%,transparent)}
+.sheet td.pick.zero{color:var(--mut);font-weight:700}
+.sheet td.used{font-weight:800}
+.sheet tr.sum td{font-weight:900;background:var(--card2)}
+.sheet td.last{animation:fl 1s}
+@keyframes fl{50%{background:color-mix(in srgb,var(--acc) 40%,transparent)}}
+.who{text-align:center;font-weight:900;font-size:18px;margin-bottom:4px}
+.plist{display:grid;gap:8px}
+.plist .pr{display:flex;gap:8px;align-items:center}
+.plist input{flex:1;min-width:0;font:inherit;font-weight:700;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);color:var(--txt)}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
+  <header><span class="logo">🎲</span><h1>Glücks<b>würfel</b></h1><div class="hbtns"><button class="ib" id="btnHelp" title="Anleitung">📖</button><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
+
+  <section id="setup">
+    <div class="card opts">
+      <div class="lbl">Mitspieler (bis 4)</div>
+      <div class="plist" id="plist"></div>
+      <div class="row"><button class="small" id="btnAddP">+ Spieler</button><button class="small" id="btnAddC">+ 🤖 Computer</button></div>
+      <div class="row"><button class="primary" id="btnStart">Spiel starten</button></div>
+    </div>
+    <div class="note" id="best" style="text-align:center"></div>
+  </section>
+  <section id="game" class="hidden">
+    <div class="who" id="who"></div>
+    <div class="held-l" id="hint"></div>
+    <div class="dice" id="dice"></div>
+    <button class="primary rollBtn" id="btnRoll">🎲 Würfeln</button>
+    <div class="card" style="padding:8px 10px;overflow-x:auto"><table class="sheet" id="sheet"></table></div>
+    <div class="row" style="justify-content:center"><button class="small" id="btnMenu">‹ Menü</button></div>
+  </section>
+
+  <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
+</div>
+<script>
+const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const KIT={get(k,d){try{const v=JSON.parse(localStorage.getItem('bs-'+k));return v??d;}catch(e){return d;}},set(k,v){try{localStorage.setItem('bs-'+k,JSON.stringify(v));}catch(e){}}};
+let theme=KIT.get('theme','dark'),soundOn=KIT.get('sound',true);
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function applyTheme(){document.documentElement.dataset.theme=theme;$('#btnTheme').textContent=theme==='dark'?'☀️':'🌙';if(window.onTheme)window.onTheme();}
+$('#btnTheme').onclick=()=>{theme=theme==='dark'?'light':'dark';KIT.set('theme',theme);applyTheme();};
+$('#btnSound').onclick=()=>{soundOn=!soundOn;KIT.set('sound',soundOn);$('#btnSound').textContent=soundOn?'🔊':'🔇';};
+$('#btnSound').textContent=soundOn?'🔊':'🔇';
+let actx=null;
+document.addEventListener('pointerdown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}},{passive:true});
+document.addEventListener('keydown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}});
+function tone(f,d=.1,delay=0,type='triangle',v=.18){if(!soundOn||!actx||actx.state!=='running')return;try{const t=actx.currentTime+delay,o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+d+.03);}catch(e){}}
+const sWin=()=>[523,659,784,1046].forEach((f,k)=>tone(f,.18,k*.12));
+const sLose=()=>[392,330,262].forEach((f,k)=>tone(f,.22,k*.15,'sine'));
+function confetti(){try{
+  const c=document.createElement('canvas'),dpr=window.devicePixelRatio||1;c.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:80';document.body.appendChild(c);
+  const ctx=c.getContext('2d'),W=c.width=innerWidth*dpr,H=c.height=innerHeight*dpr,cols=['#e8b04b','#21c3e6','#e0453a','#2fa35a','#f2c21b','#ffffff','#7b5cff'];
+  const ps=Array.from({length:150},()=>({x:W/2+(Math.random()-.5)*W*.3,y:H*.4,vx:(Math.random()-.5)*W*.03,vy:-Math.random()*H*.028-H*.008,r:Math.random()*6,vr:(Math.random()-.5)*.3,s:(6+Math.random()*7)*dpr,c:cols[Math.random()*cols.length|0]}));
+  let t=0;(function f(){t++;ctx.clearRect(0,0,W,H);for(const p of ps){p.vy+=H*.0008;p.vx*=.985;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);ctx.restore();}if(t<170)requestAnimationFrame(f);else c.remove();})();
+}catch(e){}}
+function modal(html,setup,dismiss=true){return new Promise(res=>{const m=$('#modal'),box=$('#modalBox');box.innerHTML=html;m.classList.remove('hidden');
+  const close=v=>{m.classList.add('hidden');box.innerHTML='';m.onclick=null;res(v);};
+  box.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>close(b.dataset.v));if(setup)setup(box,close);
+  m.onclick=e=>{if(e.target===m&&dismiss)close(null);};});}
+const confirmBox=(text,yes='Ja',no='Abbrechen')=>modal(`<p>${text}</p><div class="row"><button data-v="0">${no}</button><button class="primary" data-v="1">${yes}</button></div>`).then(v=>v==='1');
+const infoBox=(html,btn='OK')=>modal(html+`<div class="row"><button class="primary" data-v="1">${btn}</button></div>`);
+// Swipe-Hilfe
+function onSwipe(el,cb){let sx=0,sy=0,act=false;
+  el.addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;act=true;},{passive:true});
+  el.addEventListener('touchmove',e=>{if(!act)return;const t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))>22){cb(Math.abs(dx)>Math.abs(dy)?(dx>0?'r':'l'):(dy>0?'d':'u'));act=false;}e.preventDefault();},{passive:false});
+  el.addEventListener('touchend',()=>act=false);}
+setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
+
+function showHelp(){if(!window.HELP)return;return modal(`<div class="help">${window.HELP}</div><div class="row"><button class="primary" data-v="1">Los geht's!</button></div>`);}
+$('#btnHelp').onclick=showHelp;
+function initHelp(id){if(window.HELP&&!KIT.get('help-seen-'+id,false)){KIT.set('help-seen-'+id,true);setTimeout(showHelp,350);}}
+
+
+window.HELP=`<h2>🎲 So spielst du Glückswürfel</h2>
+<h3>Ziel</h3><p>Sammle mit 5 Würfeln möglichst viele Punkte. Jeder hat 13 Runden.</p>
+<h3>Dein Zug</h3><ol><li>Du darfst <b>bis zu 3-mal würfeln</b>.</li><li>Tippe Würfel an, die du <b>behalten</b> willst – sie rutschen nach oben. Nur die anderen werden neu gewürfelt.</li><li>Danach trägst du dein Ergebnis in <b>eine freie Zeile</b> ein (grüne Zahlen = so viele Punkte gäbe es). Passt nichts, musst du eine Zeile streichen (0 Punkte).</li></ol>
+<h3>Die Zeilen</h3><ul><li><b>Einser bis Sechser:</b> Summe dieser Augenzahl. Schaffst du oben zusammen <b>63 oder mehr</b>, gibt's <b>35 Bonus</b>.</li><li><b>Dreierpasch / Viererpasch:</b> 3 bzw. 4 gleiche → Summe aller Würfel.</li><li><b>Full House:</b> 3 gleiche + 2 gleiche → 25.</li><li><b>Kleine Straße:</b> 4 in Folge (z. B. 2-3-4-5) → 30.</li><li><b>Große Straße:</b> 5 in Folge → 40.</li><li><b>Fünfling:</b> 5 gleiche → 50!</li><li><b>Chance:</b> Summe aller Würfel – passt immer.</li></ul>`;
+const CATS=[['1','Einser'],['2','Zweier'],['3','Dreier'],['4','Vierer'],['5','Fünfer'],['6','Sechser'],['3k','Dreierpasch'],['4k','Viererpasch'],['fh','Full House'],['ks','Kleine Straße'],['gs','Große Straße'],['f5','Fünfling'],['ch','Chance']];
+const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+let players=KIT.get('gw-pl',[{n:'Ich',cpu:false},{n:'Computer',cpu:true}]),G=null,busy=false;
+function plist(){$('#plist').innerHTML=players.map((p,i)=>`<div class="pr"><span>${p.cpu?'🤖':'🙂'}</span><input data-i="${i}" value="${esc(p.n)}" maxlength="12">${players.length>1?`<button class="small" data-x="${i}">✕</button>`:''}</div>`).join('');}
+$('#plist').oninput=e=>{const i=e.target.dataset.i;if(i!=null){players[i].n=e.target.value;KIT.set('gw-pl',players);}};
+$('#plist').onclick=e=>{const x=e.target.dataset.x;if(x!=null){players.splice(+x,1);KIT.set('gw-pl',players);plist();}};
+$('#btnAddP').onclick=()=>{if(players.length<4){players.push({n:'Spieler '+(players.length+1),cpu:false});KIT.set('gw-pl',players);plist();}};
+$('#btnAddC').onclick=()=>{if(players.length<4){players.push({n:'Computer '+(players.filter(p=>p.cpu).length+1),cpu:true});KIT.set('gw-pl',players);plist();}};
+function score(d,c){const cnt=[0,0,0,0,0,0,0];d.forEach(v=>cnt[v]++);const sum=d.reduce((a,b)=>a+b,0);const mx=Math.max(...cnt);const has=s=>s.every(v=>cnt[v]);
+  if(/^[1-6]$/.test(c))return cnt[+c]*+c;
+  switch(c){case'3k':return mx>=3?sum:0;case'4k':return mx>=4?sum:0;case'fh':return cnt.includes(3)&&cnt.includes(2)||mx===5?25:0;
+  case'ks':return has([1,2,3,4])||has([2,3,4,5])||has([3,4,5,6])?30:0;case'gs':return has([1,2,3,4,5])||has([2,3,4,5,6])?40:0;case'f5':return mx===5?50:0;case'ch':return sum;}}
+const upper=s=>['1','2','3','4','5','6'].reduce((a,k)=>a+(s[k]??0),0);
+const total=s=>{const u=upper(s);return Object.values(s).reduce((a,b)=>a+b,0)+(u>=63?35:0);};
+function start(){if(!players.length)return;G={p:players.map(p=>({...p,s:{}})),cur:0,d:[0,0,0,0,0],held:[false,false,false,false,false],rolls:0,last:null};
+  $('#setup').classList.add('hidden');$('#game').classList.remove('hidden');turn();}
+function turn(){G.d=[0,0,0,0,0];G.held=[false,false,false,false,false];G.rolls=0;render();const P=G.p[G.cur];
+  if(P.cpu){busy=true;setTimeout(cpuTurn,700);}else busy=false;}
+function render(){const P=G.p[G.cur];$('#who').textContent=`${P.cpu?'🤖':'🎲'} ${P.n} ist dran`;
+  $('#dice').innerHTML=G.d.map((v,i)=>`<div class="die ${G.held[i]?'held':''} ${v?'':'empty'}" data-i="${i}">${[...Array(9)].map((_,k)=>`<i class="${v&&PIPS[v].includes(k)?'on':''}"></i>`).join('')}</div>`).join('');
+  $('#hint').textContent=G.rolls===0?'Würfle zuerst!':G.rolls<3?`Noch ${3-G.rolls}× würfeln – tippe Würfel zum Behalten an, oder trage unten ein.`:'Trage jetzt dein Ergebnis unten ein.';
+  $('#btnRoll').disabled=G.rolls>=3||busy;$('#btnRoll').textContent=`🎲 Würfeln (${3-G.rolls})`;
+  let h=`<tr><th></th>${G.p.map((p,i)=>`<th class="${i===G.cur?'cur':''}">${esc(p.n)}</th>`).join('')}</tr>`;
+  const row=(k,l)=>`<tr><td>${l}</td>${G.p.map((p,i)=>{const v=p.s[k];if(v!=null)return `<td class="used ${G.last===i+':'+k?'last':''}">${v===0?'–':v}</td>`;if(i===G.cur&&G.rolls>0&&!P.cpu){const sv=score(G.d,k);return `<td class="pick ${sv?'':'zero'}" data-k="${k}">${sv}</td>`;}return '<td></td>';}).join('')}</tr>`;
+  CATS.slice(0,6).forEach(([k,l])=>h+=row(k,l));
+  h+=`<tr class="sum"><td>Bonus (ab 63)</td>${G.p.map(p=>{const u=upper(p.s);return `<td>${u>=63?'+35':u+'/63'}</td>`;}).join('')}</tr>`;
+  CATS.slice(6).forEach(([k,l])=>h+=row(k,l));
+  h+=`<tr class="sum"><td>Gesamt</td>${G.p.map(p=>`<td>${total(p.s)}</td>`).join('')}</tr>`;$('#sheet').innerHTML=h;}
+async function roll(){if(G.rolls>=3)return;G.rolls++;for(let i=0;i<5;i++)if(!G.held[i]||!G.d[i])G.d[i]=1+Math.floor(Math.random()*6);
+  render();$$('#dice .die').forEach((el,i)=>{if(!G.held[i])el.classList.add('roll');});for(let k=0;k<5;k++)tone(300+Math.random()*300,.04,k*.05,'square',.05);
+  const cnt=[0,0,0,0,0,0,0];G.d.forEach(v=>cnt[v]++);if(Math.max(...cnt)===5){setTimeout(()=>{sWin();confetti();},400);}}
+$('#btnRoll').onclick=()=>{if(busy)return;roll();};
+$('#dice').onclick=e=>{const el=e.target.closest('.die');if(!el||busy||G.rolls===0||G.rolls>=3)return;const i=+el.dataset.i;G.held[i]=!G.held[i];tone(500,.04);render();};
+$('#sheet').onclick=e=>{const td=e.target.closest('td.pick');if(!td||busy)return;commit(td.dataset.k);};
+async function commit(k){const P=G.p[G.cur];const v=score(G.d,k);if(v===0&&!P.cpu&&!(await confirmBox(`<b>${CATS.find(c=>c[0]===k)[1]}</b> mit 0 Punkten streichen?`,'Streichen','Abbrechen')))return;
+  P.s[k]=v;G.last=G.cur+':'+k;v?tone(660,.1):tone(220,.15,0,'sine');
+  const done=G.p.every(p=>Object.keys(p.s).length===13);if(done){render();setTimeout(end,700);return;}
+  G.cur=(G.cur+1)%G.p.length;setTimeout(turn,P.cpu?900:250);if(P.cpu)render();}
+/* Computer-Strategie */
+function cpuKeep(d,open,rollsLeft){const cnt=[0,0,0,0,0,0,0];d.forEach(v=>cnt[v]++);
+  const st=[[1,2,3,4,5],[2,3,4,5,6],[3,4,5,6],[2,3,4,5],[1,2,3,4]];
+  if((open.includes('gs')||open.includes('ks'))){for(const s of st){const hit=s.filter(v=>cnt[v]);if(hit.length>=s.length-1&&s.length>=4&&(open.includes('gs')||s.length===4)){const keep=[];const used=new Set();d.forEach((v,i)=>{if(s.includes(v)&&!used.has(v)){keep.push(i);used.add(v);}});if(hit.length===s.length&&s.length===5)return [0,1,2,3,4];if(keep.length>=3)return keep;}}}
+  let best=0,bv=0;for(let v=6;v>=1;v--){const w=cnt[v]*10+v+(open.includes(String(v))?6:0);if(w>bv){bv=w;best=v;}}
+  if(cnt[best]===3&&open.includes('fh')){const pair=cnt.findIndex((c,v)=>v>0&&c===2);if(pair>0)return d.map((v,i)=>i).filter(i=>true);}
+  return d.map((v,i)=>v===best?i:-1).filter(i=>i>=0);}
+function cpuPick(d,s){const open=CATS.map(c=>c[0]).filter(k=>s[k]==null);let bk=open[0],bv=-1e9;
+  for(const k of open){let v=score(d,k);let w=v;if(/^[1-6]$/.test(k)){const need=+k*3;w=v-need+ (v>=need?8:0);w+=v*0.6;}
+    if(k==='ch')w=v-22;if(k==='3k'||k==='4k')w=v-(k==='3k'?18:14);if(k==='f5'&&v)w=100;if(k==='f5'&&!v)w=-30;if(k==='gs'&&v)w=60;if(k==='ks'&&v)w=40;if(k==='fh'&&v)w=35;
+    if(v===0){w=-({'f5':6,'1':2,'gs':14,'4k':10,'2':4,'ks':16,'3k':14,'fh':16,'ch':30}[k]??(+k*4));}
+    if(w>bv){bv=w;bk=k;}}return bk;}
+async function cpuTurn(){const P=G.p[G.cur];const open=CATS.map(c=>c[0]).filter(k=>P.s[k]==null);
+  for(let r=0;r<3;r++){await roll();await sleep(900);if(r===2)break;const scores=open.map(k=>score(G.d,k));
+    if(open.includes('f5')&&score(G.d,'f5')||open.includes('gs')&&score(G.d,'gs'))break;
+    const keep=cpuKeep(G.d,open,2-r);if(keep.length===5)break;G.held=G.d.map((v,i)=>keep.includes(i));render();await sleep(700);}
+  const k=cpuPick(G.d,P.s);commit(k);}
+function end(){const res=G.p.map(p=>({n:p.n,cpu:p.cpu,t:total(p.s)})).sort((a,b)=>b.t-a.t);const b=KIT.get('gw-best',0);const humanBest=Math.max(0,...res.filter(r=>!r.cpu).map(r=>r.t));if(humanBest>b)KIT.set('gw-best',humanBest);
+  if(!res[0].cpu){sWin();confetti();}else sLose();
+  modal(`<div class="big">${res[0].cpu?'🤖':'🏆'}</div><h2 style="text-align:center">${esc(res[0].n)} gewinnt!</h2><ol>${res.map(r=>`<li><b>${esc(r.n)}</b>: ${r.t} Punkte</li>`).join('')}</ol>${humanBest>b?'<p style="text-align:center">⭐ Neuer Rekord!</p>':''}<div class="row"><button data-v="m">Menü</button><button class="primary" data-v="a">Nochmal</button></div>`,null,false).then(v=>{if(v==='a')start();else menu();});}
+function menu(){$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');const b=KIT.get('gw-best',0);$('#best').textContent=b?`Rekord: ${b} Punkte`:'';}
+$('#btnMenu').onclick=async()=>{if(await confirmBox('Spiel wirklich beenden?','Beenden','Weiterspielen'))menu();};$('#btnStart').onclick=start;
+applyTheme();plist();menu();
+
+initHelp('glueckswuerfel');
+</script>
+</body>
+</html>

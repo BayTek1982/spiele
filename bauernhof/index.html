@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bayazit-Bauernhof</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('bs-theme'))||'dark';}catch(e){document.documentElement.dataset.theme='dark';}</script>
+<style>
+:root{--acc:#7cc242;--acc-ink:#14181e}
+:root{--bg1:#1f2630;--bg2:#141920;--card:#27303b;--card2:#2f3946;--line:#3a4552;--txt:#eef1f5;--mut:#a7b1bd;--cell:#1b222b;--shadow:rgba(0,0,0,.45)}
+[data-theme=light]{--bg1:#f4f1ea;--bg2:#e9e4d8;--card:#ffffff;--card2:#f2eee6;--line:#ddd5c6;--txt:#1f2630;--mut:#6b7380;--cell:#f7f4ee;--shadow:rgba(60,50,30,.18)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--txt);min-height:100vh;transition:background .3s,color .3s;
+ background:radial-gradient(900px 500px at 12% -10%,color-mix(in srgb,var(--acc) 16%,transparent),transparent 60%),radial-gradient(700px 500px at 110% 15%,rgba(33,195,230,.08),transparent 60%),linear-gradient(180deg,var(--bg1),var(--bg2)) fixed}
+#app{max-width:var(--maxw,640px);margin:0 auto;padding:14px 12px 40px}
+.hidden{display:none!important}
+a.back{color:var(--mut);text-decoration:none;font-weight:700;font-size:14px;display:inline-block;margin:0 0 8px 2px}
+header{display:flex;align-items:center;gap:10px;margin:4px 2px 14px}
+header .logo{font-size:26px}
+header h1{font-family:'JetBrains Mono',monospace;font-size:21px;margin:0;font-weight:800;letter-spacing:-.5px}
+header h1 b{color:var(--acc)}
+.hbtns{margin-left:auto;display:flex;gap:6px}
+.ib{padding:7px 10px!important;font-size:17px!important;line-height:1}
+button{font:inherit;cursor:pointer;border-radius:12px;padding:10px 14px;font-weight:800;color:var(--txt);background:var(--card2);border:1px solid var(--line);transition:filter .15s,transform .1s}
+button:hover:not(:disabled){filter:brightness(1.06)}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--acc);color:var(--acc-ink,#14181e);border-color:var(--acc)}
+button.small{padding:7px 12px;font-size:14px;border-radius:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.card h2{margin:0 0 8px;font-size:18px}
+.card p{margin:0 0 8px;color:var(--mut);line-height:1.45}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin:0 0 6px}
+.seg{display:flex;background:var(--bg2);border-radius:12px;padding:3px;border:1px solid var(--line)}
+.seg button{flex:1;background:transparent;border:0;padding:8px 6px;border-radius:9px;color:var(--mut);font-size:14px}
+.seg button.on{background:var(--card2);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.opts{display:grid;gap:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stats{display:flex;gap:8px;margin-bottom:10px}
+.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;text-align:center}
+.stat .k{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+.stat .v{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800}
+.note{font-size:14px;color:var(--mut);margin-top:8px;line-height:1.45}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+.modal .box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:420px;width:100%;max-height:88vh;overflow:auto;color:var(--txt)}
+.modal .box h2{margin:0 0 10px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.modal .box p,.modal .box li{line-height:1.5}
+.modal .row{justify-content:flex-end;margin-top:14px}
+.big{font-size:46px;text-align:center;margin:2px 0 6px}
+.pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,52px);gap:8px;justify-content:center;margin-top:12px;user-select:none}
+.pad button{font-size:22px;padding:0;touch-action:manipulation}
+.pad .u{grid-column:2}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+.help h2{margin:0 0 6px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.help h3{margin:14px 0 4px;font-size:15px;color:var(--acc)}
+.help p,.help li{line-height:1.5;margin:0 0 6px}
+.help ol,.help ul{margin:0 0 4px;padding-left:20px}
+.help .tip{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:14px}
+
+
+.topbar{display:flex;gap:8px;margin-bottom:10px}
+.topbar .stat .v{font-size:17px}
+.xp{height:7px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:4px}.xp i{display:block;height:100%;background:var(--acc)}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.tabs button{padding:9px 2px;font-size:13.5px}.tabs button.on{background:var(--acc);color:#14200a;border-color:var(--acc)}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.fd{aspect-ratio:1/1;border-radius:14px;background:linear-gradient(180deg,#8a5a2b,#6b4220);border:3px solid #4a2c12;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;color:#fff;overflow:hidden;background-image:repeating-linear-gradient(0deg,transparent 0 12px,rgba(0,0,0,.12) 12px 15px)}
+.fd .e{font-size:38px;line-height:1;transition:transform .3s}
+.fd .tm{font-size:11.5px;font-weight:800;margin-top:4px;font-family:'JetBrains Mono',monospace;text-shadow:0 1px 2px #000}
+.fd .bar{position:absolute;bottom:0;left:0;height:6px;background:#7cc242}
+.fd.ready{box-shadow:0 0 0 3px #ffd23f;animation:rb 1s infinite alternate}.fd.ready .e{transform:scale(1.15)}
+@keyframes rb{to{box-shadow:0 0 0 6px #ffd23f88}}
+.fd.buy{background:var(--card2);border:2px dashed var(--line);color:var(--mut);background-image:none}
+.an{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.ani{border-radius:14px;background:linear-gradient(180deg,#b9e48f,#7cc242);border:2px solid #4f8a24;padding:10px;text-align:center;cursor:pointer;color:#14200a;position:relative}
+.ani .e{font-size:40px;line-height:1.1}.ani b{display:block;font-size:14px}.ani small{font-size:12px;font-weight:700}
+.ani.ready{box-shadow:0 0 0 3px #ffd23f}.ani.hungry{filter:saturate(.4)}
+.inv{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.it{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:8px}
+.it .e{font-size:28px}.it div{flex:1}.it small{color:var(--mut)}
+.order{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:8px;display:flex;gap:10px;align-items:center}
+.order .who{font-size:32px}.order .need{flex:1}.order .need span{display:inline-block;margin-right:8px;font-weight:800}
+.order .need span.no{color:#e0453a}
+.shop{display:grid;gap:8px}
+.sh{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;background:var(--card2);border:1px solid var(--line)}
+.sh .e{font-size:30px}.sh div{flex:1}.sh small{color:var(--mut)}
+.pick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pick button{display:flex;flex-direction:column;align-items:center;padding:10px 4px;font-size:13px}.pick button span{font-size:30px}
+.pf{display:grid;gap:8px}.pf .p{display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;background:var(--card2);border:1px solid var(--line);cursor:pointer}
+.pf .p .e{font-size:30px}.pf .p div{flex:1}.pf .p small{color:var(--mut)}
+.float{position:fixed;pointer-events:none;font-weight:900;font-size:20px;z-index:70;animation:up 1s forwards;text-shadow:0 1px 3px #000a;color:#ffd23f}
+@keyframes up{to{transform:translateY(-60px);opacity:0}}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
+  <header><span class="logo">🐄</span><h1>Bayazit-<b>Bauernhof</b></h1><div class="hbtns"><button class="ib" id="btnHelp" title="Anleitung">📖</button><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
+
+  <section id="profiles">
+    <div class="card"><h2>🌾 Wer spielt?</h2><p>Jeder hat seinen <b>eigenen Bauernhof</b>. Die Pflanzen wachsen auch weiter, wenn das Spiel zu ist!</p><div class="pf" id="pf"></div>
+      <div class="row" style="margin-top:10px"><button class="primary" id="btnNewP">+ Neuer Bauernhof</button></div></div>
+  </section>
+  <section id="farm" class="hidden">
+    <div class="topbar"><div class="stat"><div class="k" id="farmName">Hof</div><div class="v" id="lvl">Lv 1</div><div class="xp"><i id="xp"></i></div></div><div class="stat"><div class="k">Münzen</div><div class="v" id="coins">0</div></div><div class="stat"><div class="k">Scheune</div><div class="v" id="barn">0</div></div></div>
+    <div class="tabs" id="tabs"><button data-t="f" class="on">🌱 Felder</button><button data-t="a">🐄 Tiere</button><button data-t="o">📋 Aufträge</button><button data-t="s">🏪 Markt</button></div>
+    <div id="view"></div>
+    <div class="row" style="justify-content:center;margin-top:12px"><button class="small" id="btnSwitch">👤 Spieler wechseln</button></div>
+  </section>
+
+  <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
+</div>
+<script>
+const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const KIT={get(k,d){try{const v=JSON.parse(localStorage.getItem('bs-'+k));return v??d;}catch(e){return d;}},set(k,v){try{localStorage.setItem('bs-'+k,JSON.stringify(v));}catch(e){}}};
+let theme=KIT.get('theme','dark'),soundOn=KIT.get('sound',true);
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function applyTheme(){document.documentElement.dataset.theme=theme;$('#btnTheme').textContent=theme==='dark'?'☀️':'🌙';if(window.onTheme)window.onTheme();}
+$('#btnTheme').onclick=()=>{theme=theme==='dark'?'light':'dark';KIT.set('theme',theme);applyTheme();};
+$('#btnSound').onclick=()=>{soundOn=!soundOn;KIT.set('sound',soundOn);$('#btnSound').textContent=soundOn?'🔊':'🔇';};
+$('#btnSound').textContent=soundOn?'🔊':'🔇';
+let actx=null;
+document.addEventListener('pointerdown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}},{passive:true});
+document.addEventListener('keydown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}});
+function tone(f,d=.1,delay=0,type='triangle',v=.18){if(!soundOn||!actx||actx.state!=='running')return;try{const t=actx.currentTime+delay,o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+d+.03);}catch(e){}}
+const sWin=()=>[523,659,784,1046].forEach((f,k)=>tone(f,.18,k*.12));
+const sLose=()=>[392,330,262].forEach((f,k)=>tone(f,.22,k*.15,'sine'));
+function confetti(){try{
+  const c=document.createElement('canvas'),dpr=window.devicePixelRatio||1;c.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:80';document.body.appendChild(c);
+  const ctx=c.getContext('2d'),W=c.width=innerWidth*dpr,H=c.height=innerHeight*dpr,cols=['#e8b04b','#21c3e6','#e0453a','#2fa35a','#f2c21b','#ffffff','#7b5cff'];
+  const ps=Array.from({length:150},()=>({x:W/2+(Math.random()-.5)*W*.3,y:H*.4,vx:(Math.random()-.5)*W*.03,vy:-Math.random()*H*.028-H*.008,r:Math.random()*6,vr:(Math.random()-.5)*.3,s:(6+Math.random()*7)*dpr,c:cols[Math.random()*cols.length|0]}));
+  let t=0;(function f(){t++;ctx.clearRect(0,0,W,H);for(const p of ps){p.vy+=H*.0008;p.vx*=.985;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);ctx.restore();}if(t<170)requestAnimationFrame(f);else c.remove();})();
+}catch(e){}}
+function modal(html,setup,dismiss=true){return new Promise(res=>{const m=$('#modal'),box=$('#modalBox');box.innerHTML=html;m.classList.remove('hidden');
+  const close=v=>{m.classList.add('hidden');box.innerHTML='';m.onclick=null;res(v);};
+  box.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>close(b.dataset.v));if(setup)setup(box,close);
+  m.onclick=e=>{if(e.target===m&&dismiss)close(null);};});}
+const confirmBox=(text,yes='Ja',no='Abbrechen')=>modal(`<p>${text}</p><div class="row"><button data-v="0">${no}</button><button class="primary" data-v="1">${yes}</button></div>`).then(v=>v==='1');
+const infoBox=(html,btn='OK')=>modal(html+`<div class="row"><button class="primary" data-v="1">${btn}</button></div>`);
+// Swipe-Hilfe
+function onSwipe(el,cb){let sx=0,sy=0,act=false;
+  el.addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;act=true;},{passive:true});
+  el.addEventListener('touchmove',e=>{if(!act)return;const t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))>22){cb(Math.abs(dx)>Math.abs(dy)?(dx>0?'r':'l'):(dy>0?'d':'u'));act=false;}e.preventDefault();},{passive:false});
+  el.addEventListener('touchend',()=>act=false);}
+setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
+
+function showHelp(){if(!window.HELP)return;return modal(`<div class="help">${window.HELP}</div><div class="row"><button class="primary" data-v="1">Los geht's!</button></div>`);}
+$('#btnHelp').onclick=showHelp;
+function initHelp(id){if(window.HELP&&!KIT.get('help-seen-'+id,false)){KIT.set('help-seen-'+id,true);setTimeout(showHelp,350);}}
+
+
+window.HELP=`<h2>🐄 So spielst du Bayazit-Bauernhof</h2>
+<h3>🌱 Felder</h3><ol><li>Tippe auf ein leeres Feld und wähle, was du pflanzen willst (das Saatgut kostet ein paar Münzen).</li><li>Warte, bis es reif ist – das Feld leuchtet <b style="color:#f2c21b">gelb</b>.</li><li>Antippen = ernten! Die Ernte kommt in die Scheune.</li></ol>
+<h3>🐄 Tiere</h3><p>Kaufe Tiere im Markt. Tiere brauchen <b>Futter</b> (🌾 Weizen). Gefütterte Tiere geben nach einer Weile Eier, Milch oder Wolle – antippen zum Einsammeln.</p>
+<h3>📋 Aufträge</h3><p>Nachbarn bestellen Sachen bei dir. Erfülle Aufträge für viele <b>Münzen</b> und <b>Erfahrung</b> ⭐ – damit steigst du Level auf und schaltest Neues frei!</p>
+<h3>🏪 Markt</h3><p>Verkaufe Ernte, kaufe Tiere und neue Felder.</p>
+<div class="tip">💡 Alles wächst auch weiter, wenn du das Spiel schließt. Schau später wieder rein!</div>`;
+const CROPS={weizen:{e:'🌾',n:'Weizen',t:30,seed:2,sell:5,xp:1,lv:1},karotte:{e:'🥕',n:'Karotte',t:60,seed:4,sell:11,xp:2,lv:1},mais:{e:'🌽',n:'Mais',t:120,seed:7,sell:20,xp:3,lv:2},erdbeere:{e:'🍓',n:'Erdbeere',t:180,seed:10,sell:30,xp:4,lv:3},tomate:{e:'🍅',n:'Tomate',t:240,seed:12,sell:36,xp:5,lv:4},kuerbis:{e:'🎃',n:'Kürbis',t:480,seed:20,sell:70,xp:8,lv:5},sonnenblume:{e:'🌻',n:'Sonnenblume',t:900,seed:30,sell:120,xp:12,lv:6}};
+const ANIMALS={huhn:{e:'🐔',n:'Huhn',cost:40,feed:1,t:90,prod:'ei',lv:1},kuh:{e:'🐄',n:'Kuh',cost:150,feed:2,t:240,prod:'milch',lv:2},schaf:{e:'🐑',n:'Schaf',cost:120,feed:2,t:300,prod:'wolle',lv:3},schwein:{e:'🐷',n:'Schwein',cost:200,feed:3,t:360,prod:'trueffel',lv:5},biene:{e:'🐝',n:'Bienenstock',cost:250,feed:0,t:600,prod:'honig',lv:6}};
+const GOODS={ei:{e:'🥚',n:'Ei',sell:14},milch:{e:'🥛',n:'Milch',sell:38},wolle:{e:'🧶',n:'Wolle',sell:45},trueffel:{e:'🍄',n:'Trüffel',sell:80},honig:{e:'🍯',n:'Honig',sell:110}};
+for(const [k,c] of Object.entries(CROPS))GOODS[k]={e:c.e,n:c.n,sell:c.sell};
+const PEOPLE=['👵','👴','🧑‍🍳','👩‍🌾','🧒','👨‍🔧','👩‍🏫','🐻','🦊'];
+const NAMES={'👵':'Oma Rosi','👴':'Opa Hans','🧑‍🍳':'Koch Kemal','👩‍🌾':'Bäuerin Lisa','🧒':'Kleiner Max','👨‍🔧':'Mechaniker Tom','👩‍🏫':'Lehrerin Eva','🐻':'Bär Bruno','🦊':'Fuchs Frida'};
+let profiles=KIT.get('hof-prof',[]),P=null,tab='f',tick=null;
+const save=()=>{if(P){const i=profiles.findIndex(p=>p.id===P.id);profiles[i]=P;KIT.set('hof-prof',profiles);}};
+const now=()=>Date.now()/1000;
+const fmt=s=>{s=Math.max(0,Math.ceil(s));return s>=3600?Math.floor(s/3600)+'h '+Math.floor(s%3600/60)+'m':s>=60?Math.floor(s/60)+':'+String(s%60).padStart(2,'0'):s+'s';};
+function newFarm(name,emo){return {id:Date.now()+''+Math.random(),name,emo,coins:60,xp:0,lv:1,fields:[null,null,null,null],animals:[],inv:{weizen:3},orders:[],created:now()};}
+function showProfiles(){clearInterval(tick);P=null;$('#farm').classList.add('hidden');$('#profiles').classList.remove('hidden');
+  $('#pf').innerHTML=profiles.length?profiles.map((p,i)=>`<div class="p" data-i="${i}"><span class="e">${p.emo}</span><div><b>${esc(p.name)}</b><br><small>Level ${p.lv} · ${p.coins} Münzen · ${p.fields.length} Felder</small></div><button class="small" data-x="${i}">🗑</button></div>`).join(''):'<div class="note">Noch kein Bauernhof – leg los!</div>';}
+$('#pf').onclick=async e=>{const x=e.target.closest('[data-x]');if(x){const p=profiles[+x.dataset.x];if(await confirmBox(`Bauernhof von <b>${esc(p.name)}</b> wirklich löschen?`,'Löschen','Abbrechen')){profiles.splice(+x.dataset.x,1);KIT.set('hof-prof',profiles);showProfiles();}return;}
+  const el=e.target.closest('.p');if(el)openFarm(profiles[+el.dataset.i]);};
+$('#btnNewP').onclick=async()=>{const emos=['👦','👧','🧑','👨','👩','🧔','👵','🧒'];let pick=emos[0];
+  const v=await modal(`<h2>🌾 Neuer Bauernhof</h2><p>Wie heißt du?</p><input id="pn" maxlength="14" style="width:100%;font:inherit;font-weight:800;font-size:18px;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);color:var(--txt)"><div class="row" id="pe" style="margin-top:10px;justify-content:center">${emos.map((e,i)=>`<button class="small" data-e="${e}" style="font-size:24px;${i?'':'outline:3px solid var(--acc)'}">${e}</button>`).join('')}</div><div class="row"><button data-v="x">Abbrechen</button><button class="primary" data-v="ok">Hof gründen</button></div>`,box=>{box.querySelector('#pe').onclick=e=>{const b=e.target.closest('button');if(!b)return;pick=b.dataset.e;box.querySelectorAll('#pe button').forEach(x=>x.style.outline=x===b?'3px solid var(--acc)':'');};setTimeout(()=>box.querySelector('#pn').focus(),50);});
+  if(v!=='ok')return;const name=(document.getElementById('pn')?.value||'').trim()||'Bauer '+(profiles.length+1);};
+// Name auslesen bevor Modal geschlossen wird
+document.addEventListener('click',e=>{if(e.target.matches('#modalBox button[data-v="ok"]')&&document.getElementById('pn')){const nm=document.getElementById('pn').value.trim()||'Bauer '+(profiles.length+1);const sel=[...document.querySelectorAll('#pe button')].find(b=>b.style.outline)?.dataset.e||'🧑';
+  const f=newFarm(nm,sel);profiles.push(f);KIT.set('hof-prof',profiles);setTimeout(()=>openFarm(f),50);}},true);
+function openFarm(p){P=p;$('#profiles').classList.add('hidden');$('#farm').classList.remove('hidden');if(!P.orders.length)fillOrders();tab='f';render();clearInterval(tick);tick=setInterval(()=>{if(tab==='f'||tab==='a')render(true);},1000);
+  // Willkommen zurück
+  const ready=P.fields.filter(f=>f&&now()>=f.t0+CROPS[f.c].t).length;if(ready)floatTxt(`🌾 ${ready} Felder sind reif!`,innerWidth/2,180);}
+function invCount(){return Object.values(P.inv).reduce((a,b)=>a+b,0);}
+function addXp(n){P.xp+=n;const need=lv=>30+lv*lv*25;while(P.xp>=need(P.lv)){P.xp-=need(P.lv);P.lv++;sWin();confetti();const un=[...Object.values(CROPS),...Object.values(ANIMALS)].filter(x=>x.lv===P.lv).map(x=>x.e+' '+x.n);infoBox(`<div class="big">⭐</div><h2 style="text-align:center">Level ${P.lv}!</h2><p style="text-align:center">${un.length?'Neu freigeschaltet: <b>'+un.join(', ')+'</b>':'Weiter so, Bauer!'}</p>`,'Super!');}}
+function floatTxt(t,x,y){const d=document.createElement('div');d.className='float';d.textContent=t;d.style.left=(x-60)+'px';d.style.top=y+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),1000);}
+function header(){$('#farmName').textContent=P.emo+' '+P.name;$('#lvl').textContent='Lv '+P.lv;$('#xp').style.width=(P.xp/(30+P.lv*P.lv*25)*100)+'%';$('#coins').textContent='🪙 '+P.coins;$('#barn').textContent='📦 '+invCount();}
+function render(soft){header();$$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));const t=now();
+  if(tab==='f'){$('#view').innerHTML=`<div class="fields">${P.fields.map((f,i)=>{if(!f)return `<div class="fd" data-i="${i}"><span class="e" style="opacity:.5">➕</span><span class="tm">pflanzen</span></div>`;const c=CROPS[f.c],left=f.t0+c.t-t,p=Math.min(1,1-left/c.t);const stage=p>=1?c.e:p>.5?'🌿':'🌱';
+      return `<div class="fd ${left<=0?'ready':''}" data-i="${i}"><span class="e">${stage}</span><span class="tm">${left<=0?'ERNTEN!':fmt(left)}</span>${left>0?`<span class="bar" style="width:${p*100}%"></span>`:''}</div>`;}).join('')}
+      ${P.fields.length<16?`<div class="fd buy" id="buyField"><span class="e">🚜</span><span class="tm" style="text-shadow:none">Feld kaufen<br>🪙 ${fieldCost()}</span></div>`:''}</div><div class="row" style="justify-content:center;margin-top:10px"><button class="small" id="harvestAll">🧺 Alles Reife ernten</button></div>`;}
+  else if(tab==='a'){$('#view').innerHTML=P.animals.length?`<div class="an">${P.animals.map((a,i)=>{const A=ANIMALS[a.k];const fed=a.fed!=null,left=fed?a.fed+A.t-t:0;return `<div class="ani ${fed&&left<=0?'ready':''} ${!fed?'hungry':''}" data-i="${i}"><div class="e">${A.e}</div><b>${A.n}</b><small>${!fed?(A.feed?`🌾×${A.feed} füttern`:'antippen zum Starten'):left<=0?'Einsammeln: '+GOODS[A.prod].e:'⏳ '+fmt(left)}</small></div>`;}).join('')}</div>`:'<div class="card"><p>Du hast noch keine Tiere. Kaufe welche im 🏪 <b>Markt</b>!</p></div>';}
+  else if(soft)return;else if(tab==='o'){fillOrders();$('#view').innerHTML=P.orders.map((o,i)=>{const can=o.need.every(([k,n])=>(P.inv[k]||0)>=n);return `<div class="order"><span class="who">${o.who}</span><div class="need"><small style="color:var(--mut)">${NAMES[o.who]||''} möchte:</small><br>${o.need.map(([k,n])=>`<span class="${(P.inv[k]||0)>=n?'':'no'}">${GOODS[k].e}×${n}</span>`).join('')}<br><small>Belohnung: 🪙 ${o.coins} · ⭐ ${o.xp}</small></div><div style="display:grid;gap:4px"><button class="${can?'primary':''} small" data-o="${i}" ${can?'':'disabled'}>Liefern</button><button class="small" data-d="${i}" title="Neuer Auftrag">🗑</button></div></div>`;}).join('');}
+  else{const inv=Object.entries(P.inv).filter(([k,n])=>n>0);$('#view').innerHTML=`<div class="card"><div class="lbl">📦 Scheune – verkaufen</div>${inv.length?`<div class="inv">${inv.map(([k,n])=>`<div class="it"><span class="e">${GOODS[k].e}</span><div><b>${GOODS[k].n} ×${n}</b><br><small>je 🪙 ${GOODS[k].sell}</small></div><button class="small" data-s="${k}">1</button><button class="small" data-sa="${k}">Alle</button></div>`).join('')}</div>`:'<p>Die Scheune ist leer.</p>'}</div>
+    <div class="card"><div class="lbl">🐾 Tiere kaufen</div><div class="shop">${Object.entries(ANIMALS).map(([k,a])=>`<div class="sh"><span class="e">${a.e}</span><div><b>${a.n}</b><br><small>${a.lv>P.lv?'🔒 ab Level '+a.lv:`gibt ${GOODS[a.prod].e} ${GOODS[a.prod].n} · frisst 🌾×${a.feed}`}</small></div><button class="small ${a.lv<=P.lv&&P.coins>=a.cost?'primary':''}" data-b="${k}" ${a.lv>P.lv||P.coins<a.cost?'disabled':''}>🪙 ${a.cost}</button></div>`).join('')}</div></div>`;}}
+const fieldCost=()=>Math.round(50*Math.pow(1.45,P.fields.length-4));
+$('#tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.t;tone(500,.04);render();};
+$('#view').onclick=async e=>{const t=now();
+  const fd=e.target.closest('.fd[data-i]');if(fd){const i=+fd.dataset.i,f=P.fields[i];
+    if(!f){const avail=Object.entries(CROPS).filter(([k,c])=>c.lv<=P.lv);const v=await modal(`<h2>🌱 Was pflanzen?</h2><div class="pick">${avail.map(([k,c])=>`<button data-v="${k}" ${P.coins<c.seed?'disabled':''}><span>${c.e}</span><b>${c.n}</b>🪙 ${c.seed} · ⏱ ${fmt(c.t)}<small>verkauf: ${c.sell}</small></button>`).join('')}</div><div class="row"><button data-v="x">Abbrechen</button></div>`);
+      if(!v||v==='x'||!CROPS[v])return;P.coins-=CROPS[v].seed;P.fields[i]={c:v,t0:now()};tone(400,.08,0,'sine');save();render();}
+    else if(t>=f.t0+CROPS[f.c].t){harvest(i,e.clientX,e.clientY);save();render();}
+    else floatTxt('⏳ '+fmt(f.t0+CROPS[f.c].t-t),e.clientX,e.clientY-20);return;}
+  if(e.target.closest('#buyField')){const c=fieldCost();if(P.coins<c){floatTxt('Zu wenig 🪙',e.clientX,e.clientY-20);return;}if(await confirmBox(`Neues Feld für 🪙 ${c} kaufen?`,'Kaufen','Abbrechen')){P.coins-=c;P.fields.push(null);tone(660,.1);save();render();}return;}
+  if(e.target.closest('#harvestAll')){let n=0;P.fields.forEach((f,i)=>{if(f&&t>=f.t0+CROPS[f.c].t){harvest(i);n++;}});if(!n)floatTxt('Noch nichts reif',e.clientX,e.clientY-20);save();render();return;}
+  const an=e.target.closest('.ani');if(an){const a=P.animals[+an.dataset.i],A=ANIMALS[a.k];
+    if(a.fed==null){if(A.feed&&(P.inv.weizen||0)<A.feed){floatTxt(`Brauche 🌾×${A.feed}!`,e.clientX,e.clientY-20);tone(200,.15,0,'sine');return;}if(A.feed)P.inv.weizen-=A.feed;a.fed=now();tone(500,.06);tone(700,.06,.06);}
+    else if(t>=a.fed+A.t){P.inv[A.prod]=(P.inv[A.prod]||0)+1;a.fed=null;addXp(3);floatTxt('+1 '+GOODS[A.prod].e,e.clientX,e.clientY-20);sWin();}
+    else floatTxt('⏳ '+fmt(a.fed+A.t-t),e.clientX,e.clientY-20);save();render();return;}
+  const o=e.target.closest('[data-o]');if(o){const ord=P.orders[+o.dataset.o];ord.need.forEach(([k,n])=>P.inv[k]-=n);P.coins+=ord.coins;addXp(ord.xp);P.orders.splice(+o.dataset.o,1);sWin();floatTxt(`+🪙${ord.coins}`,e.clientX,e.clientY-20);fillOrders();save();render();return;}
+  const d=e.target.closest('[data-d]');if(d){P.orders.splice(+d.dataset.d,1);fillOrders();save();render();return;}
+  const s=e.target.closest('[data-s],[data-sa]');if(s){const k=s.dataset.s||s.dataset.sa,n=s.dataset.sa?P.inv[k]:1;P.inv[k]-=n;P.coins+=n*GOODS[k].sell;tone(988,.05);tone(1318,.08,.05);floatTxt(`+🪙${n*GOODS[k].sell}`,e.clientX,e.clientY-20);save();render();return;}
+  const b=e.target.closest('[data-b]');if(b){const A=ANIMALS[b.dataset.b];if(P.coins<A.cost)return;P.coins-=A.cost;P.animals.push({k:b.dataset.b,fed:null});addXp(5);sWin();floatTxt(A.e+' gekauft!',e.clientX,e.clientY-20);save();render();return;}};
+function harvest(i,x,y){const f=P.fields[i],c=CROPS[f.c];const n=1+(Math.random()<.25?1:0);P.inv[f.c]=(P.inv[f.c]||0)+n;P.fields[i]=null;addXp(c.xp);tone(700,.06);tone(900,.08,.05);if(x)floatTxt(`+${n} ${c.e}`,x,y-20);}
+function fillOrders(){while(P.orders.length<3){const pool=[...Object.entries(CROPS).filter(([k,c])=>c.lv<=P.lv).map(([k])=>k),...Object.entries(ANIMALS).filter(([k,a])=>a.lv<=P.lv&&P.animals.some(x=>x.k===k)).map(([k,a])=>a.prod)];
+  const n=1+Math.floor(Math.random()*Math.min(3,1+P.lv/2));const need=[];for(let k=0;k<n;k++){const it=pool[Math.floor(Math.random()*pool.length)];if(need.some(x=>x[0]===it))continue;need.push([it,1+Math.floor(Math.random()*(2+P.lv/2))]);}
+  const val=need.reduce((a,[k,m])=>a+GOODS[k].sell*m,0);P.orders.push({who:PEOPLE[Math.floor(Math.random()*PEOPLE.length)],need,coins:Math.round(val*1.6+10),xp:Math.round(4+val/6)});}}
+$('#btnSwitch').onclick=()=>{save();showProfiles();};
+applyTheme();showProfiles();
+
+initHelp('bauernhof');
+</script>
+</body>
+</html>

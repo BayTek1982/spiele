@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schatzsuche</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('bs-theme'))||'dark';}catch(e){document.documentElement.dataset.theme='dark';}</script>
+<style>
+:root{--acc:#e8b04b;--acc-ink:#14181e}
+:root{--bg1:#1f2630;--bg2:#141920;--card:#27303b;--card2:#2f3946;--line:#3a4552;--txt:#eef1f5;--mut:#a7b1bd;--cell:#1b222b;--shadow:rgba(0,0,0,.45)}
+[data-theme=light]{--bg1:#f4f1ea;--bg2:#e9e4d8;--card:#ffffff;--card2:#f2eee6;--line:#ddd5c6;--txt:#1f2630;--mut:#6b7380;--cell:#f7f4ee;--shadow:rgba(60,50,30,.18)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--txt);min-height:100vh;transition:background .3s,color .3s;
+ background:radial-gradient(900px 500px at 12% -10%,color-mix(in srgb,var(--acc) 16%,transparent),transparent 60%),radial-gradient(700px 500px at 110% 15%,rgba(33,195,230,.08),transparent 60%),linear-gradient(180deg,var(--bg1),var(--bg2)) fixed}
+#app{max-width:var(--maxw,640px);margin:0 auto;padding:14px 12px 40px}
+.hidden{display:none!important}
+a.back{color:var(--mut);text-decoration:none;font-weight:700;font-size:14px;display:inline-block;margin:0 0 8px 2px}
+header{display:flex;align-items:center;gap:10px;margin:4px 2px 14px}
+header .logo{font-size:26px}
+header h1{font-family:'JetBrains Mono',monospace;font-size:21px;margin:0;font-weight:800;letter-spacing:-.5px}
+header h1 b{color:var(--acc)}
+.hbtns{margin-left:auto;display:flex;gap:6px}
+.ib{padding:7px 10px!important;font-size:17px!important;line-height:1}
+button{font:inherit;cursor:pointer;border-radius:12px;padding:10px 14px;font-weight:800;color:var(--txt);background:var(--card2);border:1px solid var(--line);transition:filter .15s,transform .1s}
+button:hover:not(:disabled){filter:brightness(1.06)}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--acc);color:var(--acc-ink,#14181e);border-color:var(--acc)}
+button.small{padding:7px 12px;font-size:14px;border-radius:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.card h2{margin:0 0 8px;font-size:18px}
+.card p{margin:0 0 8px;color:var(--mut);line-height:1.45}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin:0 0 6px}
+.seg{display:flex;background:var(--bg2);border-radius:12px;padding:3px;border:1px solid var(--line)}
+.seg button{flex:1;background:transparent;border:0;padding:8px 6px;border-radius:9px;color:var(--mut);font-size:14px}
+.seg button.on{background:var(--card2);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.opts{display:grid;gap:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stats{display:flex;gap:8px;margin-bottom:10px}
+.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;text-align:center}
+.stat .k{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+.stat .v{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800}
+.note{font-size:14px;color:var(--mut);margin-top:8px;line-height:1.45}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+.modal .box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:420px;width:100%;max-height:88vh;overflow:auto;color:var(--txt)}
+.modal .box h2{margin:0 0 10px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.modal .box p,.modal .box li{line-height:1.5}
+.modal .row{justify-content:flex-end;margin-top:14px}
+.big{font-size:46px;text-align:center;margin:2px 0 6px}
+.pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,52px);gap:8px;justify-content:center;margin-top:12px;user-select:none}
+.pad button{font-size:22px;padding:0;touch-action:manipulation}
+.pad .u{grid-column:2}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+.help h2{margin:0 0 6px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.help h3{margin:14px 0 4px;font-size:15px;color:var(--acc)}
+.help p,.help li{line-height:1.5;margin:0 0 6px}
+.help ol,.help ul{margin:0 0 4px;padding-left:20px}
+.help .tip{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:14px}
+
+
+.map{position:relative;background:linear-gradient(135deg,#f3e2b5,#e2c88a);border-radius:16px;border:3px solid #a8823f;box-shadow:inset 0 0 40px #8a6a2a66,0 8px 20px var(--shadow);height:220px;overflow:hidden;margin-bottom:12px}
+.map svg{position:absolute;inset:0;width:100%;height:100%}
+.hintcard{background:#fff8e6;color:#3a2a10;border-radius:16px;border:2px dashed #a8823f;padding:16px;font-size:19px;font-weight:800;line-height:1.45;text-align:center;margin-bottom:12px;min-height:90px;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.hintcard small{font-size:12px;color:#8a6a2a;font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-bottom:6px}
+.code{display:flex;gap:8px}.code input{flex:1;min-width:0;font:inherit;font-size:20px;font-weight:900;letter-spacing:3px;text-transform:uppercase;padding:12px;border-radius:12px;border:2px solid var(--line);background:var(--bg2);color:var(--txt);text-align:center}
+.st{display:grid;gap:8px}
+.sti{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px;display:grid;gap:6px}
+.sti .h{display:flex;gap:8px;align-items:center;font-weight:900}
+.sti input,.sti textarea,#huntName{font:inherit;font-weight:700;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);color:var(--txt);width:100%;resize:vertical}
+.sti label{font-size:12px;color:var(--mut);font-weight:800}
+.hunts{display:grid;gap:8px}.hn{display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;background:var(--card2);border:1px solid var(--line)}
+.hn .e{font-size:28px}.hn div{flex:1}.hn small{color:var(--mut)}
+.notes{display:grid;gap:10px}.note2{border:2px dashed #a8823f;border-radius:12px;padding:12px;background:#fff8e6;color:#3a2a10}
+.note2 b{font-size:22px;letter-spacing:3px;font-family:'JetBrains Mono',monospace}
+@media print{body *{visibility:hidden}#printArea,#printArea *{visibility:visible}#printArea{position:absolute;left:0;top:0;width:100%}}
+.chest{font-size:110px;text-align:center;animation:bounce 1s infinite alternate}
+@keyframes bounce{to{transform:translateY(-12px) rotate(-4deg)}}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
+  <header><span class="logo">🗺️</span><h1>Schatz<b>suche</b></h1><div class="hbtns"><button class="ib" id="btnHelp" title="Anleitung">📖</button><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
+
+  <section id="home">
+    <div class="card"><h2>🏴‍☠️ Ahoi, Schatzsucher!</h2><p><b>Papa oder Mama</b> versteckt Zettel mit Codewörtern im Haus oder Garten. Die Kinder lesen auf dem Handy den Hinweis, suchen den Zettel und tippen das Codewort ein – dann kommt der nächste Hinweis. Am Ende wartet der Schatz!</p></div>
+    <div class="card"><div class="lbl">Deine Schatzsuchen</div><div class="hunts" id="hunts"></div>
+      <div class="row" style="margin-top:10px"><button class="primary" id="btnNew">+ Neue Schatzsuche</button></div></div>
+  </section>
+  <section id="edit" class="hidden">
+    <div class="card"><div class="lbl">Name der Schatzsuche</div><input id="huntName" maxlength="30">
+      <div class="lbl" style="margin-top:10px">Vorlage laden</div><div class="row"><button class="small" data-tpl="haus">🏠 Im Haus</button><button class="small" data-tpl="garten">🌳 Im Garten</button><button class="small" data-tpl="kinder">🧸 Kinderzimmer</button><button class="small" data-tpl="weihnacht">🎄 Weihnachten</button></div>
+      <div class="note">Tipp: Codewörter werden automatisch erfunden – du kannst sie aber ändern.</div></div>
+    <div class="st" id="stations"></div>
+    <div class="row" style="margin:10px 0"><button class="small" id="btnAddSt">+ Station</button></div>
+    <div class="card"><div class="lbl">🏆 Der Schatz (was am Ende gefunden wird)</div><input id="treasure" style="width:100%;font:inherit;font-weight:700;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);color:var(--txt)" placeholder="z. B. Schokotaler in der Kiste unter dem Bett"></div>
+    <div class="row"><button class="primary" id="btnSave">💾 Speichern</button><button id="btnNotes">🖨️ Zettel zum Verstecken</button><button class="small" id="btnBack">‹ Zurück</button></div>
+  </section>
+  <section id="notesV" class="hidden">
+    <div class="card"><h2>🖨️ Zettel zum Verstecken</h2><p>Schreib diese Codewörter auf Zettel (oder drucke die Seite aus) und versteck sie an den Orten. <b>Nicht den Kindern zeigen!</b> 🤫</p><div class="row"><button class="small" id="btnPrint">🖨️ Drucken</button><button class="small" id="btnNotesBack">‹ Zurück</button></div></div>
+    <div id="printArea" class="notes"></div>
+  </section>
+  <section id="play" class="hidden">
+    <div class="map"><svg id="mapSvg" viewBox="0 0 400 220" preserveAspectRatio="none"></svg></div>
+    <div class="hintcard" id="hint"></div>
+    <div class="code" id="codeBox"><input id="code" placeholder="CODEWORT" autocomplete="off" maxlength="20"><button class="primary" id="btnCode">🔓</button></div>
+    <div class="row" style="justify-content:center;margin-top:10px"><button class="small" id="btnHelp2">🆘 Wir kommen nicht weiter</button><button class="small" id="btnStop">‹ Beenden</button></div>
+  </section>
+
+  <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
+</div>
+<script>
+const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const KIT={get(k,d){try{const v=JSON.parse(localStorage.getItem('bs-'+k));return v??d;}catch(e){return d;}},set(k,v){try{localStorage.setItem('bs-'+k,JSON.stringify(v));}catch(e){}}};
+let theme=KIT.get('theme','dark'),soundOn=KIT.get('sound',true);
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function applyTheme(){document.documentElement.dataset.theme=theme;$('#btnTheme').textContent=theme==='dark'?'☀️':'🌙';if(window.onTheme)window.onTheme();}
+$('#btnTheme').onclick=()=>{theme=theme==='dark'?'light':'dark';KIT.set('theme',theme);applyTheme();};
+$('#btnSound').onclick=()=>{soundOn=!soundOn;KIT.set('sound',soundOn);$('#btnSound').textContent=soundOn?'🔊':'🔇';};
+$('#btnSound').textContent=soundOn?'🔊':'🔇';
+let actx=null;
+document.addEventListener('pointerdown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}},{passive:true});
+document.addEventListener('keydown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}});
+function tone(f,d=.1,delay=0,type='triangle',v=.18){if(!soundOn||!actx||actx.state!=='running')return;try{const t=actx.currentTime+delay,o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+d+.03);}catch(e){}}
+const sWin=()=>[523,659,784,1046].forEach((f,k)=>tone(f,.18,k*.12));
+const sLose=()=>[392,330,262].forEach((f,k)=>tone(f,.22,k*.15,'sine'));
+function confetti(){try{
+  const c=document.createElement('canvas'),dpr=window.devicePixelRatio||1;c.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:80';document.body.appendChild(c);
+  const ctx=c.getContext('2d'),W=c.width=innerWidth*dpr,H=c.height=innerHeight*dpr,cols=['#e8b04b','#21c3e6','#e0453a','#2fa35a','#f2c21b','#ffffff','#7b5cff'];
+  const ps=Array.from({length:150},()=>({x:W/2+(Math.random()-.5)*W*.3,y:H*.4,vx:(Math.random()-.5)*W*.03,vy:-Math.random()*H*.028-H*.008,r:Math.random()*6,vr:(Math.random()-.5)*.3,s:(6+Math.random()*7)*dpr,c:cols[Math.random()*cols.length|0]}));
+  let t=0;(function f(){t++;ctx.clearRect(0,0,W,H);for(const p of ps){p.vy+=H*.0008;p.vx*=.985;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);ctx.restore();}if(t<170)requestAnimationFrame(f);else c.remove();})();
+}catch(e){}}
+function modal(html,setup,dismiss=true){return new Promise(res=>{const m=$('#modal'),box=$('#modalBox');box.innerHTML=html;m.classList.remove('hidden');
+  const close=v=>{m.classList.add('hidden');box.innerHTML='';m.onclick=null;res(v);};
+  box.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>close(b.dataset.v));if(setup)setup(box,close);
+  m.onclick=e=>{if(e.target===m&&dismiss)close(null);};});}
+const confirmBox=(text,yes='Ja',no='Abbrechen')=>modal(`<p>${text}</p><div class="row"><button data-v="0">${no}</button><button class="primary" data-v="1">${yes}</button></div>`).then(v=>v==='1');
+const infoBox=(html,btn='OK')=>modal(html+`<div class="row"><button class="primary" data-v="1">${btn}</button></div>`);
+// Swipe-Hilfe
+function onSwipe(el,cb){let sx=0,sy=0,act=false;
+  el.addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;act=true;},{passive:true});
+  el.addEventListener('touchmove',e=>{if(!act)return;const t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))>22){cb(Math.abs(dx)>Math.abs(dy)?(dx>0?'r':'l'):(dy>0?'d':'u'));act=false;}e.preventDefault();},{passive:false});
+  el.addEventListener('touchend',()=>act=false);}
+setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
+
+function showHelp(){if(!window.HELP)return;return modal(`<div class="help">${window.HELP}</div><div class="row"><button class="primary" data-v="1">Los geht's!</button></div>`);}
+$('#btnHelp').onclick=showHelp;
+function initHelp(id){if(window.HELP&&!KIT.get('help-seen-'+id,false)){KIT.set('help-seen-'+id,true);setTimeout(showHelp,350);}}
+
+
+window.HELP=`<h2>🗺️ So funktioniert die Schatzsuche</h2>
+<h3>Für Papa / Mama (Vorbereitung)</h3><ol><li><b>+ Neue Schatzsuche</b> antippen und eine <b>Vorlage</b> wählen – oder eigene Stationen schreiben.</li><li>Jede Station hat einen <b>Hinweis</b> (den lesen die Kinder), einen <b>Ort</b> (nur für dich) und ein <b>Codewort</b>.</li><li>Auf <b>🖨️ Zettel zum Verstecken</b> tippen: Schreib die Codewörter auf Zettel und versteck sie an den Orten.</li></ol>
+<h3>Für die Kinder (Spielen)</h3><ol><li>Lest den Hinweis und überlegt, wo das sein könnte.</li><li>Lauft hin und sucht den Zettel mit dem <b>Codewort</b>.</li><li>Tippt das Codewort ein – dann kommt der nächste Hinweis!</li><li>Nach der letzten Station findet ihr den <b>Schatz</b>! 🏆</li></ol>
+<div class="tip">💡 Kommt ihr nicht weiter? Der 🆘-Knopf gibt einen Extra-Tipp.</div>`;
+const WORDS=['PIRAT','ANKER','PAPAGEI','KOMPASS','GOLD','INSEL','KANONE','SEGEL','PERLE','KRAKE','MUSCHEL','KAPITÄN','FERNROHR','DRACHE','RITTER','ZAUBER','RAKETE','DINO','BLITZ','STERN'];
+const TPL={haus:{n:'Abenteuer im Haus',st:[['Wo es immer kalt ist und die Milch wohnt …','Kühlschrank','Schau neben die Butter!'],['Hier wird geplanscht und Quietscheentchen schwimmen.','Badewanne','Unter der Badematte?'],['Hier ruhen sich Schuhe aus, wenn ihr zu Hause seid.','Schuhregal','In einem Gummistiefel!'],['Ich drehe mich und wasche eure Socken sauber.','Waschmaschine','Schau in die Trommel!'],['Hier schläft Papa, wenn er schnarcht. 😴','Elternbett','Unter dem Kopfkissen!'],['Viele Geschichten wohnen hier zwischen Buchdeckeln.','Bücherregal','Im dicksten Buch!']]},
+ garten:{n:'Garten-Expedition',st:[['Ich habe Blätter, einen dicken Stamm und Vögel wohnen in mir.','Großer Baum','An der Rinde, auf Kinderhöhe.'],['Hier wachsen bunte, duftende Dinge.','Blumenbeet','Unter einem Stein!'],['Damit fließt Wasser zu den Pflanzen – ich bin lang und grün.','Gartenschlauch','Am Wasserhahn!'],['Ich habe Räder und trage Erde durch den Garten.','Schubkarre','Unter der Schubkarre!'],['Hier landet der Müll – aber bitte trennen!','Mülltonnen','Am Deckel!']]},
+ kinder:{n:'Kinderzimmer-Rätsel',st:[['Hier liegen die Kuscheltiere und träumen.','Kinderbett','Unter der Decke!'],['Ich bin voll mit Spielsachen – mach mich auf!','Spielzeugkiste','Ganz unten!'],['Hier hängen eure Jacken und Kleider.','Kleiderschrank','In einer Jackentasche!'],['Hier macht ihr Hausaufgaben.','Schreibtisch','In der Schublade!']]},
+ weihnacht:{n:'Weihnachts-Schatzsuche',st:[['Ich bin grün, stehe im Wohnzimmer und trage Kugeln.','Weihnachtsbaum','Unten bei den Zweigen!'],['24 Türchen hat er – öffne ihn!','Adventskalender','Hinter dem heutigen Türchen!'],['Hier backt Mama die Plätzchen.','Backofen','Auf der Ofentür (nicht im heißen Ofen!)'],['Hier hängen im Dezember die Socken für den Nikolaus.','Haustür / Stiefel','Im Stiefel!'],['Ich leuchte am Adventskranz.','Adventskranz','Unter dem Kranz!']]}};
+let hunts=KIT.get('sz-hunts',[]),E=null,Pl=null;
+const rndWord=used=>{const f=WORDS.filter(w=>!used.includes(w));return f[Math.floor(Math.random()*f.length)]||'SCHATZ';};
+function home(){['edit','notesV','play'].forEach(s=>$('#'+s).classList.add('hidden'));$('#home').classList.remove('hidden');
+  $('#hunts').innerHTML=hunts.length?hunts.map((h,i)=>`<div class="hn"><span class="e">🗺️</span><div><b>${esc(h.name)}</b><br><small>${h.st.length} Stationen</small></div><button class="primary small" data-p="${i}">▶ Spielen</button><button class="small" data-e="${i}">✏️</button><button class="small" data-x="${i}">🗑</button></div>`).join(''):'<div class="note">Noch keine Schatzsuche – leg eine an!</div>';}
+$('#hunts').onclick=async e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.p)play(+b.dataset.p);if(b.dataset.e)edit(+b.dataset.e);if(b.dataset.x&&await confirmBox('Diese Schatzsuche löschen?','Löschen','Abbrechen')){hunts.splice(+b.dataset.x,1);KIT.set('sz-hunts',hunts);home();}};
+function loadTpl(k){const t=TPL[k];const used=[];E.name=t.n;E.st=t.st.map(([h,o,x])=>{const w=rndWord(used);used.push(w);return {hint:h,place:o,extra:x,code:w};});E.treasure=E.treasure||'Eine Überraschung!';renderEdit();}
+function edit(i){E=i==null?{name:'Meine Schatzsuche',st:[],treasure:''}:JSON.parse(JSON.stringify(hunts[i]));E.idx=i;if(i==null)loadTpl('haus');$('#home').classList.add('hidden');$('#edit').classList.remove('hidden');renderEdit();}
+function renderEdit(){$('#huntName').value=E.name;$('#treasure').value=E.treasure||'';
+  $('#stations').innerHTML=E.st.map((s,i)=>`<div class="sti" data-i="${i}"><div class="h">📍 Station ${i+1}<span style="flex:1"></span><button class="small" data-up="${i}">↑</button><button class="small" data-rm="${i}">✕</button></div>
+    <label>Hinweis für die Kinder</label><textarea rows="2" data-f="hint">${esc(s.hint)}</textarea><label>Versteck (nur für dich)</label><input data-f="place" value="${esc(s.place)}"><label>Extra-Tipp (🆘-Knopf)</label><input data-f="extra" value="${esc(s.extra||'')}"><label>Codewort auf dem Zettel</label><input data-f="code" value="${esc(s.code)}" style="text-transform:uppercase;letter-spacing:2px"></div>`).join('');}
+$('#stations').oninput=e=>{const el=e.target.closest('.sti');const f=e.target.dataset.f;if(el&&f)E.st[+el.dataset.i][f]=e.target.value;};
+$('#stations').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.rm){E.st.splice(+b.dataset.rm,1);renderEdit();}if(b.dataset.up&&+b.dataset.up>0){const i=+b.dataset.up;[E.st[i-1],E.st[i]]=[E.st[i],E.st[i-1]];renderEdit();}};
+$('#huntName').oninput=e=>E.name=e.target.value;$('#treasure').oninput=e=>E.treasure=e.target.value;
+$('#btnAddSt').onclick=()=>{E.st.push({hint:'',place:'',extra:'',code:rndWord(E.st.map(s=>s.code))});renderEdit();};
+$$('[data-tpl]').forEach(b=>b.onclick=()=>loadTpl(b.dataset.tpl));
+function saveE(){E.st=E.st.filter(s=>s.hint.trim()&&s.code.trim()).map(s=>({...s,code:s.code.trim().toUpperCase()}));if(!E.st.length){infoBox('<p>Mindestens eine Station mit Hinweis und Codewort, bitte.</p>');return false;}
+  const h={name:E.name||'Schatzsuche',st:E.st,treasure:E.treasure};if(E.idx==null){hunts.push(h);E.idx=hunts.length-1;}else hunts[E.idx]=h;KIT.set('sz-hunts',hunts);return true;}
+$('#btnSave').onclick=()=>{if(saveE()){tone(660,.1);home();}};
+$('#btnNotes').onclick=()=>{if(!saveE())return;$('#edit').classList.add('hidden');$('#notesV').classList.remove('hidden');
+  $('#printArea').innerHTML=`<h2 style="font-family:'JetBrains Mono',monospace">🗺️ ${esc(E.name)}</h2>`+E.st.map((s,i)=>`<div class="note2">📍 <b style="font-size:15px;letter-spacing:0">Station ${i+1} – verstecken bei: ${esc(s.place||'?')}</b><br>Codewort: <b>${esc(s.code)}</b></div>`).join('')+`<div class="note2">🏆 <b style="font-size:15px;letter-spacing:0">Schatz:</b> ${esc(E.treasure||'')}</div>`;};
+$('#btnNotesBack').onclick=()=>{$('#notesV').classList.add('hidden');$('#edit').classList.remove('hidden');};$('#btnPrint').onclick=()=>window.print();
+$('#btnBack').onclick=home;$('#btnNew').onclick=()=>edit(null);
+function play(i){Pl={h:hunts[i],i:0,tries:0};$('#home').classList.add('hidden');$('#play').classList.remove('hidden');showStation();[392,494,587,784].forEach((f,k)=>tone(f,.18,k*.13,'triangle',.12));}
+function drawMap(){const n=Pl.h.st.length;const pts=[];for(let k=0;k<=n;k++){pts.push([30+k*(340/n),110+Math.sin(k*1.7)*60]);}
+  let s='';s+=`<path d="${pts.map((p,k)=>(k?'L':'M')+p[0]+' '+p[1]).join(' ')}" stroke="#7a5a2a" stroke-width="3" stroke-dasharray="7 7" fill="none"/>`;
+  s+=`<path d="${pts.slice(0,Pl.i+1).map((p,k)=>(k?'L':'M')+p[0]+' '+p[1]).join(' ')}" stroke="#c0392b" stroke-width="4" fill="none"/>`;
+  pts.forEach((p,k)=>{if(k===n)s+=`<text x="${p[0]}" y="${p[1]+8}" font-size="30" text-anchor="middle">${Pl.i>=n?'💰':'❌'}</text>`;else s+=`<circle cx="${p[0]}" cy="${p[1]}" r="11" fill="${k<Pl.i?'#2fa35a':k===Pl.i?'#e8b04b':'#d8c08a'}" stroke="#7a5a2a" stroke-width="2"/><text x="${p[0]}" y="${p[1]+4}" font-size="11" font-weight="900" text-anchor="middle" fill="#3a2a10">${k+1}</text>`;});
+  const cur=pts[Math.min(Pl.i,n)];s+=`<text x="${cur[0]}" y="${cur[1]-16}" font-size="22" text-anchor="middle">🧭</text>`;
+  s+=`<text x="360" y="40" font-size="26" text-anchor="middle">🌴</text><text x="40" y="200" font-size="22">🐚</text><text x="200" y="30" font-size="20">⛵</text>`;$('#mapSvg').innerHTML=s;}
+function showStation(){drawMap();const n=Pl.h.st.length;Pl.tries=0;
+  if(Pl.i>=n){$('#hint').innerHTML=`<div class="chest">🧰</div><small>DER SCHATZ</small>${esc(Pl.h.treasure||'Ihr habt den Schatz gefunden!')}`;$('#codeBox').classList.add('hidden');$('#btnHelp2').classList.add('hidden');sWin();confetti();setTimeout(confetti,700);
+    setTimeout(()=>{$('#hint').querySelector('.chest').textContent='💰';[523,659,784,1046,1318].forEach((f,k)=>tone(f,.2,k*.12,'triangle',.15));},1200);return;}
+  $('#codeBox').classList.remove('hidden');$('#btnHelp2').classList.remove('hidden');$('#hint').innerHTML=`<small>HINWEIS ${Pl.i+1} VON ${n}</small>${esc(Pl.h.st[Pl.i].hint)}`;$('#code').value='';}
+const nrm=s=>s.trim().toUpperCase().replace(/\s+/g,'').replace(/Ä/g,'AE').replace(/Ö/g,'OE').replace(/Ü/g,'UE');
+function check(){const v=nrm($('#code').value);if(!v)return;const s=Pl.h.st[Pl.i];if(v===nrm(s.code)){Pl.i++;[659,784,988].forEach((f,k)=>tone(f,.12,k*.09,'triangle',.14));confetti();showStation();}
+  else{Pl.tries++;tone(180,.25,0,'sine');$('#code').animate([{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'none'}],{duration:250});if(Pl.tries>=2)infoBox(`<p>Das Codewort stimmt noch nicht. Es hat <b>${s.code.length} Buchstaben</b> und fängt mit <b>${esc(s.code[0])}</b> an.</p>`,'Okay');}}
+$('#btnCode').onclick=check;$('#code').onkeydown=e=>{if(e.key==='Enter')check();};
+$('#btnHelp2').onclick=()=>{const s=Pl.h.st[Pl.i];infoBox(`<div class="big">🆘</div><p style="text-align:center">${esc(s.extra||'Schaut euch gut um – es ist ganz in der Nähe!')}</p>`,'Danke!');};
+$('#btnStop').onclick=async()=>{if(Pl.i>=Pl.h.st.length||await confirmBox('Schatzsuche beenden?','Beenden','Weiter suchen'))home();};
+applyTheme();home();
+
+initHelp('schatzsuche');
+</script>
+</body>
+</html>

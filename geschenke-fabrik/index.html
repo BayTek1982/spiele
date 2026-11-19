@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Geschenke-Fabrik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('bs-theme'))||'dark';}catch(e){document.documentElement.dataset.theme='dark';}</script>
+<style>
+:root{--acc:#e0453a;--acc-ink:#ffffff}
+:root{--bg1:#1f2630;--bg2:#141920;--card:#27303b;--card2:#2f3946;--line:#3a4552;--txt:#eef1f5;--mut:#a7b1bd;--cell:#1b222b;--shadow:rgba(0,0,0,.45)}
+[data-theme=light]{--bg1:#f4f1ea;--bg2:#e9e4d8;--card:#ffffff;--card2:#f2eee6;--line:#ddd5c6;--txt:#1f2630;--mut:#6b7380;--cell:#f7f4ee;--shadow:rgba(60,50,30,.18)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--txt);min-height:100vh;transition:background .3s,color .3s;
+ background:radial-gradient(900px 500px at 12% -10%,color-mix(in srgb,var(--acc) 16%,transparent),transparent 60%),radial-gradient(700px 500px at 110% 15%,rgba(33,195,230,.08),transparent 60%),linear-gradient(180deg,var(--bg1),var(--bg2)) fixed}
+#app{max-width:var(--maxw,640px);margin:0 auto;padding:14px 12px 40px}
+.hidden{display:none!important}
+a.back{color:var(--mut);text-decoration:none;font-weight:700;font-size:14px;display:inline-block;margin:0 0 8px 2px}
+header{display:flex;align-items:center;gap:10px;margin:4px 2px 14px}
+header .logo{font-size:26px}
+header h1{font-family:'JetBrains Mono',monospace;font-size:21px;margin:0;font-weight:800;letter-spacing:-.5px}
+header h1 b{color:var(--acc)}
+.hbtns{margin-left:auto;display:flex;gap:6px}
+.ib{padding:7px 10px!important;font-size:17px!important;line-height:1}
+button{font:inherit;cursor:pointer;border-radius:12px;padding:10px 14px;font-weight:800;color:var(--txt);background:var(--card2);border:1px solid var(--line);transition:filter .15s,transform .1s}
+button:hover:not(:disabled){filter:brightness(1.06)}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--acc);color:var(--acc-ink,#14181e);border-color:var(--acc)}
+button.small{padding:7px 12px;font-size:14px;border-radius:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.card h2{margin:0 0 8px;font-size:18px}
+.card p{margin:0 0 8px;color:var(--mut);line-height:1.45}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin:0 0 6px}
+.seg{display:flex;background:var(--bg2);border-radius:12px;padding:3px;border:1px solid var(--line)}
+.seg button{flex:1;background:transparent;border:0;padding:8px 6px;border-radius:9px;color:var(--mut);font-size:14px}
+.seg button.on{background:var(--card2);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.opts{display:grid;gap:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stats{display:flex;gap:8px;margin-bottom:10px}
+.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;text-align:center}
+.stat .k{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+.stat .v{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800}
+.note{font-size:14px;color:var(--mut);margin-top:8px;line-height:1.45}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+.modal .box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:420px;width:100%;max-height:88vh;overflow:auto;color:var(--txt)}
+.modal .box h2{margin:0 0 10px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.modal .box p,.modal .box li{line-height:1.5}
+.modal .row{justify-content:flex-end;margin-top:14px}
+.big{font-size:46px;text-align:center;margin:2px 0 6px}
+.pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,52px);gap:8px;justify-content:center;margin-top:12px;user-select:none}
+.pad button{font-size:22px;padding:0;touch-action:manipulation}
+.pad .u{grid-column:2}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+.help h2{margin:0 0 6px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.help h3{margin:14px 0 4px;font-size:15px;color:var(--acc)}
+.help p,.help li{line-height:1.5;margin:0 0 6px}
+.help ol,.help ul{margin:0 0 4px;padding-left:20px}
+.help .tip{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:14px}
+
+
+.wrap{position:relative;border-radius:16px;overflow:hidden;box-shadow:0 10px 26px var(--shadow);border:1px solid var(--line)}
+canvas{display:block;width:100%;height:auto}
+.hud{position:absolute;top:8px;left:12px;right:12px;display:flex;justify-content:space-between;pointer-events:none;font-weight:900;color:#fff;text-shadow:0 1px 3px #000a;font-family:'JetBrains Mono',monospace}
+.pal{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.pal button{height:62px;border-radius:14px;border:3px solid #0003;font-size:13px;color:#fff;text-shadow:0 1px 2px #000a;padding:0;position:relative;overflow:hidden}
+.pal button::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent 0 10px,rgba(255,255,255,.18) 10px 14px)}
+.rib{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.rib button{height:44px;padding:0;font-size:13px;font-weight:900}
+.lbl2{font-size:12px;color:var(--mut);font-weight:800;margin-top:8px;text-align:center}
+.flash{animation:fl .3s}@keyframes fl{50%{transform:scale(.92)}}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
+  <header><span class="logo">🎁</span><h1>Geschenke-<b>Fabrik</b></h1><div class="hbtns"><button class="ib" id="btnHelp" title="Anleitung">📖</button><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
+
+  <section id="setup">
+    <div class="card" style="text-align:center"><div class="big">🎅🎁</div><h2>Hilfe in der Wichtel-Werkstatt!</h2><p>Die Geschenke rollen übers Fließband. Jedes hat einen <b>Wunschzettel</b>: Welches Papier? Welche Schleife? Pack sie richtig ein, bevor sie vom Band fallen!</p>
+      <div class="row" style="justify-content:center"><button class="primary" id="btnStart">Schicht beginnen 🎁</button></div></div>
+    <div class="note" id="best" style="text-align:center"></div>
+  </section>
+  <section id="game" class="hidden">
+    <div class="wrap"><canvas id="cv" width="700" height="420"></canvas><div class="hud"><div id="score">0</div><div id="lvl"></div><div id="hearts"></div></div></div>
+    <div class="lbl2">GESCHENKPAPIER</div>
+    <div class="pal" id="pal"></div>
+    <div id="ribBox" class="hidden"><div class="lbl2">SCHLEIFE</div><div class="rib" id="rib"></div></div>
+    <div class="row" style="justify-content:center;margin-top:10px"><button class="small" id="btnPause">⏸ Pause</button><button class="small" id="btnMenu">‹ Menü</button></div>
+  </section>
+
+  <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
+</div>
+<script>
+const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const KIT={get(k,d){try{const v=JSON.parse(localStorage.getItem('bs-'+k));return v??d;}catch(e){return d;}},set(k,v){try{localStorage.setItem('bs-'+k,JSON.stringify(v));}catch(e){}}};
+let theme=KIT.get('theme','dark'),soundOn=KIT.get('sound',true);
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function applyTheme(){document.documentElement.dataset.theme=theme;$('#btnTheme').textContent=theme==='dark'?'☀️':'🌙';if(window.onTheme)window.onTheme();}
+$('#btnTheme').onclick=()=>{theme=theme==='dark'?'light':'dark';KIT.set('theme',theme);applyTheme();};
+$('#btnSound').onclick=()=>{soundOn=!soundOn;KIT.set('sound',soundOn);$('#btnSound').textContent=soundOn?'🔊':'🔇';};
+$('#btnSound').textContent=soundOn?'🔊':'🔇';
+let actx=null;
+document.addEventListener('pointerdown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}},{passive:true});
+document.addEventListener('keydown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}});
+function tone(f,d=.1,delay=0,type='triangle',v=.18){if(!soundOn||!actx||actx.state!=='running')return;try{const t=actx.currentTime+delay,o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+d+.03);}catch(e){}}
+const sWin=()=>[523,659,784,1046].forEach((f,k)=>tone(f,.18,k*.12));
+const sLose=()=>[392,330,262].forEach((f,k)=>tone(f,.22,k*.15,'sine'));
+function confetti(){try{
+  const c=document.createElement('canvas'),dpr=window.devicePixelRatio||1;c.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:80';document.body.appendChild(c);
+  const ctx=c.getContext('2d'),W=c.width=innerWidth*dpr,H=c.height=innerHeight*dpr,cols=['#e8b04b','#21c3e6','#e0453a','#2fa35a','#f2c21b','#ffffff','#7b5cff'];
+  const ps=Array.from({length:150},()=>({x:W/2+(Math.random()-.5)*W*.3,y:H*.4,vx:(Math.random()-.5)*W*.03,vy:-Math.random()*H*.028-H*.008,r:Math.random()*6,vr:(Math.random()-.5)*.3,s:(6+Math.random()*7)*dpr,c:cols[Math.random()*cols.length|0]}));
+  let t=0;(function f(){t++;ctx.clearRect(0,0,W,H);for(const p of ps){p.vy+=H*.0008;p.vx*=.985;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);ctx.restore();}if(t<170)requestAnimationFrame(f);else c.remove();})();
+}catch(e){}}
+function modal(html,setup,dismiss=true){return new Promise(res=>{const m=$('#modal'),box=$('#modalBox');box.innerHTML=html;m.classList.remove('hidden');
+  const close=v=>{m.classList.add('hidden');box.innerHTML='';m.onclick=null;res(v);};
+  box.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>close(b.dataset.v));if(setup)setup(box,close);
+  m.onclick=e=>{if(e.target===m&&dismiss)close(null);};});}
+const confirmBox=(text,yes='Ja',no='Abbrechen')=>modal(`<p>${text}</p><div class="row"><button data-v="0">${no}</button><button class="primary" data-v="1">${yes}</button></div>`).then(v=>v==='1');
+const infoBox=(html,btn='OK')=>modal(html+`<div class="row"><button class="primary" data-v="1">${btn}</button></div>`);
+// Swipe-Hilfe
+function onSwipe(el,cb){let sx=0,sy=0,act=false;
+  el.addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;act=true;},{passive:true});
+  el.addEventListener('touchmove',e=>{if(!act)return;const t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))>22){cb(Math.abs(dx)>Math.abs(dy)?(dx>0?'r':'l'):(dy>0?'d':'u'));act=false;}e.preventDefault();},{passive:false});
+  el.addEventListener('touchend',()=>act=false);}
+setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
+
+function showHelp(){if(!window.HELP)return;return modal(`<div class="help">${window.HELP}</div><div class="row"><button class="primary" data-v="1">Los geht's!</button></div>`);}
+$('#btnHelp').onclick=showHelp;
+function initHelp(id){if(window.HELP&&!KIT.get('help-seen-'+id,false)){KIT.set('help-seen-'+id,true);setTimeout(showHelp,350);}}
+
+
+window.HELP=`<h2>🎁 So spielst du Geschenke-Fabrik</h2>
+<h3>Ziel</h3><p>Pack so viele Geschenke wie möglich <b>richtig</b> ein!</p>
+<h3>So geht's</h3><ol><li>Über jedem Geschenk hängt ein <b>Wunschzettel</b> mit dem richtigen Papier (und später auch der Schleife).</li><li>Tippe unten auf das passende <b>Geschenkpapier</b>. Es wird immer das <b>vorderste</b> (rechts) unverpackte Geschenk eingepackt.</li><li>Ab Stufe 3 brauchen Geschenke auch eine <b>Schleife</b> 🎀 – erst Papier, dann Schleife.</li></ol>
+<h3>Aufpassen</h3><ul><li>Fällt ein Geschenk unverpackt vom Band oder wählst du falsch, verlierst du ein ❤️.</li><li>Das Band wird immer schneller!</li><li>⭐ Goldene Geschenke geben Extra-Punkte.</li></ul>`;
+const W=700,H=420,BY=290;const cv=$('#cv'),ctx=cv.getContext('2d');
+const PAP=[['rot','#e0453a'],['grün','#2fa35a'],['blau','#2f7de1'],['lila','#8e5cf0']];const RIB=[['gold','#f2c21b'],['silber','#c9d1d9'],['weiß','#ffffff'],['pink','#ff6ad5']];
+const TOYS=['🧸','🚂','⚽','🎮','📚','🪀','🧩','🎨','🚁','🪁','🎸','🦖'];
+let G=null,raf=0,last=0;
+$('#pal').innerHTML=PAP.map(([n,c],i)=>`<button data-i="${i}" style="background:${c}">${n}</button>`).join('');
+$('#rib').innerHTML=RIB.map(([n,c],i)=>`<button data-i="${i}" style="background:${c};color:#222">🎀 ${n}</button>`).join('');
+function start(){G={gifts:[],t:0,spawn:0,score:0,hearts:3,lvl:1,done:0,speed:88,parts:[],state:'run',belt:0,elf:0,msg:null};$('#setup').classList.add('hidden');$('#game').classList.remove('hidden');last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);hud();}
+function hud(){$('#score').textContent='⭐ '+G.score;$('#lvl').textContent='Stufe '+G.lvl;$('#hearts').textContent='❤️'.repeat(G.hearts)+'🤍'.repeat(3-G.hearts);$('#ribBox').classList.toggle('hidden',G.lvl<3);}
+function spawn(){const needR=G.lvl>=3&&Math.random()<Math.min(.9,.4+G.lvl*.1);G.gifts.push({x:-70,w:56+Math.random()*30,h:44+Math.random()*30,p:Math.floor(Math.random()*4),r:needR?Math.floor(Math.random()*4):-1,gp:-1,gr:-1,toy:TOYS[Math.floor(Math.random()*TOYS.length)],gold:Math.random()<.08,done:false,fall:0,shake:0});}
+function front(){return G.gifts.filter(g=>!g.done&&!g.fall&&g.x>-40).sort((a,b)=>b.x-a.x)[0];}
+function apply(kind,i){if(!G||G.state!=='run')return;const g=front();if(!g)return;
+  if(kind==='p'){if(g.gp>=0){bad(g,'Schon eingepackt – jetzt die Schleife!');return;}if(i!==g.p){bad(g,'Falsches Papier!');return;}g.gp=i;tone(520,.06);tone(780,.08,.05);if(g.r<0)finish(g);}
+  else{if(g.r<0){bad(g,'Das braucht keine Schleife!');return;}if(g.gp<0){bad(g,'Erst das Papier!');return;}if(i!==g.r){bad(g,'Falsche Schleife!');return;}g.gr=i;finish(g);}}
+function finish(g){g.done=true;const pts=(g.r>=0?20:10)*(g.gold?3:1);G.score+=pts;G.done++;for(let k=0;k<14;k++)G.parts.push({x:g.x,y:BY-g.h-10,vx:(Math.random()-.5)*240,vy:-Math.random()*240,life:.8,c:['#ffd23f','#fff','#ff6ad5'][k%3]});
+  G.msg={t:`+${pts}`,x:g.x,y:BY-g.h-30,life:1};[660,880,1046].forEach((f,k)=>tone(f,.08,k*.05,'triangle',.12));
+  if(G.done%8===0){G.lvl++;G.speed+=16;G.msg={t:`Stufe ${G.lvl}! 🚀`,x:W/2,y:120,life:1.6};if(G.lvl===3)setTimeout(()=>{G.state='pause';infoBox('<div class="big">🎀</div><h2 style="text-align:center">Neu: Schleifen!</h2><p style="text-align:center">Manche Geschenke brauchen jetzt eine <b>Schleife</b>. Erst das Papier, dann die Schleife wählen!</p>','Weiter').then(()=>{G.state='run';last=performance.now();});},50);}hud();}
+function bad(g,txt){g.shake=.4;G.hearts--;tone(160,.25,0,'sawtooth',.1);G.msg={t:txt,x:Math.min(Math.max(g.x,160),W-160),y:BY-g.h-40,life:1.4};hud();if(G.hearts<=0)over();}
+function over(){G.state='over';const b=KIT.get('gf-best',0);const rec=G.score>b;if(rec)KIT.set('gf-best',G.score);sLose();
+  setTimeout(()=>modal(`<div class="big">🎁</div><h2 style="text-align:center">Schichtende!</h2><p style="text-align:center"><b>${G.done}</b> Geschenke eingepackt<br><b>${G.score}</b> Punkte${rec?'<br>⭐ Neuer Rekord!':''}</p><div class="row"><button data-v="m">Menü</button><button class="primary" data-v="a">Nochmal</button></div>`,null,false).then(v=>v==='a'?start():menu()),500);}
+function step(dt){G.t+=dt;G.belt+=G.speed*dt;G.spawn-=dt;const gap=Math.max(1.1,3.2-G.lvl*.25);if(G.spawn<=0){spawn();G.spawn=gap*(.8+Math.random()*.5);}
+  for(const g of G.gifts){if(g.fall){g.fall+=dt;g.vy=(g.vy||0)+900*dt;g.yo=(g.yo||0)+g.vy*dt;continue;}g.x+=G.speed*dt*(g.done?1.8:1);if(g.shake>0)g.shake-=dt;
+    if(g.x>W-60&&!g.done){g.fall=.01;bad(g,'Runtergefallen!');}if(g.x>W+80)g.gone=true;}
+  G.gifts=G.gifts.filter(g=>!g.gone&&!(g.fall>1.5));
+  for(const p of G.parts){p.vy+=500*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;}G.parts=G.parts.filter(p=>p.life>0);if(G.msg){G.msg.life-=dt;G.msg.y-=20*dt;if(G.msg.life<=0)G.msg=null;}}
+function draw(){const g0=ctx.createLinearGradient(0,0,0,H);g0.addColorStop(0,'#4a2a1a');g0.addColorStop(1,'#2a160c');ctx.fillStyle=g0;ctx.fillRect(0,0,W,H);
+  // Wand mit Fenstern & Girlande
+  ctx.fillStyle='#1c2f52';ctx.fillRect(80,30,140,110);ctx.fillRect(W-220,30,140,110);ctx.fillStyle='#fff';for(let k=0;k<40;k++){ctx.globalAlpha=.7;ctx.beginPath();ctx.arc(80+(k*37)%140,30+((k*53+G.t*30)%110),2,0,7);ctx.arc(W-220+(k*41)%140,30+((k*29+G.t*25)%110),2,0,7);ctx.fill();}ctx.globalAlpha=1;
+  ctx.strokeStyle='#6b3f1d';ctx.lineWidth=8;ctx.strokeRect(80,30,140,110);ctx.strokeRect(W-220,30,140,110);
+  ctx.strokeStyle='#2fa35a';ctx.lineWidth=6;ctx.beginPath();for(let x=0;x<=W;x+=10)ctx.lineTo(x,14+Math.sin(x/60)*8);ctx.stroke();for(let x=30;x<W;x+=70){ctx.fillStyle=['#e0453a','#f2c21b','#2f7de1'][(x/70|0)%3];ctx.beginPath();ctx.arc(x,22+Math.sin(x/60)*8,6,0,7);ctx.fill();}
+  // Wichtel
+  const ex=W/2+20,ey=BY-150;ctx.fillStyle='#2fa35a';ctx.beginPath();ctx.moveTo(ex-22,ey-20);ctx.lineTo(ex+8,ey-70);ctx.lineTo(ex+24,ey-18);ctx.fill();ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(ex+8,ey-70,6,0,7);ctx.fill();
+  ctx.fillStyle='#ffd9b3';ctx.beginPath();ctx.arc(ex,ey,22,0,7);ctx.fill();ctx.fillStyle='#222';ctx.beginPath();ctx.arc(ex-7,ey-3,2.5,0,7);ctx.arc(ex+7,ey-3,2.5,0,7);ctx.fill();ctx.strokeStyle='#222';ctx.lineWidth=2;ctx.beginPath();ctx.arc(ex,ey+5,7,.2,Math.PI-.2);ctx.stroke();ctx.fillStyle='#ff9a9a';ctx.beginPath();ctx.arc(ex-13,ey+5,4,0,7);ctx.arc(ex+13,ey+5,4,0,7);ctx.fill();
+  ctx.fillStyle='#e0453a';ctx.fillRect(ex-20,ey+20,40,40);
+  // Band
+  ctx.fillStyle='#333';ctx.fillRect(0,BY,W-60,22);ctx.fillStyle='#555';for(let x=-(G.belt%30);x<W-60;x+=30)ctx.fillRect(x,BY+4,16,4);ctx.fillStyle='#222';for(let x=20;x<W-60;x+=60){ctx.beginPath();ctx.arc(x,BY+30,10,0,7);ctx.fill();}
+  ctx.fillStyle='#6b3f1d';ctx.fillRect(0,BY+40,W,H-BY-40);ctx.fillStyle='#e0453a';ctx.fillRect(W-60,BY,8,60);
+  // Geschenke
+  const fr=front();
+  for(const g of G.gifts){const sx=g.shake>0?Math.sin(G.t*80)*4:0;const x=g.x+sx,y=BY+(g.yo||0);ctx.save();if(g.fall){ctx.translate(x,y-g.h/2);ctx.rotate(g.fall*3);ctx.translate(-x,-(y-g.h/2));}
+    if(g.gp<0){ctx.fillStyle='#c79b67';ctx.fillRect(x-g.w/2,y-g.h,g.w,g.h);ctx.strokeStyle='#8a6a3c';ctx.lineWidth=2;ctx.strokeRect(x-g.w/2,y-g.h,g.w,g.h);ctx.beginPath();ctx.moveTo(x-g.w/2,y-g.h+8);ctx.lineTo(x+g.w/2,y-g.h+8);ctx.stroke();ctx.font='26px sans-serif';ctx.textAlign='center';ctx.fillText(g.toy,x,y-g.h/2+10);}
+    else{ctx.fillStyle=g.gold?'#f2c21b':PAP[g.gp][1];ctx.fillRect(x-g.w/2,y-g.h,g.w,g.h);ctx.fillStyle='rgba(255,255,255,.25)';for(let k=0;k<4;k++){ctx.beginPath();ctx.arc(x-g.w/2+8+k*(g.w/4),y-g.h+10+(k%2)*14,3,0,7);ctx.fill();}
+      const rc=g.gr>=0?RIB[g.gr][1]:'#ffffff55';ctx.fillStyle=rc;ctx.fillRect(x-5,y-g.h,10,g.h);ctx.fillRect(x-g.w/2,y-g.h/2-5,g.w,10);if(g.gr>=0){ctx.beginPath();ctx.ellipse(x-10,y-g.h-6,11,7,-.4,0,7);ctx.ellipse(x+10,y-g.h-6,11,7,.4,0,7);ctx.fill();}}
+    if(g.gold&&g.gp<0){ctx.font='18px sans-serif';ctx.fillText('⭐',x+g.w/2-6,y-g.h+4);}
+    ctx.restore();
+    // Wunschzettel
+    if(!g.done&&!g.fall){const tx=x,ty=BY-g.h-58;ctx.strokeStyle='#ddd';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(tx,ty+40);ctx.lineTo(tx,BY-g.h);ctx.stroke();
+      ctx.fillStyle=g===fr?'#fffbe6':'#f1eadb';ctx.strokeStyle=g===fr?'#ffd23f':'#bba';ctx.lineWidth=g===fr?3:1;ctx.beginPath();ctx.roundRect(tx-28,ty,56,g.r>=0?44:30,6);ctx.fill();ctx.stroke();
+      ctx.fillStyle=PAP[g.p][1];ctx.fillRect(tx-20,ty+6,40,16);if(g.gp>=0){ctx.fillStyle='#2fa35a';ctx.font='900 16px sans-serif';ctx.textAlign='center';ctx.fillText('✓',tx,ty+20);}
+      if(g.r>=0){ctx.fillStyle=RIB[g.r][1];ctx.strokeStyle='#999';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(tx-7,ty+33,7,5,-.4,0,7);ctx.ellipse(tx+7,ty+33,7,5,.4,0,7);ctx.fill();ctx.stroke();}}}
+  for(const p of G.parts){ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.c;ctx.fillRect(p.x,p.y,5,5);}ctx.globalAlpha=1;
+  if(G.msg){ctx.globalAlpha=Math.min(1,G.msg.life);ctx.font='900 24px Nunito';ctx.textAlign='center';ctx.fillStyle='#ffd23f';ctx.strokeStyle='#000a';ctx.lineWidth=5;ctx.strokeText(G.msg.t,G.msg.x,G.msg.y);ctx.fillText(G.msg.t,G.msg.x,G.msg.y);ctx.globalAlpha=1;}}
+function loop(now){const dt=Math.min(.033,(now-last)/1000);last=now;if(G){if(G.state==='run')step(dt);draw();}raf=requestAnimationFrame(loop);}
+$('#pal').onclick=e=>{const b=e.target.closest('button');if(!b)return;b.classList.remove('flash');void b.offsetWidth;b.classList.add('flash');apply('p',+b.dataset.i);};
+$('#rib').onclick=e=>{const b=e.target.closest('button');if(!b)return;apply('r',+b.dataset.i);};
+document.addEventListener('keydown',e=>{if(!G)return;const k='1234'.indexOf(e.key);if(k>=0)apply('p',k);const r='qwer'.indexOf(e.key);if(r>=0)apply('r',r);});
+$('#btnPause').onclick=()=>{if(!G||G.state==='over')return;G.state=G.state==='run'?'pause':'run';$('#btnPause').textContent=G.state==='run'?'⏸ Pause':'▶ Weiter';last=performance.now();};
+function menu(){cancelAnimationFrame(raf);G=null;$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');const b=KIT.get('gf-best',0);$('#best').textContent=b?`Rekord: ${b} Punkte`:'';}
+$('#btnMenu').onclick=menu;$('#btnStart').onclick=start;applyTheme();menu();
+
+initHelp('geschenke-fabrik');
+</script>
+</body>
+</html>
