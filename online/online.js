@@ -31,6 +31,7 @@ async function firebaseBackend(){const V='10.12.2',B=`https://www.gstatic.com/fi
     on:(p,cb)=>{const r=db.ref(p);const h=s=>cb(s.val());r.on('value',h);return()=>r.off('value',h);},
     prefix:async(p,q)=>(await db.ref(p).orderByKey().startAt(q).endAt(q+'').limitToFirst(12).once('value')).val()||{},
     presence:(uid,data)=>{const r=db.ref('presence/'+uid);db.ref('.info/connected').on('value',s=>{if(!s.val())return;r.onDisconnect().update({online:false,last:firebase.database.ServerValue.TIMESTAMP});r.update({...data,online:true,last:firebase.database.ServerValue.TIMESTAMP});});},
+    inc:(p,n=1)=>db.ref(p).set(firebase.database.ServerValue.increment(n)).catch(()=>{}),
     errText:e=>({'auth/email-already-in-use':'Diesen Namen gibt es schon.','auth/invalid-credential':'Name oder Passwort falsch.','auth/wrong-password':'Name oder Passwort falsch.','auth/user-not-found':'Diesen Namen gibt es nicht.','auth/weak-password':'Das Passwort braucht mindestens 6 Zeichen.','auth/too-many-requests':'Zu viele Versuche – warte kurz.','auth/network-request-failed':'Keine Internetverbindung.'}[e&&e.code]||('Fehler: '+(e&&e.message||e)))};}
 /* ---------- Backend: Test-Speicher (nur zum Ausprobieren, ?mock=1) ---------- */
 function mockBackend(){const K='bs-mockdb';const read=()=>{try{return JSON.parse(localStorage.getItem(K))||{}}catch(e){return{}}};const write=d=>{localStorage.setItem(K,JSON.stringify(d));fire();};
@@ -51,6 +52,7 @@ function mockBackend(){const K='bs-mockdb';const read=()=>{try{return JSON.parse
     on:(p,cb)=>{const s={p,cb,last:undefined};subs.add(s);setTimeout(()=>{const v=JSON.stringify(getP(read(),p)??null);s.last=v;cb(JSON.parse(v));},0);return()=>subs.delete(s);},
     prefix:async(p,q)=>{const o=getP(read(),p)||{};const r={};Object.keys(o).filter(k=>k.startsWith(q)).sort().slice(0,12).forEach(k=>r[k]=o[k]);return r;},
     presence:(uid,data)=>{const up=()=>{const d=read();setP(d,'presence/'+uid,{...(getP(d,'presence/'+uid)||{}),...data,online:true,last:now()});write(d);};up();addEventListener('beforeunload',()=>{const d=read();setP(d,'presence/'+uid+'/online',false);localStorage.setItem(K,JSON.stringify(d));});},
+    inc:async(p,n=1)=>{const d=read();setP(d,p,(getP(d,p)||0)+n);write(d);},
     errText:e=>({'auth/email-already-in-use':'Diesen Namen gibt es schon.','auth/invalid-credential':'Name oder Passwort falsch.','auth/weak-password':'Das Passwort braucht mindestens 6 Zeichen.'}[e&&e.code]||'Fehler')};}
 /* ---------- Zustand ---------- */
 const O=window.ONLINE={available:!!(CFG||MOCK),me:null,friends:{},presence:{},requests:{},invites:{},blocks:{},msgs:{},listeners:{},B:null};
@@ -110,7 +112,7 @@ const NET=window.NET={room:null,roomId:null,seat:-1,_opts:null,_unsub:null,
     O.B.update('presence/'+O.me.uid,{room:id,game:GAME.id,title:this._opts.title||GAME.title});
     try{history.replaceState(null,'',location.pathname+'?room='+id);}catch(e){}
     this._unsub=O.B.on('rooms/'+id,r=>{if(!r){if(this.roomId===id){toast('Der Raum wurde geschlossen.');this.leave(true);}return;}this.room=r;updLobby();
-      if(r.status==='play'&&!started){started=true;closeLobby();this._opts.onStart&&this._opts.onStart(r,this.seat);}
+      if(r.status==='play'&&!started){started=true;closeLobby();if(r.host===O.me.uid)O.statInc('o');this._opts.onStart&&this._opts.onStart(r,this.seat);}
       if(r.state&&r.rev!==lastRev&&started){lastRev=r.rev;if(r.by!==O.me.uid||r.forceAll)this._opts.onState&&this._opts.onState(r.state,r);}
       if(r.status==='wait'&&started){started=false;lastRev=-1;}
       if(started&&this._opts.onData){const dj=JSON.stringify(r.data||null);if(dj!==this._lastData){this._lastData=dj;this._opts.onData(r.data||{},r);}}
@@ -229,6 +231,15 @@ function renderHub(){const box=document.getElementById('onlineBox');if(!box)retu
 function renderFab(){if(document.getElementById('onlineBox'))return;if(!O.available)return;injectCss();let f=document.getElementById('onFab');if(!f){f=document.createElement('button');f.id='onFab';f.title='Freunde';f.onclick=()=>openPanel('friends');const hb=document.querySelector('.hbtns');if(hb){f.className='ib on-hb';hb.prepend(f);}else{f.className='on-fab';document.body.appendChild(f);}}
   const rc=O.me?reqCount():0;const on=O.me?friendList().filter(x=>x.st.on).length:0;f.innerHTML=(O.me?'👥':'🌐')+(rc?`<b>${rc}</b>`:on?`<b style="background:#2fa35a">${on}</b>`:'');}
 O.on('change',()=>{renderHub();renderFab();if(sheet&&sheet.querySelector('.on-list')&&!sheet.querySelector('#onQ')&&!sheet.querySelector('#onPre')){/* Liste live aktualisieren */const h=sheet.querySelector('h2');if(h&&h.textContent.startsWith('👥'))openPanel('friends');}updLobby();});
+
+/* ---------- Anonyme Statistik (keine Namen, keine Konten) ---------- */
+const STAT_ID=GAME.id||'start';
+function dayKey(t=new Date()){return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');}
+let lastAct=Date.now();['pointerdown','keydown','touchstart'].forEach(e=>addEventListener(e,()=>lastAct=Date.now(),{passive:true}));
+O.statInc=(f)=>{if(!O.B||!O.B.inc||STAT_ID==='statistik')return;const d=dayKey();O.B.inc(`stats/g/${STAT_ID}/${f}`);O.B.inc(`stats/d/${d}/${STAT_ID}/${f}`);};
+O.ready.then(ok=>{if(!ok||STAT_ID==='statistik'||!/^[a-z0-9-]{1,40}$/.test(STAT_ID))return;
+  O.statInc('v');const now=new Date();O.B.inc(`stats/h/${now.getHours()}`);O.B.inc(`stats/w/${now.getDay()}`);O.B.inc(`stats/dev/${/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'handy':'computer'}`);
+  setInterval(()=>{if(document.visibilityState==='visible'&&Date.now()-lastAct<120000)O.statInc('m');},60000);});
 O.openPanel=openPanel;
 function boot(){renderHub();renderFab();O.ready.then(ok=>{renderHub();renderFab();});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
