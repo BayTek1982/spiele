@@ -95,7 +95,7 @@ button:hover:not(:disabled){filter:brightness(1.08)}
 .big{font-size:44px;text-align:center;margin:4px 0 8px}
 .rank{margin:8px 0 0;padding-left:22px;font-weight:700;line-height:1.7}
 </style>
-</head>
+<style>button,canvas,svg,.board,.cell,.sq,.square{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}button,canvas{touch-action:manipulation}</style></head>
 <body>
 <div id="app">
   <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
@@ -478,5 +478,5 @@ $('#btnSound').onclick=()=>{soundOn=!soundOn;try{localStorage.setItem('aergere-t
 setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
 renderSetup();
 </script>
-</body>
+<script>document.addEventListener('contextmenu',e=>{if(e.target.closest('button,canvas,svg,.board,.cell'))e.preventDefault();});</script></body>
 </html>

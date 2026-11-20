@@ -68,7 +68,7 @@ button.primary{background:var(--acc);color:#1d1606;border-color:var(--acc)}
 .thinking{animation:pulse 1s infinite}
 @keyframes pulse{50%{opacity:.4}}
 </style>
-</head>
+<style>button,canvas,svg,.board,.cell,.sq,.square{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}button,canvas{touch-action:manipulation}</style></head>
 <body>
 <div id="app">
   <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
@@ -233,5 +233,5 @@ applyTheme();$('#btnSound').textContent=st.sound?'🔊':'🔇';
 setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
 newRound();
 </script>
-</body>
+<script>document.addEventListener('contextmenu',e=>{if(e.target.closest('button,canvas,svg,.board,.cell'))e.preventDefault();});</script></body>
 </html>
