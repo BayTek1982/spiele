@@ -104,7 +104,7 @@ button,canvas{touch-action:manipulation}
   <div class="idea">💡 Eine Spielidee von <b>Elijah</b></div>
   <section id="setup">
     <div class="card opts">
-      <div><div class="lbl">Spielart</div><div class="seg" id="modeSeg"><button data-v="cpu">🤖 Gegen Computer</button><button data-v="pvp">👥 Zu zweit</button></div></div>
+      <div><div class="lbl">Spielart</div><div class="seg" id="modeSeg"><button data-v="cpu">🤖 Gegen Computer</button><button data-v="pvp">👥 Zu zweit</button><button data-v="online" class="onl hidden">🌐 Online</button></div></div>
       <div id="lvlBox"><div class="lbl">Stärke vom Computer</div><div class="seg" id="lvlSeg"><button data-v="1">Leicht</button><button data-v="2">Mittel</button><button data-v="3">Schwer</button></div></div>
       <label class="toggle"><input type="checkbox" id="again"> Bei Treffer darf man nochmal schießen</label>
       <label class="toggle"><input type="checkbox" id="touch"> Schiffe dürfen sich nicht berühren</label>
@@ -190,7 +190,7 @@ const COLS='ABCDEFGHIJ';
 let cfg=KIT.get('schiffe-cfg',{mode:'cpu',lvl:2,again:true,touch:true});
 function renderSetup(){$$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.mode));$$('#lvlSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.v===cfg.lvl));
   $('#lvlBox').classList.toggle('hidden',cfg.mode!=='cpu');$('#again').checked=cfg.again;$('#touch').checked=cfg.touch;}
-$('#modeSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;cfg.mode=b.dataset.v;KIT.set('schiffe-cfg',cfg);renderSetup();};
+$('#modeSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.v==='online'){NET.create();return;}cfg.mode=b.dataset.v;KIT.set('schiffe-cfg',cfg);renderSetup();};
 $('#lvlSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;cfg.lvl=+b.dataset.v;KIT.set('schiffe-cfg',cfg);renderSetup();};
 $('#again').onchange=e=>{cfg.again=e.target.checked;KIT.set('schiffe-cfg',cfg);};$('#touch').onchange=e=>{cfg.touch=e.target.checked;KIT.set('schiffe-cfg',cfg);};
 /* Spieler-Daten: ships=[{l,n,cells:[idx],hits:0}], shots=Set (Schüsse AUF diesen Spieler) */
@@ -204,7 +204,7 @@ function gridHTML(id){let h='<div class="lab"></div>'+[...COLS].map(c=>`<div cla
 /* ===== Aufstellen ===== */
 let P=[],placing=0,selShip=0,vert=false,hoverI=null;
 function startSetup(){
-  P=[newPlayer(cfg.mode==='cpu'?'Du':'Spieler 1'),newPlayer(cfg.mode==='cpu'?'Computer':'Spieler 2')];if(cfg.mode==='cpu'){P[1].cpu=true;randomFleet(P[1]);}
+  P=[newPlayer(cfg.mode==='cpu'||cfg.mode==='online'?'Du':'Spieler 1'),newPlayer(cfg.mode==='online'?oppName():cfg.mode==='cpu'?'Computer':'Spieler 2')];netShots=0;if(cfg.mode==='cpu'){P[1].cpu=true;randomFleet(P[1]);}
   placing=0;$('#setup').classList.add('hidden');beginPlace();
 }
 async function beginPlace(){
@@ -232,6 +232,7 @@ $('#btnRot').onclick=()=>{vert=!vert;renderPlace();};
 $('#btnRand').onclick=()=>{const p=P[placing];randomFleet(p);p.ships.forEach((s,k)=>s.k=k);tone(600,.06);renderPlace();};
 $('#btnClear').onclick=()=>{P[placing].ships=[];renderPlace();};
 $('#btnReady').onclick=()=>{P[placing].ships.forEach(s=>s.hits=0);
+  if(cfg.mode==='online'){NET.put('f'+mySeat,P[0].ships.map(s=>({l:s.l,n:s.n,k:s.k,cells:s.cells})));$('#place').classList.add('hidden');$('#cover').innerHTML='<h2>⏳ Warte auf '+esc(oppName())+' …</h2><p>Sobald die andere Flotte bereit ist, geht es los!</p>';$('#cover').classList.remove('hidden');waitFleet=true;tryStart();return;}
   if(cfg.mode==='pvp'&&placing===0){placing=1;$('#place').classList.add('hidden');beginPlace();return;}
   $('#place').classList.add('hidden');startBattle();};
 function cover(html,btn){return new Promise(res=>{const c=$('#cover');c.innerHTML=html+`<button class="primary">${btn}</button>`;c.classList.remove('hidden');c.querySelector('button').onclick=()=>{c.classList.add('hidden');res();};});}
@@ -242,38 +243,39 @@ function startBattle(){token++;turn=0;over=false;busy=false;lastShot=[null,null]
 const sTone=()=>{tone(392,.1);tone(523,.15,.1);};
 async function turnCover(){busy=true;$('#battle').classList.add('hidden');await cover(`<h2>🎯 ${P[turn].name} ist dran</h2><p>Gib das Handy an ${P[turn].name}.<br>Nicht schummeln! 😉</p>`,'Ich bin bereit');$('#battle').classList.remove('hidden');busy=false;renderBattle();}
 function renderBattle(){
-  const me=P[turn],en=P[1-turn],view=cfg.mode==='cpu'?P[0]:me,foe=cfg.mode==='cpu'?P[1]:en;
+  const me=P[turn],en=P[1-turn],view=solo()?P[0]:me,foe=solo()?P[1]:en;
   // Zielgitter = Schüsse auf den Gegner
-  const tc=$$('#tgrid .c');tc.forEach((c,i)=>{const r=foe.shots.get(i);let cl='c';if(!r)cl+=' free';else if(r==='miss')cl+=' miss';else{const s=shipAt(foe,i);cl+=s.hits>=s.l?' sunk':' hit';}if(lastShot[cfg.mode==='cpu'?0:turn]===i)cl+=' last';c.className=cl;});
+  const tc=$$('#tgrid .c');tc.forEach((c,i)=>{const r=foe.shots.get(i);let cl='c';if(!r)cl+=' free';else if(r==='miss')cl+=' miss';else{const s=shipAt(foe,i);cl+=s.hits>=s.l?' sunk':' hit';}if(lastShot[solo()?0:turn]===i)cl+=' last';c.className=cl;});
   if(over)foe.ships.forEach(s=>s.cells.forEach(i=>{if(!foe.shots.get(i))tc[i].classList.add('ship');}));
-  const oc=$$('#ogrid .c');oc.forEach((c,i)=>{const s=shipAt(view,i),r=view.shots.get(i);let cl='c';if(s)cl+=s.hits>=s.l&&r?' sunk':r?' hit':' ship';else if(r)cl+=' miss';if(lastShot[cfg.mode==='cpu'?1:1-turn]===i)cl+=' last';c.className=cl;});
+  const oc=$$('#ogrid .c');oc.forEach((c,i)=>{const s=shipAt(view,i),r=view.shots.get(i);let cl='c';if(s)cl+=s.hits>=s.l&&r?' sunk':r?' hit':' ship';else if(r)cl+=' miss';if(lastShot[solo()?1:1-turn]===i)cl+=' last';c.className=cl;});
   $('#efleet').innerHTML=foe.ships.map(s=>`<span class="${s.hits>=s.l?'dead':''}">${s.n} ${'■'.repeat(s.l)}</span>`).join('');
-  $('#tTitle').textContent=cfg.mode==='cpu'?'Meer vom Computer – tippe zum Schießen':`Meer von ${foe.name} – tippe zum Schießen`;$('#oTitle').textContent=cfg.mode==='cpu'?'Deine Flotte':`Flotte von ${view.name}`;
-  if(!over)$('#status').textContent=cfg.mode==='cpu'?(turn===0?'🎯 Du bist dran!':'🤖 Computer zielt …'):`🎯 ${me.name} schießt`;
+  $('#tTitle').textContent=cfg.mode==='online'?`Meer von ${P[1].name} – tippe zum Schießen`:cfg.mode==='cpu'?'Meer vom Computer – tippe zum Schießen':`Meer von ${foe.name} – tippe zum Schießen`;$('#oTitle').textContent=solo()?'Deine Flotte':`Flotte von ${view.name}`;
+  if(!over)$('#status').textContent=solo()?(turn===0?'🎯 Du bist dran!':(cfg.mode==='online'?`⏳ ${P[1].name} zielt …`:'🤖 Computer zielt …')):`🎯 ${me.name} schießt`;
 }
-$('#tgrid').onclick=e=>{const c=e.target.closest('.c');if(!c||busy||over)return;if(cfg.mode==='cpu'&&turn!==0)return;fire(+c.dataset.i);};
+$('#tgrid').onclick=e=>{const c=e.target.closest('.c');if(!c||busy||over)return;if(solo()&&turn!==0)return;const ii=+c.dataset.i;if(P[1].shots.has(ii))return;if(cfg.mode==='online')NET.put('sh/'+String(netShots).padStart(4,'0'),{s:mySeat,i:ii});fire(ii);};
 async function fire(i){
-  const shooter=turn,foe=P[1-shooter];if(foe.shots.has(i))return;busy=true;const tk=token;
+  const shooter=turn,foe=P[1-shooter];if(foe.shots.has(i))return;busy=true;netShots++;const tk=token;
   const s=shipAt(foe,i);foe.shots.set(i,s?'hit':'miss');lastShot[shooter]=i;let msg;
   if(s){s.hits++;if(s.hits>=s.l){msg=`💥 Versenkt! ${s.n} (${s.l})`;[200,150,110].forEach((f,k)=>tone(f,.2,k*.1,'sawtooth',.12));
-      if(cfg.touch)s.cells.forEach(ci=>{const r=ci/N|0,c=ci%N;for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const rr=r+dr,cc=c+dc;if(rr>=0&&rr<N&&cc>=0&&cc<N&&!foe.shots.has(rr*N+cc))foe.shots.set(rr*N+cc,'miss');}});}
+      if(cfg.touch&&cfg.mode!=='online')s.cells.forEach(ci=>{const r=ci/N|0,c=ci%N;for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const rr=r+dr,cc=c+dc;if(rr>=0&&rr<N&&cc>=0&&cc<N&&!foe.shots.has(rr*N+cc))foe.shots.set(rr*N+cc,'miss');}});}
     else{msg='🔥 Treffer!';tone(160,.2,0,'sawtooth',.14);}}
   else{msg='💦 Wasser.';tone(700,.06,0,'sine',.1);tone(500,.1,.05,'sine',.08);}
-  const who=cfg.mode==='cpu'?(shooter===0?'':'🤖 Computer: '):`${P[shooter].name}: `;
-  renderBattle();const grid=(cfg.mode==='cpu'&&shooter===1)?'#ogrid':'#tgrid';const el=$$(grid+' .c')[i];if(el)el.classList.add('boom');
+  const who=solo()?(shooter===0?'':(cfg.mode==='online'?P[1].name+': ':'🤖 Computer: ')):`${P[shooter].name}: `;
+  renderBattle();const grid=(solo()&&shooter===1)?'#ogrid':'#tgrid';const el=$$(grid+' .c')[i];if(el)el.classList.add('boom');
   $('#status').textContent=who+msg;
   if(!alive(foe)){over=true;renderBattle();
-    if(cfg.mode==='cpu'){if(shooter===0){$('#status').textContent='🏆 Gewonnen! Du hast die ganze Flotte versenkt!';confetti();sWin();}else{$('#status').textContent='😕 Der Computer hat deine Flotte versenkt. Nochmal?';sLose();}}
+    if(solo()){if(shooter===0){$('#status').textContent='🏆 Gewonnen! Du hast die ganze Flotte versenkt!';confetti();sWin();}else{$('#status').textContent=cfg.mode==='online'?`😕 ${P[1].name} hat deine Flotte versenkt. Nochmal?`:'😕 Der Computer hat deine Flotte versenkt. Nochmal?';sLose();}}
     else{$('#status').textContent=`🏆 ${P[shooter].name} gewinnt!`;confetti();sWin();}
     endButtons();return;}
   await sleep(cfg.mode==='cpu'&&shooter===1?700:(cfg.mode==='pvp'?1100:350));if(tk!==token)return;
-  const again=s&&cfg.again;
+  const again=s&&(cfg.mode==='online'?true:cfg.again);
   if(!again)turn=1-turn;
   busy=false;
   if(cfg.mode==='pvp'){if(!again)turnCover();else renderBattle();}
+  else if(cfg.mode==='online'){renderBattle();netPump();}
   else{renderBattle();if(turn===1){busy=true;await sleep(600);if(tk!==token)return;busy=false;fire(cpuPick());}}
 }
-function endButtons(){$('#status').insertAdjacentHTML('beforeend','<div class="row" style="justify-content:center;margin-top:10px"><button class="primary small" id="bAgain">Nochmal</button></div>');$('#bAgain').onclick=()=>startSetup();}
+function endButtons(){$('#status').insertAdjacentHTML('beforeend','<div class="row" style="justify-content:center;margin-top:10px"><button class="primary small" id="bAgain">Nochmal</button></div>');$('#bAgain').onclick=()=>{if(cfg.mode==='online'){NET.clearData();NET.send({reset:Date.now()});}startSetup();};}
 /* ===== Computer-Ziel ===== */
 function cpuPick(){
   const foe=P[0],free=[];for(let i=0;i<N*N;i++)if(!foe.shots.has(i))free.push(i);
@@ -296,8 +298,20 @@ function cpuPick(){
   const parity=free.filter(i=>((i/N|0)+i%N)%2===0);return rnd(parity.length?parity:free);
 }
 $('#btnStart').onclick=startSetup;
-$('#btnMenu').onclick=async()=>{if(!over&&!(await confirmBox('Spiel abbrechen?','Abbrechen','Weiterspielen')))return;token++;$('#battle').classList.add('hidden');$('#place').classList.add('hidden');$('#setup').classList.remove('hidden');renderSetup();};
-window.onTheme=()=>{};applyTheme();renderSetup();
+$('#btnMenu').onclick=async()=>{if(!over&&!(await confirmBox('Spiel abbrechen?','Abbrechen','Weiterspielen')))return;if(cfg.mode==='online'&&window.NET){NET.leave();cfg.mode='cpu';$('#cover').classList.add('hidden');}token++;$('#battle').classList.add('hidden');$('#place').classList.add('hidden');$('#setup').classList.remove('hidden');renderSetup();};
+window.onTheme=()=>{};
+const solo=()=>cfg.mode==='cpu'||cfg.mode==='online';let mySeat=0,netShots=0,waitFleet=false,netData={};if(cfg.mode==='online')cfg.mode='cpu';
+const oppName=()=>{const P2=window.NET?NET.players():[];return ((P2.find(x=>x.seat!==mySeat))||{}).name||'Gegner';};
+function tryStart(){if(!waitFleet)return;const f=netData['f'+(1-mySeat)];if(!f||!netData['f'+mySeat])return;waitFleet=false;$('#cover').classList.add('hidden');
+  P[1].ships=Object.values(f).map(x=>({l:x.l,n:x.n,k:x.k,cells:Object.values(x.cells),hits:0}));startBattle();turn=mySeat===0?0:1;renderBattle();netPump();}
+function netPump(){if(cfg.mode!=='online'||waitFleet||over)return;const sh=netData.sh||{};const keys=Object.keys(sh).sort();if(keys.length<=netShots)return;if(busy){setTimeout(netPump,300);return;}
+  const e=sh[keys[netShots]];if(e.s!==mySeat){if(turn!==1){turn=1;}fire(e.i);}}
+if(window.NET&&NET.supported()){$$('.onl').forEach(b=>b.classList.remove('hidden'));
+  NET.setup({title:'Schiffe versenken',min:2,max:2,
+    onStart(room,seat){mySeat=seat;cfg.mode='online';netData={};$('#cover').classList.add('hidden');$('#battle').classList.add('hidden');startSetup();},
+    onState(st){if(cfg.mode==='online'&&st.reset){netData={};token++;$('#battle').classList.add('hidden');startSetup();}},
+    onData(d){if(cfg.mode!=='online')return;netData=d||{};tryStart();netPump();}});}
+applyTheme();renderSetup();
 
 initHelp('schiffe-versenken');
 </script>

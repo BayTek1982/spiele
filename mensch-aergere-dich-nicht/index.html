@@ -117,6 +117,7 @@ button:hover:not(:disabled){filter:brightness(1.08)}
     <div class="row">
       <button id="btnStart" class="primary">Spiel starten</button>
       <button id="btnResume" class="hidden">Weiterspielen</button>
+      <button id="btnOnline" style="display:none">🌐 Online mit Freunden (2–4)</button>
     </div>
     <div class="note" id="setupErr"></div>
   </section>
@@ -144,6 +145,7 @@ button:hover:not(:disabled){filter:brightness(1.08)}
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
 
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=3"></script>
 <script>
 /* ===== Spielbrett ===== */
 const TRACK=[[0,4],[1,4],[2,4],[3,4],[4,4],[4,3],[4,2],[4,1],[4,0],[5,0],[6,0],[6,1],[6,2],[6,3],[6,4],[7,4],[8,4],[9,4],[10,4],[10,5],[10,6],[9,6],[8,6],[7,6],[6,6],[6,7],[6,8],[6,9],[6,10],[5,10],[4,10],[4,9],[4,8],[4,7],[4,6],[3,6],[2,6],[1,6],[0,6],[0,5]];
@@ -247,7 +249,7 @@ function flash(el,cls,ms){el.classList.remove(cls);void el.offsetWidth;el.classL
 let setup={seats:[{type:'human',name:''},{type:'cpu',name:''},{type:'cpu',name:''},{type:'cpu',name:''}],level:2};
 try{const s=JSON.parse(localStorage.getItem(CKEY)||'null');if(s&&Array.isArray(s.seats)&&s.seats.length===4)setup=s;}catch(e){}
 try{fast=localStorage.getItem('aergere-schnell')==='1';soundOn=localStorage.getItem('aergere-ton')!=='0';}catch(e){}
-function save(){try{if(g)localStorage.setItem(SKEY,JSON.stringify(g));}catch(e){}}
+function save(){if(ONL)return;try{if(g)localStorage.setItem(SKEY,JSON.stringify(g));}catch(e){}}
 function loadSaved(){try{const v=JSON.parse(localStorage.getItem(SKEY)||'null');if(v&&v.pos&&v.players&&v.phase!=='over')return v;}catch(e){}return null;}
 const pname=pl=>g.players[pl].name||COL[pl].n;
 
@@ -330,8 +332,8 @@ function setDice(v,rolling){
 }
 function render(){
   if(!g)return;
-  const pl=g.turn,human=g.players[pl].type==='human';
-  $('#turnName').innerHTML=`<span style="color:${COL[pl].c}">●</span> ${esc(pname(pl))}${human?'':' 🤖'}`;
+  const pl=g.turn,human=isLocal(pl);
+  $('#turnName').innerHTML=`<span style="color:${COL[pl].c}">●</span> ${esc(pname(pl))}${g.players[pl].type==='cpu'?' 🤖':ONL&&pl===mySeat?' (du)':ONL?' ⏳':''}`;
   $('#turnbox').style.borderColor=COL[pl].c;$('#turnbox').style.boxShadow=`0 0 22px ${COL[pl].c}33`;
   $('#msg').textContent=g.msg||'';
   const canRoll=g.phase==='roll'&&human&&!busy;
@@ -372,12 +374,13 @@ async function cpuAct(){
   if(g.phase==='roll')roll();
   else if(g.phase==='move'){const m=chooseMove(g,g.moves,g.level);if(m)doMove(m);}
 }
-async function roll(){
+async function roll(dv){
   if(g.phase!=='roll'||busy)return;
+  if(ONL&&dv==null){if(!isLocal(g.turn))return;}
   const tk=token;busy=true;g.phase='rolling';render();
   sDice();const t0=Date.now();
   while(Date.now()-t0<(fast?250:600)){setDice(1+Math.floor(Math.random()*6),true);await sleep(70);if(tk!==token)return;}
-  const d=1+Math.floor(Math.random()*6);g.die=d;setDice(d,false);flash($('#dice'),'pop',300);busy=false;
+  const d=dv!=null?dv:1+Math.floor(Math.random()*6);if(ONL&&dv==null)emit({t:'roll',d});g.die=d;setDice(d,false);flash($('#dice'),'pop',300);busy=false;
   const pl=g.turn,moves=legalMoves(g,pl,d);
   if(!moves.length){
     if(d===6){g.phase='roll';g.msg='6 – aber kein Zug möglich. Nochmal würfeln!';save();render();if(g.players[pl].type==='cpu')cpuAct();return;}
@@ -392,11 +395,12 @@ async function roll(){
   if(g.players[pl].type==='cpu'){cpuAct();return;}
   // nur ein möglicher Zug -> automatisch
   const pieces=new Set(moves.map(m=>m.from<0?'h':m.i));
-  if(pieces.size===1){await sleep(650);if(tk!==token||g.phase!=='move')return;doMove(moves[0]);}
+  if(ONL&&!isLocal(pl))return;
+  if(pieces.size===1){await sleep(650);if(tk!==token||g.phase!=='move')return;if(ONL)emit({t:'move',pl:moves[0].pl,i:moves[0].i});doMove(moves[0]);}
 }
 function onPiece(pl,i){
-  if(!g||g.phase!=='move'||busy||g.players[g.turn].type!=='human')return;
-  const m=g.moves.find(x=>x.pl===pl&&x.i===i);if(m)doMove(m);
+  if(!g||g.phase!=='move'||busy||!isLocal(g.turn))return;
+  const m=g.moves.find(x=>x.pl===pl&&x.i===i);if(m){if(ONL)emit({t:'move',pl:m.pl,i:m.i});doMove(m);}
 }
 async function doMove(m){
   if(busy)return;const tk=token;busy=true;g.phase='anim';g.moves=[];render();
@@ -412,7 +416,7 @@ async function doMove(m){
     const left=g.players.map((p,k)=>k).filter(k=>g.players[k].active&&!g.rank.includes(k));
     if(g.rank.length===1&&!g.playOn){
       g.phase='wait';save();render();
-      const go=await winDialog(m.pl,left.length>1);
+      const go=ONL?left.length>1:await winDialog(m.pl,left.length>1);if(ONL&&go)g.msg=pname(m.pl)+' hat gewonnen! 🏆 Weiter um Platz 2.';
       if(tk!==token)return;
       if(!go){g.phase='over';save();render();showFinal();return;}
       g.playOn=true;
@@ -449,9 +453,9 @@ function showFinal(){
   modal(`<div class="big">🎉</div><h2 style="text-align:center">Spiel vorbei</h2><ol class="rank">${list}</ol>
     <div class="row"><button data-v="menu">Menü</button><button class="primary" data-v="again">Nochmal spielen</button></div>`,
     (box,close)=>{box.dataset.dismiss='1';box.querySelectorAll('button').forEach(b=>b.onclick=()=>close(b.dataset.v));})
-  .then(v=>{try{localStorage.removeItem(SKEY);}catch(e){}if(v==='again')newGame();else if(v==='menu')toMenu();});
+  .then(v=>{try{localStorage.removeItem(SKEY);}catch(e){}if(ONL){if(v==='again'){NET.clearData();NET.send({reset:Date.now()});onlineGame();}else toMenu();return;}if(v==='again')newGame();else if(v==='menu')toMenu();});
 }
-function toMenu(){token++;busy=false;$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');renderSetup();window.scrollTo(0,0);}
+function toMenu(){if(ONL&&window.NET){NET.leave();ONL=false;}token++;busy=false;$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');renderSetup();window.scrollTo(0,0);}
 const RULES=`<h2>📖 So wird gespielt</h2>
 <p><b>Ziel:</b> Bringe als Erster alle 4 Figuren aus deinem Haus (Ecke) einmal ums Brett in dein farbiges Ziel in der Mitte.</p>
 <ol>
@@ -468,7 +472,7 @@ const RULES=`<h2>📖 So wird gespielt</h2>
 $('#btnRules').onclick=()=>modal(RULES,(box,close)=>{box.dataset.dismiss='1';box.querySelector('button').onclick=()=>close(1);});
 
 /* ===== Knöpfe ===== */
-$('#dice').onclick=()=>{if(g&&g.phase==='roll'&&g.players[g.turn].type==='human')roll();};
+$('#dice').onclick=()=>{if(g&&g.phase==='roll'&&isLocal(g.turn))roll();};
 $('#btnMenu').onclick=toMenu;
 $('#btnNew').onclick=async()=>{if(await confirmBox('Neues Spiel starten? Das laufende Spiel geht verloren.','Neues Spiel')){try{localStorage.removeItem(SKEY);}catch(e){}toMenu();}};
 $('#btnSpeed').onclick=()=>{fast=!fast;try{localStorage.setItem('aergere-schnell',fast?'1':'0');}catch(e){}render();};
@@ -476,6 +480,21 @@ $('#btnSound').onclick=()=>{soundOn=!soundOn;try{localStorage.setItem('aergere-t
 
 // Link zur Spiele-Übersicht nur auf der eigenen Webseite zeigen
 setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
+let ONL=false,mySeat=0,evN=0,evData={};
+function isLocal(pl){return g&&g.players[pl].type==='human'&&(!ONL||(pl===mySeat&&Object.keys(evData).length<=evN));}
+function emit(ev){ev.by=mySeat;const k=evN++;NET.put('ev/'+String(k).padStart(5,'0'),ev);}
+function onlineGame(){const P=NET.players();const n=P.length;evN=0;evData={};
+  const players=[0,1,2,3].map(k=>({active:k<n,type:'human',name:k<n?P[k].name:''}));
+  g={players,pos:[[-1,-1,-1,-1],[-1,-1,-1,-1],[-1,-1,-1,-1],[-1,-1,-1,-1]],turn:0,die:null,phase:'roll',tries:3,moves:[],rank:[],playOn:false,level:setup.level,msg:''};openGame();}
+function pump(){if(!ONL||!g)return;const keys=Object.keys(evData).sort();if(keys.length<=evN)return;const ev=evData[keys[evN]];
+  if(busy||g.phase==='rolling'||g.phase==='anim'||g.phase==='wait'){setTimeout(pump,250);return;}
+  if(ev.t==='roll'){if(g.phase!=='roll'){setTimeout(pump,250);return;}evN++;roll(ev.d);setTimeout(pump,300);}
+  else if(ev.t==='move'){if(g.phase!=='move'){setTimeout(pump,250);return;}const m=g.moves.find(x=>x.pl===ev.pl&&x.i===ev.i);evN++;if(m)doMove(m);setTimeout(pump,300);}}
+if(window.NET&&NET.supported()){const b=$('#btnOnline');b.style.display='';b.onclick=()=>NET.create();
+  NET.setup({title:'Ärgere dich nicht',min:2,max:4,
+    onStart(room,seat){ONL=true;mySeat=seat;onlineGame();},
+    onState(st){if(ONL&&st.reset){onlineGame();}},
+    onData(d){if(!ONL)return;evData=(d&&d.ev)||{};pump();}});}
 renderSetup();
 </script>
 <script>document.addEventListener('contextmenu',e=>{if(e.target.closest('button,canvas,svg,.board,.cell'))e.preventDefault();});</script></body>

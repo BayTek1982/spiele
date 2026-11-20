@@ -81,7 +81,7 @@ button.primary{background:var(--acc);color:#1d1606;border-color:var(--acc)}
   <div class="card opts">
     <div>
       <div class="lbl">Modus</div>
-      <div class="seg" id="modeSeg"><button data-v="cpu">🤖 Gegen Computer</button><button data-v="pvp">👥 Zu zweit</button></div>
+      <div class="seg" id="modeSeg"><button data-v="cpu">🤖 Gegen Computer</button><button data-v="pvp">👥 Zu zweit</button><button data-v="online" class="onl" style="display:none">🌐 Online</button></div>
     </div>
     <div id="lvlBox">
       <div class="lbl">Computer-Stärke</div>
@@ -115,6 +115,7 @@ button.primary{background:var(--acc);color:#1d1606;border-color:var(--acc)}
   </div>
 </div>
 
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=3"></script>
 <script>
 const $=q=>document.querySelector(q);
 const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
@@ -168,7 +169,7 @@ for(let i=0;i<9;i++){const d=document.createElement('div');d.className='c';d.onc
 const cells=[...boardEl.children];
 const SVG={x:'<svg viewBox="0 0 100 100" class="mx"><line x1="15" y1="15" x2="85" y2="85"/><line x1="85" y1="15" x2="15" y2="85"/></svg>',
            o:'<svg viewBox="0 0 100 100" class="mo"><circle cx="50" cy="50" r="38"/></svg>'};
-function names(){return st.mode==='cpu'?{x:'Du (✕)',o:'Computer (◯)'}:{x:'Spieler ✕',o:'Spieler ◯'};}
+function names(){if(st.mode==='online'){const P=window.NET?NET.players():[];const n=s=>((P.find(x=>x.seat===s)||{}).name||'?');return {x:n(0)+(mySym==='x'?' (du)':'')+' ✕',o:n(1)+(mySym==='o'?' (du)':'')+' ◯'};}return st.mode==='cpu'?{x:'Du (✕)',o:'Computer (◯)'}:{x:'Spieler ✕',o:'Spieler ◯'};}
 function renderTop(){
   const sc=st.score[st.mode],n=names();
   $('#px').textContent=sc.x;$('#po').textContent=sc.o;$('#pd').textContent=sc.d;
@@ -177,7 +178,7 @@ function renderTop(){
   $('#modeSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.v===st.mode));
   $('#lvlSeg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.v===st.level));
   $('#lvlBox').classList.toggle('hidden',st.mode!=='cpu');
-  cells.forEach((c,i)=>c.classList.toggle('dis',over||!!b[i]||thinking||(st.mode==='cpu'&&turn==='o')));
+  cells.forEach((c,i)=>c.classList.toggle('dis',over||!!b[i]||thinking||(st.mode==='cpu'&&turn==='o')||(st.mode==='online'&&turn!==mySym)));
 }
 function setStatus(html){$('#status').innerHTML=html;}
 function drawLine(l){
@@ -191,7 +192,7 @@ function drawLine(l){
 function newRound(){
   token++;b=Array(9).fill('');over=false;thinking=false;
   cells.forEach(c=>{c.innerHTML='';c.className='c';});$('#line').innerHTML='';
-  turn=st.starter;st.starter=st.starter==='x'?'o':'x';save();
+  if(st.mode==='online'){turn=onStarter;onStarter=onStarter==='x'?'o':'x';}else{turn=st.starter;st.starter=st.starter==='x'?'o':'x';save();}
   nextTurn();
 }
 function nextTurn(){
@@ -200,20 +201,22 @@ function nextTurn(){
     thinking=true;renderTop();setStatus('<span class="thinking">Computer überlegt …</span>');
     const tk=token;setTimeout(()=>{if(tk!==token)return;thinking=false;play(cpuMove(),false);},450+Math.random()*350);
   }else{
-    const n=names();setStatus(st.mode==='cpu'?'Du bist dran!':`<span style="color:var(--${turn})">${n[turn]}</span> ist dran`);
+    const n=names();setStatus(st.mode==='online'?(turn===mySym?'Du bist dran!':n[turn]+' ist dran …'):st.mode==='cpu'?'Du bist dran!':`<span style="color:var(--${turn})">${n[turn]}</span> ist dran`);
   }
 }
 function play(i,byHuman){
   if(over||b[i]||thinking)return;
   if(byHuman&&st.mode==='cpu'&&turn==='o')return;
-  b[i]=turn;cells[i].innerHTML=SVG[turn];(turn==='x'?sX:sO)();
+  if(byHuman&&st.mode==='online'&&turn!==mySym)return;
+  b[i]=turn;if(byHuman&&st.mode==='online')NET.send({i,n:b.filter(Boolean).length});cells[i].innerHTML=SVG[turn];(turn==='x'?sX:sO)();
   const w=winner(b);
   if(w){
     over=true;const sc=st.score[st.mode];
     if(w.p==='d'){sc.d++;setStatus('Unentschieden! 🤝');sDraw();}
     else{
       sc[w.p]++;w.l.forEach(k=>cells[k].classList.add('win'));cells.forEach((c,k)=>{if(!w.l.includes(k))c.classList.add('fade');});drawLine(w.l);
-      if(st.mode==='cpu'){if(w.p==='x'){setStatus('Du hast gewonnen! 🎉');sWin();confetti();}else{setStatus('Der Computer gewinnt 🤖');sLose();}}
+      if(st.mode==='online'){if(w.p===mySym){setStatus('Du hast gewonnen! 🎉');sWin();confetti();}else{setStatus(names()[w.p]+' gewinnt');sLose();}}
+      else if(st.mode==='cpu'){if(w.p==='x'){setStatus('Du hast gewonnen! 🎉');sWin();confetti();}else{setStatus('Der Computer gewinnt 🤖');sLose();}}
       else{setStatus(`<span style="color:var(--${w.p})">${names()[w.p]}</span> gewinnt! 🎉`);sWin();confetti();}
     }
     save();renderTop();return;
@@ -222,15 +225,20 @@ function play(i,byHuman){
 }
 
 /* Knöpfe */
-$('#btnNext').onclick=newRound;
+$('#btnNext').onclick=()=>{if(st.mode==='online')NET.send({reset:Date.now()});newRound();};
 $('#btnReset').onclick=()=>{st.score[st.mode]={x:0,o:0,d:0};save();renderTop();};
-$('#modeSeg').onclick=e=>{const t=e.target.closest('button');if(!t||t.dataset.v===st.mode)return;st.mode=t.dataset.v;st.starter='x';save();newRound();};
+$('#modeSeg').onclick=e=>{const t=e.target.closest('button');if(!t||t.dataset.v===st.mode)return;if(t.dataset.v==='online'){NET.create();return;}if(st.mode==='online'&&window.NET)NET.leave();st.mode=t.dataset.v;st.starter='x';save();newRound();};
 $('#lvlSeg').onclick=e=>{const t=e.target.closest('button');if(!t)return;st.level=+t.dataset.v;save();renderTop();if(b.every(v=>!v)||over)newRound();};
 
 const help=$('#help');$('#btnHelp').onclick=()=>help.classList.remove('hidden');$('#btnHelpOk').onclick=()=>help.classList.add('hidden');help.onclick=e=>{if(e.target===help)help.classList.add('hidden');};
 try{if(!localStorage.getItem('bs-help-seen-ttt')){localStorage.setItem('bs-help-seen-ttt','1');help.classList.remove('hidden');}}catch(e){}
 applyTheme();$('#btnSound').textContent=st.sound?'🔊':'🔇';
 setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
+let mySym='x',onStarter='x';st.score.online=st.score.online||{x:0,o:0,d:0};if(st.mode==='online')st.mode='cpu';
+if(window.NET&&NET.supported()){document.querySelector('.onl').style.display='';
+  NET.setup({title:'Tic-Tac-Toe',min:2,max:2,
+    onStart(room,seat){mySym=seat===0?'x':'o';onStarter='x';st.score.online={x:0,o:0,d:0};st.mode='online';newRound();},
+    onState(m){if(st.mode!=='online')return;if(m.reset){newRound();return;}if(m.i!=null&&m.n===b.filter(Boolean).length+1)play(m.i,false);}});}
 newRound();
 </script>
 <script>document.addEventListener('contextmenu',e=>{if(e.target.closest('button,canvas,svg,.board,.cell'))e.preventDefault();});</script></body>

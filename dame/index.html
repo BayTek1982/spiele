@@ -94,7 +94,7 @@ button,canvas{touch-action:manipulation}
   <header><span class="logo">🔴</span><h1><b>Dame</b></h1><div class="hbtns"><button class="ib" id="btnHelp" title="Anleitung">📖</button><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
 
   <div class="card opts setup">
-    <div><div class="lbl">Modus</div><div class="seg" id="modeSeg"><button data-v="cpu">🤖 Gegen Computer</button><button data-v="pvp">👥 Zu zweit</button></div></div>
+    <div><div class="lbl">Modus</div><div class="seg" id="modeSeg"><button data-v="cpu">🤖 Gegen Computer</button><button data-v="pvp">👥 Zu zweit</button><button data-v="online" class="onl hidden">🌐 Online</button></div></div>
     <div id="cpuOpts" class="opts">
       <div><div class="lbl">Stärke</div><div class="seg" id="lvlSeg"><button data-v="1">Leicht</button><button data-v="2">Mittel</button><button data-v="3">Stark</button></div></div>
       <div><div class="lbl">Deine Farbe</div><div class="seg" id="colSeg"><button data-v="r">🔴 Rot (beginnt)</button><button data-v="b">⚫ Schwarz</button></div></div>
@@ -204,9 +204,9 @@ function best(b,c,lvl){const ms=moves(b,c);if(lvl===1&&Math.random()<.5)return m
   for(const m of ms.sort(()=>Math.random()-.5)){const s=-search(apply(b,m),opp(c),d-1,-1e9,1e9)+(lvl===1?Math.random()*60:0);if(s>bs){bs=s;bm=m;}}return bm;}
 /* Anzeige */
 const human=()=>cfg.mode==='pvp'?turn:cfg.col;
-const bottom=()=>cfg.mode==='cpu'?cfg.col:'r';
+const myCol=()=>cfg.mode==='online'?onCol:cfg.col;const bottom=()=>cfg.mode==='online'?onCol:cfg.mode==='cpu'?cfg.col:'r';
 function render(){
-  const ms=over?[]:moves(B,turn),canMove=!over&&!thinking&&(cfg.mode==='pvp'||turn===cfg.col);
+  const ms=over?[]:moves(B,turn),canMove=!over&&!thinking&&(cfg.mode==='pvp'||turn===myCol());
   const mustSet=new Set(ms.filter(m=>m.taken.length).map(m=>m.from));
   const tg=sel!==null?ms.filter(m=>m.from===sel):[];
   const flip=bottom()==='b';let h='';
@@ -216,18 +216,18 @@ function render(){
     if(canMove&&(ms.some(m=>m.from===i)||tg.length))cls+=' mov';
     const p=B[i];h+=`<div class="${cls}" data-i="${i}">${p?`<div class="pc ${p.toLowerCase()}${isK(p)?' k':''}${lastMv&&lastMv.path[lastMv.path.length-1]===i?' pop':''}"></div>`:''}</div>`;}
   $('#board').innerHTML=h;
-  const cnt=c=>B.filter(p=>own(p,c)).length,nm=c=>cfg.mode==='cpu'?(c===cfg.col?'Du':'Computer'):(c==='r'?'Rot':'Schwarz');
+  const cnt=c=>B.filter(p=>own(p,c)).length,nm=c=>cfg.mode==='online'?onName(c):cfg.mode==='cpu'?(c===cfg.col?'Du':'Computer'):(c==='r'?'Rot':'Schwarz');
   for(const [id,c] of [['#pBot',bottom()],['#pTop',opp(bottom())]]){const el=$(id);el.querySelector('.dot').style.background=c==='r'?'#d9443a':'#26292f';
     el.querySelector('.nm').textContent=nm(c)+(cfg.mode==='cpu'&&c!==cfg.col?' 🤖':'');el.querySelector('.caps').textContent=`hat ${12-cnt(opp(c))} geschlagen`;el.classList.toggle('cur',!over&&turn===c);}
   if(over)$('#status').textContent=over;
   else if(thinking)$('#status').innerHTML='<span style="opacity:.7">🤖 Computer überlegt …</span>';
-  else $('#status').textContent=(cfg.mode==='cpu'?'Du bist dran':(turn==='r'?'Rot':'Schwarz')+' ist dran')+(mustSet.size?' – Schlagzwang!':'');
+  else $('#status').textContent=(cfg.mode==='online'?(turn===onCol?'Du bist dran':onName(turn)+' ist dran …'):cfg.mode==='cpu'?'Du bist dran':(turn==='r'?'Rot':'Schwarz')+' ist dran')+(mustSet.size?' – Schlagzwang!':'');
   $('#btnUndo').disabled=!hist.length||thinking;
   $$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.mode));$$('#lvlSeg button').forEach(b=>b.classList.toggle('on',+b.dataset.v===cfg.lvl));$$('#colSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===cfg.col));$('#cpuOpts').classList.toggle('hidden',cfg.mode!=='cpu');
 }
-$('#board').onclick=e=>{const s=e.target.closest('.sq');if(!s||over||thinking)return;if(cfg.mode==='cpu'&&turn!==cfg.col)return;
+$('#board').onclick=e=>{const s=e.target.closest('.sq');if(!s||over||thinking)return;if((cfg.mode==='cpu'||cfg.mode==='online')&&turn!==myCol())return;
   const i=+s.dataset.i,ms=moves(B,turn);
-  if(sel!==null){const m=ms.filter(x=>x.from===sel&&x.path[x.path.length-1]===i).sort((a,b)=>b.taken.length-a.taken.length)[0];if(m){doMove(m);return;}}
+  if(sel!==null){const m=ms.filter(x=>x.from===sel&&x.path[x.path.length-1]===i).sort((a,b)=>b.taken.length-a.taken.length)[0];if(m){if(cfg.mode==='online')NET.send({m,n:hist.length+1});doMove(m);return;}}
   if(ms.some(m=>m.from===i)){sel=i;tone(500,.04);}else{sel=null;if(own(B[i],turn)&&ms.some(m=>m.taken.length)){$('#status').textContent='Du musst schlagen! Die gelb markierten Steine können schlagen.';tone(220,.1);return;}}render();};
 async function doMove(m){
   const tk=token;hist.push({B:B.slice(),turn,lastMv,quiet});sel=null;
@@ -238,18 +238,24 @@ async function doMove(m){
 }
 function checkEnd(){
   if(!moves(B,turn).length){const winner=opp(turn);
-    if(cfg.mode==='cpu'){if(winner===cfg.col){over='🎉 Du hast gewonnen!';confetti();sWin();}else{over='Der Computer gewinnt 🤖';sLose();}}
+    if(cfg.mode==='online'){if(winner===onCol){over='🎉 Du hast gewonnen!';confetti();sWin();}else{over=onName(winner)+' gewinnt!';sLose();}}
+    else if(cfg.mode==='cpu'){if(winner===cfg.col){over='🎉 Du hast gewonnen!';confetti();sWin();}else{over='Der Computer gewinnt 🤖';sLose();}}
     else{over=`🎉 ${winner==='r'?'Rot':'Schwarz'} gewinnt!`;confetti();sWin();}}
   else if(quiet>=50){over='Remis – 25 Züge ohne Schlagen 🤝';}
 }
 async function cpuMove(){thinking=true;render();const tk=token;await sleep(350);if(tk!==token)return;
   const m=best(B,turn,cfg.lvl);await sleep(250);if(tk!==token)return;thinking=false;if(m)doMove(m);}
 function newGame(){token++;thinking=false;init();render();if(cfg.mode==='cpu'&&cfg.col!=='r')cpuMove();}
-$('#btnNew').onclick=newGame;
-$('#btnUndo').onclick=()=>{if(!hist.length||thinking)return;token++;let h=hist.pop();if(cfg.mode==='cpu'&&h.turn!==cfg.col&&hist.length)h=hist.pop();B=h.B;turn=h.turn;lastMv=h.lastMv;quiet=h.quiet;over=null;sel=null;render();};
+$('#btnNew').onclick=()=>{if(cfg.mode==='online')NET.send({reset:Date.now()});newGame();};
+$('#btnUndo').onclick=()=>{if(cfg.mode==='online'){ONLINE.toast('Online kann man nicht zurücknehmen.');return;}if(!hist.length||thinking)return;token++;let h=hist.pop();if(cfg.mode==='cpu'&&h.turn!==cfg.col&&hist.length)h=hist.pop();B=h.B;turn=h.turn;lastMv=h.lastMv;quiet=h.quiet;over=null;sel=null;render();};
 for(const [id,k,num] of [['modeSeg','mode',0],['lvlSeg','lvl',1],['colSeg','col',0]])
-  $('#'+id).onclick=e=>{const b=e.target.closest('button');if(!b)return;const v=num?+b.dataset.v:b.dataset.v;if(cfg[k]===v)return;cfg[k]=v;KIT.set('dame-cfg',cfg);if(k==='lvl'){render();return;}newGame();};
-window.onTheme=()=>{};applyTheme();newGame();
+  $('#'+id).onclick=e=>{const b=e.target.closest('button');if(!b)return;const v=num?+b.dataset.v:b.dataset.v;if(cfg[k]===v)return;if(k==='mode'&&v==='online'){NET.create();return;}if(k==='mode'&&cfg.mode==='online'&&window.NET)NET.leave();cfg[k]=v;KIT.set('dame-cfg',cfg);if(k==='lvl'){render();return;}newGame();};
+window.onTheme=()=>{};
+let onCol='r';const onName=c=>{const P=window.NET?NET.players():[];return ((P.find(x=>x.seat===(c==='r'?0:1))||{}).name||'?')+(c===onCol?' (du)':'');};if(cfg.mode==='online')cfg.mode='cpu';
+if(window.NET&&NET.supported()){$$('.onl').forEach(b=>b.classList.remove('hidden'));
+  NET.setup({title:'Dame',min:2,max:2,onStart(room,seat){onCol=seat===0?'r':'b';cfg.mode='online';newGame();},
+    onState(st){if(cfg.mode!=='online')return;if(st.reset){newGame();return;}if(st.m&&st.n===hist.length+1){st.m.taken=st.m.taken?Object.values(st.m.taken):[];st.m.path=Object.values(st.m.path||{});doMove(st.m);}}});}
+applyTheme();newGame();
 
 initHelp('dame');
 </script>

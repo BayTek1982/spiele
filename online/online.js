@@ -113,8 +113,11 @@ const NET=window.NET={room:null,roomId:null,seat:-1,_opts:null,_unsub:null,
       if(r.status==='play'&&!started){started=true;closeLobby();this._opts.onStart&&this._opts.onStart(r,this.seat);}
       if(r.state&&r.rev!==lastRev&&started){lastRev=r.rev;if(r.by!==O.me.uid||r.forceAll)this._opts.onState&&this._opts.onState(r.state,r);}
       if(r.status==='wait'&&started){started=false;lastRev=-1;}
+      if(started&&this._opts.onData){const dj=JSON.stringify(r.data||null);if(dj!==this._lastData){this._lastData=dj;this._opts.onData(r.data||{},r);}}
       this._opts.onPlayers&&this._opts.onPlayers(r);});},
   async start(){if(!this.room||this.room.host!==O.me.uid)return;await O.B.update('rooms/'+this.roomId,{status:'play',startedAt:now()});},
+  async put(key,val){if(!this.roomId)return;await O.B.update('rooms/'+this.roomId+'/data',{[key]:val});},
+  async clearData(){if(!this.roomId)return;this._lastData=null;await O.B.remove('rooms/'+this.roomId+'/data');},
   async send(state){if(!this.roomId)return;await O.B.update('rooms/'+this.roomId,{state,rev:now()+Math.random(),by:O.me.uid,forceAll:false});},
   async again(){if(!this.roomId)return;await O.B.update('rooms/'+this.roomId,{state:null,rev:0,status:'wait'});if(this.room.host===O.me.uid)lobby(true);else lobby(false);},
   async leave(silent){const id=this.roomId;if(this._unsub)this._unsub();this._unsub=null;this.roomId=null;this.room=null;this.seat=-1;closeLobby();

@@ -451,6 +451,7 @@ function bestMove(s,level){
   return best;
 }
 </script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=3"></script>
 <script>
 /* ================= Hilfen ================= */
 const $=q=>document.querySelector(q);
@@ -755,6 +756,7 @@ async function act(a){
 
 /* ================= Navigation ================= */
 function showHome(){
+  if(og.id==='net'&&window.NET)NET.leave();
   if(og.unsub){og.unsub();}og={id:null,data:null,unsub:null};mode=null;selected=null;hint=null;thinking=false;engineToken++;
   $('#game').classList.add('hidden');$('#guide').classList.add('hidden');$('#home').classList.remove('hidden');
   $('#btnLocalResume').classList.toggle('hidden',!(loadLocal()||{moves:[]}).moves.length);
@@ -899,6 +901,7 @@ function openGame(id){
 }
 let writing=false;
 async function writeGame(upd){
+  if(og.id==='net'){og.data={...og.data,...upd};NET.send(og.data);render();return;}
   if(!og.id||writing)return;writing=true;
   try{await db.doc('games/'+og.id).update({...upd,updated:Date.now()});}
   catch(err){toast(errMsg(err));}
@@ -915,6 +918,7 @@ async function onlineMove(u){
 }
 async function rematch(){
   const d=og.data;if(!d)return;
+  if(og.id==='net'){og.data={...d,white:d.black,black:d.white,moves:[],status:'playing',result:'',reason:'',drawOffer:null};R=replay([]);selected=null;NET.send(og.data);render();return;}
   if(d.rematch){openGame(d.rematch);return;}
   try{
     const ref=db.collection('games').doc(),now=Date.now();
@@ -929,7 +933,8 @@ async function initOnline(){
   for(let k=0;k<15&&!(window.claude&&window.claude.use);k++)await new Promise(r=>setTimeout(r,100));
   if(!(window.claude&&window.claude.use)){
     // eigene Webseite: Online-Teil ausblenden, Computer und Am-selben-Gerät bleiben
-    $('#onlineCard').classList.add('hidden');$('#onlineHelp').classList.add('hidden');$('#hubLink').classList.remove('hidden');return;}
+    $('#hubLink').classList.remove('hidden');if(window.NET&&NET.supported()){setupNetChess();return;}
+    $('#onlineCard').classList.add('hidden');$('#onlineHelp').classList.add('hidden');return;}
   try{user=await window.claude.use('user');}catch(e){user=null;}
   try{db=await window.claude.use('db');}catch(e){db=null;}
   if(!db){info.textContent='Online-Spiel nicht verfügbar – bitte bei Claude anmelden. Am selben Gerät könnt ihr trotzdem spielen.';return;}
@@ -949,6 +954,20 @@ async function initOnline(){
   },err=>{clearTimeout(t);$('#lobby').innerHTML=`<p class="note">${esc(errMsg(err))}</p>`;});
 }
 
+let netColor='w';
+function setupNetChess(){
+  $('#onlineInfo').innerHTML='Spielt live gegen deine Freunde – jeder auf seinem eigenen Gerät. Danach lädst du deinen Freund über die Freundesliste ein.';
+  $('#newGameBox').classList.remove('hidden');$('#lobby').innerHTML='';$('#btnCreate').textContent='🌐 Online-Partie mit Freund';
+  $('#btnCreate').onclick=()=>{netColor=newColor==='r'?(Math.random()<.5?'w':'b'):newColor;NET.create();};
+  NET.setup({title:'Schach',min:2,max:2,
+    onStart(room,seat){myId=ONLINE.me.uid;const P=NET.players();P.forEach(p=>names[p.uid]=p.name);
+      mode='online';selected=null;manualFlip=false;hint=null;og={id:'net',data:{white:null,black:null,moves:[],status:'waiting'},unsub:null};R=replay([]);showGame('Online-Partie');
+      if(NET.isHost()){const other=(P.find(p=>p.uid!==myId)||{}).uid||null;const w=netColor==='w'?myId:other,b=netColor==='w'?other:myId;
+        og.data={white:w,black:b,moves:[],status:'playing',result:'',reason:'',drawOffer:null,rematch:null};NET.send(og.data);}
+      render();if(!NET.isHost())$('#status').textContent='Gleich geht es los …';},
+    onState(st){if(og.id!=='net')return;NET.players().forEach(p=>names[p.uid]=p.name);const prev=R?R.applied:0;st.moves=st.moves?Object.values(st.moves):[];og.data=st;
+      const nR=replay(st.moves);const changed=nR.applied!==prev;R=nR;if(changed)selected=null;render();if(changed)moveSound();}});
+}
 showHome();
 initOnline();
 </script>
