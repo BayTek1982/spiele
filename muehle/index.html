@@ -85,7 +85,7 @@ svg.board{width:100%;display:block;border-radius:18px;background:linear-gradient
   <div class="idea">💡 Eine Spielidee von <b>Elijah</b></div>
   <section id="setup">
     <div class="card opts">
-      <div><div class="lbl">Spielart</div><div class="seg" id="modeSeg"><button data-v="cpu">🤖 Gegen Computer</button><button data-v="2p">👥 Zu zweit</button></div></div>
+      <div><div class="lbl">Spielart</div><div class="seg" id="modeSeg"><button data-v="cpu">🤖 Gegen Computer</button><button data-v="2p">👥 Zu zweit</button><button data-v="online" class="onl hidden">🌐 Online mit Freund</button></div></div>
       <div id="lvlBox"><div class="lbl">Computer-Stärke</div><div class="seg" id="lvlSeg"><button data-v="1">😊 Leicht</button><button data-v="2">🙂 Mittel</button><button data-v="3">😎 Schwer</button><button data-v="4">🧠 Profi</button></div></div>
       <div class="row"><button class="primary" id="btnStart">Spiel starten</button></div>
     </div>
@@ -100,6 +100,7 @@ svg.board{width:100%;display:block;border-radius:18px;background:linear-gradient
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
+<script src="/online/config.js"></script><script src="/online/online.js"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -194,30 +195,36 @@ function draw(hl=[]){const s=S;let h='';h+=`<g stroke="#4a2c12" stroke-width="7"
   $('#board').innerHTML=`<defs><radialGradient id="gw" cx="35%" cy="30%"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#cfcfcf"/></radialGradient><radialGradient id="gb" cx="35%" cy="30%"><stop offset="0" stop-color="#777"/><stop offset="1" stop-color="#111"/></radialGradient></defs>`+h;
   const tray=p=>{const c=count(s,p),hd=s.hand[p],lostN=9-c-hd;return `${p===1?'⚪':'⚫'} `+Array.from({length:hd},()=>`<i class="${p===1?'w':'b'}"></i>`).join('')+`<span style="margin-left:6px">${c} am Brett${lostN?` · ${lostN} weg`:''}</span>`;};
   $('#trW').innerHTML=tray(1);$('#trB').innerHTML=tray(2);}
-const name=p=>cfg.mode==='cpu'?(p===1?'Du (Weiß)':'Computer (Schwarz)'):(p===1?'Weiß':'Schwarz');
-const isCpu=()=>cfg.mode==='cpu'&&S.p===2;
+const name=p=>cfg.mode==='online'?(((window.NET&&NET.players().find(x=>x.seat===p-1))||{}).name||'?')+(p===mySeat+1?' (du)':'')+(p===1?' ⚪':' ⚫'):cfg.mode==='cpu'?(p===1?'Du (Weiß)':'Computer (Schwarz)'):(p===1?'Weiß':'Schwarz');
+const isCpu=()=>(cfg.mode==='cpu'&&S.p===2)||(cfg.mode==='online'&&S.p!==mySeat+1);
 function status(){if(ui.removing){$('#turn').textContent=`🎯 Mühle! ${name(S.p)}: Tippe einen Stein des Gegners zum Wegnehmen an.`;return;}
-  const ph=phase(S,S.p);$('#turn').textContent=`${S.p===1?'⚪':'⚫'} ${name(S.p)} – ${isCpu()?'denkt nach …':ph==='set'?`Stein setzen (noch ${S.hand[S.p]})`:ph==='fly'?'Springen! (nur noch 3 Steine)':ui.sel>=0?'Wohin ziehen?':'Stein zum Ziehen antippen'}`;}
+  const ph=phase(S,S.p);$('#turn').textContent=`${S.p===1?'⚪':'⚫'} ${name(S.p)} – ${isCpu()?(cfg.mode==='online'?'ist dran …':'denkt nach …'):ph==='set'?`Stein setzen (noch ${S.hand[S.p]})`:ph==='fly'?'Springen! (nur noch 3 Steine)':ui.sel>=0?'Wohin ziehen?':'Stein zum Ziehen antippen'}`;}
 function start(){S={b:Array(24).fill(0),hand:[0,9,9],p:1};hist=[];ui={sel:-1,removing:false};busy=false;$('#setup').classList.add('hidden');$('#game').classList.remove('hidden');draw();status();}
 function after(m){const p=3-S.p;const millNow=m.r>=0;tone(millNow?880:400+Math.random()*80,.08,0,'triangle',.15);
   if(millNow){const ml=MILLOF[m.t].find(ml=>ml.every(k=>S.b[k]===p));draw(ml||[]);[523,659,784].forEach((f,k)=>tone(f,.1,k*.07,'square',.06));}
   else draw();
-  if(lost(S,S.p)){end(p);return;}status();if(isCpu())cpu();}
+  if(lost(S,S.p)){end(p);return;}status();if(cfg.mode==='cpu'&&isCpu())cpu();}
 function cpu(){busy=true;status();setTimeout(()=>{const m=best(S);hist.push(clone(S));S=apply(S,m);busy=false;after(m);},cfg.lvl>=3?250:650);}
-function end(w){const youWin=cfg.mode!=='cpu'||w===1;sc[w===1?'w':'b']++;KIT.set('mu-sc',sc);if(youWin){sWin();confetti();}else sLose();$('#turn').textContent=`🏆 ${name(w)} gewinnt!`;
+function end(w){const youWin=cfg.mode==='online'?w===mySeat+1:cfg.mode!=='cpu'||w===1;sc[w===1?'w':'b']++;KIT.set('mu-sc',sc);if(youWin){sWin();confetti();}else sLose();$('#turn').textContent=`🏆 ${name(w)} gewinnt!`;
   setTimeout(()=>modal(`<div class="big">${youWin?'🏆':'🤖'}</div><h2 style="text-align:center">${name(w)} gewinnt!</h2><div class="row"><button data-v="m">Menü</button><button class="primary" data-v="a">Nochmal</button></div>`,null,false).then(v=>v==='a'?start():menu()),900);}
 $('#board').onclick=e=>{const el=e.target.closest('.pt');if(!el||busy||isCpu())return;const i=+el.dataset.i,p=S.p,ph=phase(S,p);
-  if(ui.removing){const ok=removable(S.b,3-p);if(!ok.includes(i)){tone(150,.1);return;}const m={f:ui.pend.f,t:ui.pend.t,r:i};ui.removing=false;S=apply(ui.base,m);ui.sel=-1;after(m);return;}
+  if(ui.removing){const ok=removable(S.b,3-p);if(!ok.includes(i)){tone(150,.1);return;}const m={f:ui.pend.f,t:ui.pend.t,r:i};ui.removing=false;S=apply(ui.base,m);ui.sel=-1;netSend(m);after(m);return;}
   let f=-1,t=-1;if(ph==='set'){if(S.b[i]){tone(150,.08);return;}t=i;}
   else{if(S.b[i]===p){ui.sel=ui.sel===i?-1:i;tone(500,.04);draw();status();return;}if(ui.sel<0||S.b[i]){tone(150,.08);return;}if(ph!=='fly'&&!ADJ[ui.sel].includes(i)){tone(150,.08);return;}f=ui.sel;t=i;}
   const b=S.b.slice();if(f>=0)b[f]=0;b[t]=p;hist.push(clone(S));
   if(inMill(b,t)){// Wegnehmen vorbereiten
     ui.base=clone(S);ui.pend={f,t};S.b=b;if(f<0)S.hand[p]--;ui.base=clone(hist[hist.length-1]);ui.removing=true;ui.sel=-1;const ml=MILLOF[t].find(ml=>ml.every(k=>b[k]===p));draw(ml);[523,659,784].forEach((f,k)=>tone(f,.1,k*.07,'square',.06));status();return;}
-  const m={f,t,r:-1};S=apply(S,m);ui.sel=-1;after(m);};
-$('#btnUndo').onclick=()=>{if(busy||!hist.length)return;ui={sel:-1,removing:false};S=hist.pop();if(cfg.mode==='cpu'&&S.p===2&&hist.length)S=hist.pop();draw();status();};
-$('#btnNew').onclick=()=>{if(!busy)start();};
+  const m={f,t,r:-1};S=apply(S,m);ui.sel=-1;netSend(m);after(m);};
+$('#btnUndo').onclick=()=>{if(cfg.mode==='online'){ONLINE.toast('Online kann man nicht zurücknehmen.');return;}if(busy||!hist.length)return;ui={sel:-1,removing:false};S=hist.pop();if(cfg.mode==='cpu'&&S.p===2&&hist.length)S=hist.pop();draw();status();};
+$('#btnNew').onclick=()=>{if(busy)return;if(cfg.mode==='online')NET.send({reset:Date.now()});start();};
 function menu(){$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');$('#score').textContent=sc.w+sc.b?`Siege ⚪ ${sc.w} : ${sc.b} ⚫`:'';}
-$('#btnMenu').onclick=menu;$('#btnStart').onclick=start;window.onTheme=()=>{};applyTheme();menu();
+$('#btnMenu').onclick=()=>{if(cfg.mode==='online'&&window.NET)NET.leave();menu();};$('#btnStart').onclick=()=>{if(cfg.mode==='online'){NET.create();return;}start();};window.onTheme=()=>{};
+let mySeat=0;function netSend(m){if(cfg.mode==='online')NET.send({S,m,n:hist.length});}
+if(window.NET&&NET.supported()){$$('.onl').forEach(b=>b.classList.remove('hidden'));
+  NET.setup({title:'Mühle',min:2,max:2,
+    onStart(room,seat){mySeat=seat;cfg.mode='online';$$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v==='online'));$('#lvlBox').classList.add('hidden');start();},
+    onState(st){if(cfg.mode!=='online'||!S)return;if(st.reset){start();return;}if(st.S){hist.push(clone(S));S=st.S;S.b=S.b.slice();ui={sel:-1,removing:false};after(st.m);}}});}
+applyTheme();menu();
 
 initHelp('muehle');
 </script>

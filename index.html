@@ -69,6 +69,7 @@ footer{color:var(--mut);font-size:13px;text-align:center;margin-top:28px}
   <div class="topline"><p class="hello" id="hello"></p><button class="tbtn" id="btnTheme" title="Hell / Dunkel">☀️</button></div>
   <h1>🎲 Bayazit Spiele</h1>
   <p class="sub">Spiele für die ganze Familie – einfach antippen und losspielen.</p>
+  <div id="onlineBox"></div>
   <div class="tools">
     <input id="q" type="search" placeholder="🔍 Spiel suchen …" autocomplete="off">
     <div class="sort" id="sort"><button data-s="cat" class="on">Kategorien</button><button data-s="az">A–Z</button><button data-s="new">Neueste</button></div>
@@ -383,5 +384,6 @@ document.getElementById('sort').onclick=e=>{const b=e.target.closest('button');i
 document.getElementById('q').oninput=e=>{st.q=e.target.value.trim();render();};
 render();
 </script>
+<script src="/online/config.js"></script><script src="/online/online.js"></script>
 </body>
 </html>

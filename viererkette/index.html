@@ -88,7 +88,7 @@ button,canvas{touch-action:manipulation}
 
   <section id="setup">
     <div class="card opts">
-      <div><div class="lbl">Spielart</div><div class="seg" id="modeSeg"><button data-v="cpu">🤖 Gegen Computer</button><button data-v="2p">👥 Zu zweit</button></div></div>
+      <div><div class="lbl">Spielart</div><div class="seg" id="modeSeg"><button data-v="cpu">🤖 Gegen Computer</button><button data-v="2p">👥 Zu zweit</button><button data-v="online" class="onl hidden">🌐 Online mit Freund</button></div></div>
       <div id="lvlBox"><div class="lbl">Computer-Stärke</div><div class="seg" id="lvlSeg"><button data-v="1">😊 Leicht</button><button data-v="2">🙂 Mittel</button><button data-v="3">😎 Schwer</button><button data-v="4">🧠 Profi</button></div></div>
       <div class="row"><button class="primary" id="btnStart">Spiel starten</button></div>
     </div>
@@ -104,6 +104,7 @@ button,canvas{touch-action:manipulation}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
+<script src="/online/config.js"></script><script src="/online/online.js"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -159,23 +160,23 @@ bindSeg('#modeSeg',cfg.mode,v=>{cfg.mode=v;KIT.set('vk-mode',v);$('#lvlBox').cla
 bindSeg('#lvlSeg',cfg.lvl,v=>{cfg.lvl=+v;KIT.set('vk-lvl',+v);});$('#lvlBox').classList.toggle('hidden',cfg.mode!=='cpu');
 function start(){G={b:Array.from({length:R},()=>Array(C).fill(0)),p:G?(G.first===1?2:1):1,hist:[],over:false};G.first=G.p;
   $('#setup').classList.add('hidden');$('#game').classList.remove('hidden');
-  $('#n1').textContent=cfg.mode==='cpu'?'🔴 Du':'🔴 Rot';$('#n2').textContent=cfg.mode==='cpu'?'🟡 Computer':'🟡 Gelb';
+  $('#n1').textContent=cfg.mode==='cpu'?'🔴 Du':'🔴 Rot';$('#n2').textContent=cfg.mode==='cpu'?'🟡 Computer':'🟡 Gelb';if(cfg.mode==='online'){const P=NET.players();$('#n1').textContent='🔴 '+((P[0]||{}).name||'?')+(mySeat===0?' (du)':'');$('#n2').textContent='🟡 '+((P[1]||{}).name||'?')+(mySeat===1?' (du)':'');}
   $('#board').innerHTML=Array.from({length:R*C},(_,i)=>`<div class="cell" data-c="${i%C}"><i></i></div>`).join('');
   $('#hover').innerHTML=Array.from({length:C},()=>'<span>▼</span>').join('');draw();turn();}
 function draw(){$$('#board .cell').forEach((el,i)=>{const r=Math.floor(i/C),c=i%C,v=G.b[r][c];el.firstChild.className=v?'p'+v:'';});$('#s1').textContent=sc[1];$('#s2').textContent=sc[2];}
-function turn(){if(G.over)return;const cpu=cfg.mode==='cpu'&&G.p===2;$('#turn').innerHTML=`<span class="dot d${G.p}"></span>`+(cfg.mode==='cpu'?(cpu?'Computer denkt nach …':'Du bist dran!'):(G.p===1?'Rot':'Gelb')+' ist dran');
+function turn(){if(G.over)return;if(cfg.mode==='online'){const mine=G.p===mySeat+1;const P=NET.players();const nm=(P.find(x=>x.seat===G.p-1)||{}).name||'?';$('#turn').innerHTML=`<span class="dot d${G.p}"></span>`+(mine?'Du bist dran!':esc(nm)+' ist dran …');busy=!mine;return;}const cpu=cfg.mode==='cpu'&&G.p===2;$('#turn').innerHTML=`<span class="dot d${G.p}"></span>`+(cfg.mode==='cpu'?(cpu?'Computer denkt nach …':'Du bist dran!'):(G.p===1?'Rot':'Gelb')+' ist dran');
   if(cpu){busy=true;setTimeout(()=>{const c=best(G.b,cfg.lvl);play(c);},550);}}
 const rowFor=(b,c)=>{for(let r=R-1;r>=0;r--)if(!b[r][c])return r;return -1;};
 function play(c){const r=rowFor(G.b,c);if(r<0){busy=false;return;}G.b[r][c]=G.p;G.hist.push([r,c]);
   const el=$$('#board .cell')[r*C+c].firstChild;el.className='p'+G.p+' drop';el.style.setProperty('--dy',`-${(r+1)*112}%`);el.style.setProperty('--dt',(.18+r*.05)+'s');
   setTimeout(()=>tone(220+r*30,.08,0,'sine',.2),(.15+r*.05)*1000);
   const w=winLine(G.b,r,c);if(w){G.over=true;busy=false;setTimeout(()=>{w.forEach(([y,x])=>$$('#board .cell')[y*C+x].firstChild.classList.add('win'));sc[G.p]++;draw();
-      const youWin=cfg.mode!=='cpu'||G.p===1;if(youWin){sWin();confetti();}else sLose();
-      $('#turn').innerHTML=cfg.mode==='cpu'?(G.p===1?'🎉 Du hast gewonnen!':'🤖 Der Computer gewinnt!'):`🎉 ${G.p===1?'Rot':'Gelb'} gewinnt!`;KIT.set('vk-sc',sc);},400);return;}
+      const youWin=cfg.mode==='online'?G.p===mySeat+1:cfg.mode!=='cpu'||G.p===1;if(youWin){sWin();confetti();}else sLose();
+      $('#turn').innerHTML=cfg.mode==='online'?(G.p===mySeat+1?'🎉 Du hast gewonnen!':'😕 '+esc((NET.players().find(x=>x.seat===G.p-1)||{}).name||'?')+' gewinnt!'):cfg.mode==='cpu'?(G.p===1?'🎉 Du hast gewonnen!':'🤖 Der Computer gewinnt!'):`🎉 ${G.p===1?'Rot':'Gelb'} gewinnt!`;KIT.set('vk-sc',sc);},400);return;}
   if(G.b[0].every(v=>v)){G.over=true;busy=false;$('#turn').textContent='🤝 Unentschieden!';return;}
   G.p=3-G.p;busy=false;setTimeout(turn,cfg.mode==='cpu'&&G.p===2?300:0);}
 function winLine(b,r,c){const p=b[r][c];for(const [dy,dx] of [[0,1],[1,0],[1,1],[1,-1]]){let line=[[r,c]];for(const s of [1,-1]){let y=r+dy*s,x=c+dx*s;while(y>=0&&y<R&&x>=0&&x<C&&b[y][x]===p){line.push([y,x]);y+=dy*s;x+=dx*s;}}if(line.length>=4)return line;}return null;}
-$('#board').onclick=e=>{const el=e.target.closest('.cell');if(!el||busy||G.over)return;if(cfg.mode==='cpu'&&G.p===2)return;const c=+el.dataset.c;if(rowFor(G.b,c)<0){tone(150,.1);return;}busy=true;play(+c);};
+$('#board').onclick=e=>{const el=e.target.closest('.cell');if(!el||busy||G.over)return;if(cfg.mode==='cpu'&&G.p===2)return;const c=+el.dataset.c;if(rowFor(G.b,c)<0){tone(150,.1);return;}busy=true;play(+c);if(cfg.mode==='online')NET.send({mv:+c,n:G.hist.length});};
 $('#board').onpointermove=e=>{const el=e.target.closest('.cell');$$('#hover span').forEach((s,i)=>{s.classList.toggle('on',!!el&&+el.dataset.c===i);s.style.color=G&&G.p===1?'#e0453a':'#f2c21b';});};
 $('#board').onpointerleave=()=>$$('#hover span').forEach(s=>s.classList.remove('on'));
 /* KI: Minimax mit Alpha-Beta */
@@ -190,10 +191,16 @@ function best(b0,lvl){const b=b0.map(r=>r.slice());const moves=ORDER.filter(c=>!
   if(lvl===1&&Math.random()<.55){// leicht: oft zufällig, gewinnt aber, wenn es direkt geht
     for(const c of moves){const r=rowFor(b,c);b[r][c]=2;const w=winLine(b,r,c);b[r][c]=0;if(w)return c;}return moves[Math.floor(Math.random()*moves.length)];}
   const depth=[0,2,3,5,7][lvl];let bc=moves[0],bv=-1e9;for(const c of moves){const r=rowFor(b,c);b[r][c]=2;const w=winLine(b,r,c);const s=w?1e6:mm(b,depth-1,-1e9,1e9,1,2)+(lvl<3?Math.random()*6:0);b[r][c]=0;if(s>bv){bv=s;bc=c;}}return bc;}
-$('#btnUndo').onclick=()=>{if(busy||!G.hist.length)return;const n=cfg.mode==='cpu'?(G.over&&G.p===1?1:2):1;if(G.over)return;for(let k=0;k<n&&G.hist.length;k++){const [r,c]=G.hist.pop();G.b[r][c]=0;}if(cfg.mode!=='cpu')G.p=3-G.p;else G.p=1;draw();turn();};
-$('#btnNew').onclick=()=>{if(busy)return;start();};
-$('#btnMenu').onclick=()=>{$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');};
-$('#btnStart').onclick=()=>{G=null;sc[1]=0;sc[2]=0;start();};
+$('#btnUndo').onclick=()=>{if(cfg.mode==='online'){O_msg('Online kann man nicht zurücknehmen.');return;}if(busy||!G.hist.length)return;const n=cfg.mode==='cpu'?(G.over&&G.p===1?1:2):1;if(G.over)return;for(let k=0;k<n&&G.hist.length;k++){const [r,c]=G.hist.pop();G.b[r][c]=0;}if(cfg.mode!=='cpu')G.p=3-G.p;else G.p=1;draw();turn();};
+$('#btnNew').onclick=()=>{if(busy)return;if(cfg.mode==='online'){NET.send({reset:Date.now()});}start();};
+$('#btnMenu').onclick=()=>{if(cfg.mode==='online'&&window.NET)NET.leave();$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');};
+$('#btnStart').onclick=()=>{if(cfg.mode==='online'){NET.create();return;}G=null;sc[1]=0;sc[2]=0;start();};
+let mySeat=0;const O_msg=t=>window.ONLINE?ONLINE.toast(t):infoBox('<p>'+t+'</p>');
+if(window.NET&&NET.supported()){$$('.onl').forEach(b=>b.classList.remove('hidden'));
+  NET.setup({title:'Viererkette',min:2,max:2,
+    onStart(room,seat){mySeat=seat;cfg.mode='online';$$('#modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v==='online'));$('#lvlBox').classList.add('hidden');G=null;sc[1]=0;sc[2]=0;start();},
+    onState(st){if(cfg.mode!=='online'||!G)return;if(st.reset){G.over=true;start();return;}if(st.mv!=null&&st.n===G.hist.length+1){busy=true;play(st.mv);}},
+    onPlayers(r){if(G&&cfg.mode==='online'&&Object.keys(r.players||{}).length<2&&r.status==='play'){O_msg('Dein Mitspieler hat das Spiel verlassen.');}}});}
 applyTheme();
 
 initHelp('viererkette');

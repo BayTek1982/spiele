@@ -1,0 +1,40 @@
+{
+  "rules": {
+    "usernames": {
+      ".read": "auth != null",
+      "$name": {
+        ".write": "auth != null && (!data.exists() || data.val() === auth.uid) && newData.val() === auth.uid",
+        ".validate": "$name.matches(/^[a-z0-9_]{3,16}$/)"
+      }
+    },
+    "users": { "$uid": { ".read": "auth != null", ".write": "auth.uid === $uid" } },
+    "presence": { "$uid": { ".read": "auth != null", ".write": "auth.uid === $uid" } },
+    "friends": {
+      "$uid": {
+        ".read": "auth.uid === $uid",
+        "$fid": { ".write": "auth.uid === $uid || (auth.uid === $fid && (!newData.exists() || root.child('requests/' + auth.uid + '/' + $uid).exists()))" }
+      }
+    },
+    "requests": {
+      "$uid": {
+        ".read": "auth.uid === $uid",
+        "$from": { ".write": "auth.uid === $uid || (auth.uid === $from && !root.child('blocks/' + $uid + '/' + auth.uid).exists())" }
+      }
+    },
+    "sent": { "$uid": { ".read": "auth.uid === $uid", "$to": { ".write": "auth.uid === $uid || auth.uid === $to" } } },
+    "blocks": { "$uid": { ".read": "auth.uid === $uid", ".write": "auth.uid === $uid" } },
+    "invites": {
+      "$uid": {
+        ".read": "auth.uid === $uid",
+        "$room": { ".write": "auth.uid === $uid || root.child('friends/' + $uid + '/' + auth.uid).exists()" }
+      }
+    },
+    "inbox": {
+      "$uid": {
+        ".read": "auth.uid === $uid",
+        "$msg": { ".write": "auth.uid === $uid || (!data.exists() && newData.child('from').val() === auth.uid && root.child('friends/' + $uid + '/' + auth.uid).exists())" }
+      }
+    },
+    "rooms": { "$room": { ".read": "auth != null", ".write": "auth != null" } }
+  }
+}
