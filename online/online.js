@@ -73,9 +73,8 @@ function watchPresence(){for(const fid of Object.keys(O.friends))if(!presUnsub[f
   for(const fid of Object.keys(presUnsub))if(!O.friends[fid]){presUnsub[fid]();delete presUnsub[fid];delete O.presence[fid];}}
 /* ---------- Konto ---------- */
 O.signUp=async(name,pw,av)=>{name=name.trim();if(!okName(name))throw new Error('Der Name braucht 3–16 Zeichen: nur Buchstaben (ohne ä/ö/ü), Zahlen und _');
-  const taken=await O.B.get('usernames/'+low(name));if(taken)throw new Error('Diesen Namen gibt es schon – nimm einen anderen.');
   let uid;try{uid=await O.B.signUp(name,pw);}catch(e){throw new Error(O.B.errText(e));}
-  await O.B.set('usernames/'+low(name),uid);await O.B.set('users/'+uid,{name,av,created:now()});O.me={uid,name,av};emit('change');return uid;};
+  try{await O.B.set('users/'+uid,{name,av,created:now()});await O.B.set('usernames/'+low(name),uid);}catch(e){throw new Error('Konto angelegt, aber Speichern fehlgeschlagen ('+(e.code||e.message)+'). Bitte die Datenbank-Regeln in Firebase prüfen.');}O.me={uid,name,av};emit('change');return uid;};
 O.signIn=async(name,pw)=>{try{await O.B.signIn(name.trim(),pw);}catch(e){throw new Error(O.B.errText(e));}};
 O.signOut=async()=>{if(O.me)await O.B.update('presence/'+O.me.uid,{online:false});await O.B.signOut();};
 O.setAvatar=async av=>{O.me.av=av;await O.B.update('users/'+O.me.uid,{av});await O.B.update('presence/'+O.me.uid,{av});emit('change');};
