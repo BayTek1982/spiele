@@ -99,6 +99,7 @@ button,canvas{touch-action:manipulation}
     <svg class="scene" id="scene" viewBox="0 0 200 200"></svg>
     <div class="lives" id="lives"></div>
     <div class="hint" id="hint"></div>
+    <div id="onTurn" class="note hidden" style="text-align:center;font-weight:900;font-size:15px;margin:6px 0"></div>
     <div class="word" id="word"></div>
     <div class="keys" id="keys"></div>
     <div class="row" style="justify-content:center;margin-top:12px"><button class="small" id="btnTip">💡 Tipp</button><button class="small" id="btnMenu">‹ Menü</button></div>
@@ -194,19 +195,43 @@ function drawScene(){const f=G.f,melt=f/MAXF;const sunR=14+f*3,sunCol=`hsl(${48-
   if(f>=1&&f<7)parts.push(`<rect x="${140}" y="170" width="24" height="9" fill="#2b2b2b" transform="rotate(-15 152 174)"/>`);
   if(b2&&f<6)parts.push(`<line x1="${100-b2}" y1="${178-2*b1-b2+8}" x2="${100-b2-22}" y2="${178-2*b1-b2-8}" stroke="#7a4a1d" stroke-width="3"/><line x1="${100+b2}" y1="${178-2*b1-b2+8}" x2="${100+b2+22}" y2="${178-2*b1-b2-8+f*4}" stroke="#7a4a1d" stroke-width="3"/>`);
   $('#scene').innerHTML=parts.join('');}
-function guess(ch){if(!G||G.over||G.g.has(ch))return;G.g.add(ch);const btn=$(`#keys button[data-k="${ch}"]`);
+function guess(ch,remote){if(!G||G.over||G.g.has(ch))return;if(SON&&!remote){if(!sMy())return;NET.emit({t:'g',ch});}if(SON)sScore(ch);G.g.add(ch);const btn=$(`#keys button[data-k="${ch}"]`);
   if(G.w.includes(ch)){btn.classList.add('ok');tone(660,.08);tone(880,.1,.08);}else{btn.classList.add('no');G.f++;tone(200,.2,0,'sine');}
-  btn.disabled=true;const done=[...G.w].every(c=>c===' '||G.g.has(c));
+  btn.disabled=true;if(SON&&!G.w.includes(ch)){sNextGuesser();}const done=[...G.w].every(c=>c===' '||G.g.has(c));
+  if(done&&SON){G.over=true;render();sRoundEnd(true);return;}if(G.f>=MAXF&&SON){G.over=true;render();sRoundEnd(false);return;}
   if(done){G.over=true;render();st.w++;KIT.set('sm-st',st);sWin();confetti();setTimeout(()=>end(true),900);return;}
   if(G.f>=MAXF){G.over=true;render();st.l++;KIT.set('sm-st',st);sLose();setTimeout(()=>end(false),1100);return;}render();}
 function end(win){modal(`<div class="big">${win?'⛄🎉':'💧'}</div><h2 style="text-align:center">${win?'Schneemann gerettet!':'Geschmolzen!'}</h2><p style="text-align:center">Das Wort war: <b>${G.w}</b></p><div class="row"><button data-v="m">Menü</button><button class="primary" data-v="a">Nochmal</button></div>`,null,false).then(v=>{if(v==='a'){if(cfg.mode==='2p')$('#btnMenu').onclick();else start();}else $('#btnMenu').onclick();showStat();});}
-$('#keys').onclick=e=>{const b=e.target.closest('button');if(b)guess(b.dataset.k);};
+$('#keys').onclick=e=>{const b=e.target.closest('button');if(b){guess(b.dataset.k);if(SON&&G&&!G.over)sTurnText();}};
 document.addEventListener('keydown',e=>{if($('#game').classList.contains('hidden'))return;const k=e.key.toUpperCase();if(AB.includes(k))guess(k);});
-$('#btnTip').onclick=()=>{if(!G||G.over)return;const miss=[...new Set([...G.w].filter(c=>c!==' '&&!G.g.has(c)))];if(!miss.length)return;if(G.f>=MAXF-1){infoBox('<p>Kein Tipp mehr möglich – sonst schmilzt der Schneemann! 😉</p>');return;}G.f++;guess(miss[Math.floor(Math.random()*miss.length)]);};
-$('#btnMenu').onclick=()=>{$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');showStat();};
+$('#btnTip').onclick=()=>{if(!G||G.over||SON)return;const miss=[...new Set([...G.w].filter(c=>c!==' '&&!G.g.has(c)))];if(!miss.length)return;if(G.f>=MAXF-1){infoBox('<p>Kein Tipp mehr möglich – sonst schmilzt der Schneemann! 😉</p>');return;}G.f++;guess(miss[Math.floor(Math.random()*miss.length)]);};
+$('#btnMenu').onclick=()=>{if(SON){SON=false;NET.leave();$('#onTurn').classList.add('hidden');}$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');showStat();};
 $('#btnStart').onclick=start;$('#secret').onkeydown=e=>{if(e.key==='Enter')start();};
 window.onTheme=()=>{if(G)drawScene();};applyTheme();
-if(window.NET&&NET.supported()){NET.race({title:'Schneemann-Raten',unit:'Punkte',start:()=>{cfg.mode='solo';start();},score:()=>0,ends:{end:(w)=>w?(7-G.f)*10+10:0}});}
+/* ---------- Online: einer denkt sich ein Wort aus, die anderen raten abwechselnd ---------- */
+var SON=false,sR=0,sPl=[],sTot={},sGuessers=[],sCur=0,sWaitClose=null;
+const sMe=()=>NET.myUid();
+const sGiver=()=>sPl[sR%sPl.length];
+function sMy(){return sGuessers[sCur]&&sGuessers[sCur].uid===sMe();}
+function sTurnText(){const g=sGiver();if(!G){$('#onTurn').textContent='';return;}const c=sGuessers[sCur];$('#onTurn').innerHTML=(g.uid===sMe()?`🤫 Dein Wort: <b>${G.w}</b> – schau zu, wie die anderen raten!`:c&&c.uid===sMe()?'👉 Du bist dran – rate einen Buchstaben!':`⏳ ${esc(c?c.name:'?')} rät …`)+'<br><span style="font-weight:700">'+sPl.map(p=>`${esc(p.name)}: ${sTot[p.uid]||0}`).join(' · ')+'</span>';
+  $$('#keys button').forEach(b=>{if(!b.classList.contains('ok')&&!b.classList.contains('no'))b.disabled=!sMy();});}
+function sScore(ch){const c=sGuessers[sCur];const n=[...G.w].filter(x=>x===ch).length;if(c&&n)sTot[c.uid]=(sTot[c.uid]||0)+n*10;}
+function sNextGuesser(){if(sGuessers.length)sCur=(sCur+1)%sGuessers.length;}
+function sRound(){const g=sGiver();sGuessers=sPl.filter(p=>p.uid!==g.uid);sCur=0;G=null;$('#setup').classList.add('hidden');$('#game').classList.remove('hidden');$('#onTurn').classList.remove('hidden');$('#word').innerHTML='';$('#keys').innerHTML='';
+  if(g.uid===sMe()){modal(`<h2>🤫 Du denkst dir ein Wort aus</h2><p class="note">Die anderen raten es abwechselnd.</p><input id="sW" maxlength="20" placeholder="z. B. Schneeflocke" autocomplete="off" style="width:100%;margin:6px 0"><input id="sH" maxlength="30" placeholder="Tipp (optional), z. B. Tier" autocomplete="off" style="width:100%;margin:6px 0"><div class="row"><button data-x="r">🎲 Zufallswort</button><button class="primary" data-x="ok">Los geht’s</button></div>`,(box,close)=>{
+      box.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{let w,hint;if(b.dataset.x==='r'){({w,hint}=pickWord());}else{w=box.querySelector('#sW').value.trim().toUpperCase().replace(/ß/g,'SS').replace(/[^A-ZÄÖÜ ]/g,'');hint=box.querySelector('#sH').value.trim();if(w.replace(/ /g,'').length<2){box.querySelector('#sW').focus();return;}}
+        close();NET.emit({t:'word',w,hint});sBegin(w,hint);});},false);}
+  else{$('#onTurn').innerHTML=`⏳ ${esc(g.name)} denkt sich ein Wort aus …`;}}
+function sBegin(w,hint){G={w,hint,g:new Set(),f:0,over:false};$('#keys').innerHTML=AB.map(a=>`<button data-k="${a}">${a}</button>`).join('');render();sTurnText();}
+function sRoundEnd(win){const g=sGiver();const c=sGuessers[sCur];if(win){if(c)sTot[c.uid]=(sTot[c.uid]||0)+30;}else sTot[g.uid]=(sTot[g.uid]||0)+50;
+  const meGiver=g.uid===sMe();if(win!==meGiver){sWin();confetti();}else sLose();sTurnText();
+  setTimeout(()=>modal(`<div class="big">${win?'⛄🎉':'💧'}</div><h2 style="text-align:center">${win?'Schneemann gerettet!':'Geschmolzen!'}</h2><p style="text-align:center">Das Wort war: <b>${G.w}</b><br>${win?(c?esc(c.name)+' hat es gelöst (+30)':''):esc(g.name)+' bekommt +50 Punkte'}</p><ol>${[...sPl].sort((a,b)=>(sTot[b.uid]||0)-(sTot[a.uid]||0)).map(p=>`<li><b>${esc(p.name)}</b>: ${sTot[p.uid]||0}</li>`).join('')}</ol><div class="row">${NET.isHost()?'<button class="primary" data-v="n">Nächste Runde ➜</button>':'<span class="note">Der Gastgeber startet die nächste Runde.</span>'}<button data-v="l">Verlassen</button></div>`,(b,close)=>{sWaitClose=close;},false).then(v=>{sWaitClose=null;if(v==='n'){NET.emit({t:'next'});sR++;sRound();}else if(v==='l'){$('#btnMenu').onclick();}}),1000);}
+function sDo(ev){if(ev.t==='word'){sBegin(ev.w,ev.hint);}else if(ev.t==='g'){guess(ev.ch,true);if(G&&!G.over)sTurnText();}else if(ev.t==='next'){if(sWaitClose)sWaitClose();sR++;sRound();}}
+if(window.NET&&NET.supported()){NET.coop({title:'Schneemann-Raten',label:'Online zusammen spielen',note:'Einer denkt sich ein Wort aus, die anderen raten abwechselnd. Jede Runde ist jemand anderes dran!',max:6,
+  start(){SON=true;sR=0;sTot={};NET.evReset();sPl=NET.players();sRound();},
+  onData(){if(SON)NET.evPump(sDo);},
+  stop(){if(SON){$('#btnMenu').onclick();}}});
+  const og=guess;}
 
 initHelp('schneemann-raten');
 </script>
