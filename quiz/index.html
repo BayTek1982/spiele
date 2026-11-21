@@ -141,7 +141,7 @@ button,canvas{touch-action:manipulation}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=7"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=8"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -654,6 +654,7 @@ function answer(k){
     $('#feedback').innerHTML=k<0?`⏰ Zeit abgelaufen! Richtig: <b>${esc(q.a)}</b>`:`❌ Leider falsch. Richtig: <b>${esc(q.a)}</b>`;tone(220,.18,0,'sawtooth',.08);}
   const seen=KIT.get('quiz-seen',[]);if(!seen.includes(q.id)){seen.push(q.id);KIT.set('quiz-seen',seen.slice(-QS.length));}
   renderScores();$('#btnJoker').disabled=true;$('#btnNext').classList.remove('hidden');$('#btnNext').textContent=G.i+1<G.list.length?'Weiter ›':'Ergebnis ›';$('#btnNext').focus();
+  if(window.NET&&NET.raceOn()){$('#btnNext').classList.add('hidden');const i=G.i;setTimeout(()=>NET.step(i,ok).then(()=>{if(G&&G.i===i)$('#btnNext').onclick();}),1200);}
 }
 $('#btnNext').onclick=()=>{G.i++;if(G.i>=G.list.length)return finish();if(G.players.length>1)G.cur=(G.cur+1)%G.players.length;show();};
 $('#btnJoker').onclick=()=>{const p=G.players[G.cur];if(G.answered||!p.jok)return;p.jok--;

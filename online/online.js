@@ -165,6 +165,15 @@ NET.coop=function(opts){if(!O.available)return;
 NET.drawGhost=function(c,o,pt,size){if(!pt)return;size=size||26;const sc=(c.getTransform?c.getTransform().a:1)||1,cw=c.canvas.width/sc,ch=c.canvas.height/sc;let [x,y]=pt;const off=x<-10||y<-10||x>cw+10||y>ch+10;x=Math.max(14,Math.min(cw-14,x));y=Math.max(size/2+16,Math.min(ch-14,y));
   c.save();c.globalAlpha=off?.55:.9;c.font=size+'px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(o.av||'🙂',x,y);c.font='900 11px Nunito,sans-serif';const t=(off?(pt[1]<0?'▲ ':pt[1]>ch?'▼ ':''):'')+o.name;const w=c.measureText(t).width+8;c.fillStyle='rgba(0,0,0,.65)';c.fillRect(x-w/2,y-size/2-17,w,14);c.fillStyle='#fff';c.fillText(t,x,y-size/2-10);c.restore();};
 NET.ghostify=function(o){const fn=o.draw||'draw';const orig=window[fn];if(typeof orig!=='function')return;window[fn]=function(){const r=orig.apply(this,arguments);try{if(NET.active()){const p=o.pos();if(p)NET.live(p);const c=typeof o.ctx==='function'?o.ctx():o.ctx;if(c)for(const g of NET.others()){if(o.paint)o.paint(c,g);else NET.drawGhost(c,g,o.map(g),o.size);}}}catch(e){}return r;};};
+NET.raceOn=()=>!!(typeof RACE!=='undefined'&&RACE.on&&NET.active());
+/* Gleichschritt: alle beantworten dieselbe Frage, dann geht es gemeinsam weiter */
+NET.step=function(i,ok,maxMs){if(!NET.active())return Promise.resolve();const me=O.me.uid,key='qa/'+String(i).padStart(4,'0');NET.put(key+'/'+me,ok?1:0);
+  injectCss();let bar=document.getElementById('stepBar');if(!bar){bar=document.createElement('div');bar.id='stepBar';bar.style.cssText='position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:9998;background:rgba(15,18,28,.92);color:#fff;border-radius:16px;padding:8px 14px;font:800 14px Nunito,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.35);max-width:94vw;text-align:center';document.body.appendChild(bar);}
+  const t0=Date.now();maxMs=maxMs||25000;
+  return new Promise(res=>{const tick=()=>{const d=(NET.room&&NET.room.data&&NET.room.data.qa&&NET.room.data.qa[String(i).padStart(4,'0')])||{};const sc=(NET.room&&NET.room.data&&NET.room.data.sc)||{};const pl=NET.players().filter(p=>p.uid===me||!(sc[p.uid]&&sc[p.uid].d));
+      const all=pl.every(p=>d[p.uid]!=null);const left=Math.max(0,Math.ceil((maxMs-(Date.now()-t0))/1000));
+      bar.innerHTML=pl.map(p=>`${esc(p.av||'')} ${esc(p.name)} ${d[p.uid]==null?'⏳':d[p.uid]?'✅':'❌'}`).join(' &nbsp;·&nbsp; ')+(all?'':`<div style="font-size:11px;opacity:.75;font-weight:700">Warte auf die anderen … ${left}s</div>`);
+      if(all||Date.now()-t0>maxMs){setTimeout(()=>{bar.remove();res();},all?1300:0);return;}setTimeout(tick,250);};tick();});};
 NET.active=()=>!!(NET.roomId&&NET.room&&NET.room.status==='play');
 function raceDone(v){RACE.done=true;clearInterval(RACE.iv);NET.put('sc/'+O.me.uid,{s:v,d:true,n:O.me.name,a:O.me.av});toast('🏁 Fertig! Warte auf die anderen …');}
 NET.raceDone=v=>{if(RACE.on&&!RACE.done)raceDone(v);};NET._race=RACE;

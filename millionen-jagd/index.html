@@ -127,7 +127,7 @@ button,canvas{touch-action:manipulation}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=7"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=8"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -352,7 +352,7 @@ let G=null,busy=false;
 function ladder(){$('#ladder').innerHTML=PRIZES.map((p,i)=>({p,i})).reverse().map(({p,i})=>`<div class="${i===G?.lv?'cur':''} ${G&&i<G.lv?'done':''} ${SAFE.includes(i)?'safe':''}"><span>${i+1}</span><span>${SAFE.includes(i)?'🔒 ':''}${fmt(p)}</span></div>`).join('');}
 function best(){const b=KIT.get('mio-best',0);$('#best').textContent=b?`Dein bester Gewinn: ${fmt(b)}`:'';}
 function startGame(){G={lv:0,j50:true,jPub:true,jTel:true,used:new Set()};$('#start').classList.add('hidden');$('#game').classList.remove('hidden');music.start();showQ();}
-function pickQ(lv){const pool=TIERS[lv+1].filter(q=>!G.used.has(q.q));const q=pool[Math.floor(Math.random()*pool.length)];G.used.add(q.q);return q;}
+function pickQ(lv){const pool=TIERS[lv+1].filter(q=>!G.used.has(q.q));const q=pool[Math.floor((window.NET&&NET.raceOn()?NET.rng(NET.seed()+lv*7919)():Math.random())*pool.length)];G.used.add(q.q);return q;}
 function showQ(){
   busy=false;const q=pickQ(G.lv);G.q=q;G.opts=[q.a,...q.w].sort(()=>Math.random()-.5);
   $('#lvl').textContent=`FRAGE ${G.lv+1} VON 15`;$('#amt').textContent=fmt(PRIZES[G.lv]);$('#q').textContent=q.q;
@@ -368,6 +368,7 @@ $('#ans').onclick=async e=>{const b=e.target.closest('.an');if(!b||busy)return;c
   const right=G.opts.indexOf(G.q.a);$$('#ans .an')[right].classList.add('ok');
   if(k===right){winTune(G.lv);await sleep(1600);
     if(G.lv===14){finish(PRIZES[14],true);return;}
+    if(window.NET&&NET.raceOn())await NET.step(G.lv,true,40000);
     G.lv++;if(SAFE.includes(G.lv-1)){await infoBox(`<div class="big">🔒</div><h2 style="text-align:center">Sicherheitsstufe!</h2><p style="text-align:center"><b>${fmt(PRIZES[G.lv-1])}</b> sind dir jetzt sicher!</p>`,'Weiter');}
     music.start();showQ();}
   else{b.classList.remove('lock');b.classList.add('no');loseTune();await sleep(2000);const safe=G.lv>9?PRIZES[9]:G.lv>4?PRIZES[4]:0;finish(safe,false);}

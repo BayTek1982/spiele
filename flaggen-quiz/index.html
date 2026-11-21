@@ -103,7 +103,7 @@ button,canvas{touch-action:manipulation}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=7"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=8"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -255,7 +255,7 @@ $('#ans').onclick=async e=>{const b=e.target.closest('button');if(!b||G.lock)ret
   if(o===q){G.streak++;G.ok++;const sec=(Date.now()-G.t0)/1000;const bonus=sec<3?5:sec<6?2:0;G.pts+=10+bonus+(G.streak>=3?5:0);album.add(q.n);KIT.set('fq-album',[...album]);
     tone(660,.08);tone(990,.12,.08);$('#streak').textContent=G.streak>=3?`🔥 ${G.streak}er-Serie! +5`:bonus?`⚡ Schnell! +${bonus}`:'✅ Richtig!';}
   else{b.classList.add('no');G.streak=0;tone(200,.25,0,'sine');$('#streak').textContent=cfg.mode==='cap'?`Richtig wäre: ${q.c}`:`Das war: ${q.n} ${q.f}`;}
-  $('#pts').textContent=G.pts;await sleep(o===q?900:1800);$('#streak').textContent='';G.i++;if(G.i<10)ask();else end();};
+  $('#pts').textContent=G.pts;await sleep(o===q?900:1800);if(window.NET&&NET.raceOn())await NET.step(G.i,o===q);$('#streak').textContent='';G.i++;if(G.i<10)ask();else end();};
 function end(){$('#prog').style.width='100%';const key=`fq-best-${cfg.mode}-${cfg.reg}`;const b=KIT.get(key,0);const rec=G.pts>b;if(rec)KIT.set(key,G.pts);if(G.ok>=7){sWin();confetti();}else sLose();
   modal(`<div class="big">${G.ok===10?'🏆':G.ok>=7?'🌟':G.ok>=4?'👍':'📚'}</div><h2 style="text-align:center">${G.ok} von 10 richtig</h2><p style="text-align:center"><b>${G.pts} Punkte</b>${rec?'<br>⭐ Neuer Rekord!':''}<br>Album: ${album.size} von ${C.length} Flaggen</p><div class="row"><button data-v="m">Menü</button><button class="primary" data-v="a">Nochmal</button></div>`,null,false).then(v=>{if(v==='a')start();else menu();});}
 function menu(){$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');$('#best').textContent=`📒 Album: ${album.size} von ${C.length} Flaggen gesammelt`;}
