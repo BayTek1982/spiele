@@ -175,10 +175,10 @@ const pts=s=>s.t<0?20:TYPES[s.t].p;
 function start(){if(!players.length)return;G={st:toss(nSt),pl:players.map(p=>({...p,s:0,cnt:0})),cur:0,busy:false};$('#setup').classList.add('hidden');$('#game').classList.remove('hidden');
   // Wurf-Animation
   G.st.forEach(s=>{s.drop=1;});tone(300,.05);for(let k=0;k<12;k++)tone(800+Math.random()*900,.03,k*.04,'triangle',.05);turn();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);}
-function turn(){const P=G.pl[G.cur];hud();if(G.st.every(s=>s.gone)){end();return;}$('#turn').textContent=P.cpu?`🤖 ${P.n} ist dran …`:`🙂 ${P.n}: Zieh ein Stäbchen vorsichtig weg!`;if(P.cpu){G.busy=true;setTimeout(cpuMove,900);}else G.busy=false;}
+function turn(){const P=G.pl[G.cur];hud();if(G.st.every(s=>s.gone)){end();return;}if(MON){const mine=P.uid===NET.myUid();$('#turn').textContent=mine?'👉 Du bist dran: Zieh ein Stäbchen vorsichtig weg!':`⏳ ${P.n} ist dran …`;G.busy=!mine;return;}$('#turn').textContent=P.cpu?`🤖 ${P.n} ist dran …`:`🙂 ${P.n}: Zieh ein Stäbchen vorsichtig weg!`;if(P.cpu){G.busy=true;setTimeout(cpuMove,900);}else G.busy=false;}
 function hud(){$('#scores').innerHTML=G.pl.map((p,i)=>`<div class="${i===G.cur?'on':''}">${p.cpu?'🤖':'🙂'} ${esc(p.n)}: ${p.s}</div>`).join('');}
-function take(s){s.gone=true;const P=G.pl[G.cur];P.s+=pts(s);P.cnt++;[600,800].forEach((f,k)=>tone(f+(s.t<0?400:0),.06,k*.05,'triangle',.12));if(s.t<0){confetti();}hud();}
-function fail(s){const P=G.pl[G.cur];const cov=[...coveredBy(s),...touching(s)];cov.forEach(o=>o.wob=.6);s.wob=.6;$('#wrap').classList.remove('shake');void $('#wrap').offsetWidth;$('#wrap').classList.add('shake');
+function take(s){if(MON&&!mApply)NET.emit({t:'take',i:G.st.indexOf(s)});s.gone=true;const P=G.pl[G.cur];P.s+=pts(s);P.cnt++;[600,800].forEach((f,k)=>tone(f+(s.t<0?400:0),.06,k*.05,'triangle',.12));if(s.t<0){confetti();}hud();}
+function fail(s){if(MON&&!mApply)NET.emit({t:'fail',i:G.st.indexOf(s)});const P=G.pl[G.cur];const cov=[...coveredBy(s),...touching(s)];cov.forEach(o=>o.wob=.6);s.wob=.6;$('#wrap').classList.remove('shake');void $('#wrap').offsetWidth;$('#wrap').classList.add('shake');
   tone(160,.3,0,'sawtooth',.1);$('#turn').textContent=`😬 Gewackelt! ${P.n}s Zug ist vorbei.`;G.busy=true;setTimeout(next,1300);}
 function next(){G.cur=(G.cur+1)%G.pl.length;turn();}
 function cpuMove(){const live=G.st.filter(s=>!s.gone);const free=live.filter(s=>!coveredBy(s).length);const safe=free.filter(s=>!touching(s).length);
@@ -207,12 +207,26 @@ function loop(){if(!G)return;const dark=theme==='dark';ctx.fillStyle=dark?'#3a2a
   if(drag){const s=drag.s;ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.setLineDash([6,6]);ctx.beginPath();ctx.moveTo(s.x1+s.dx,s.y1+s.dy);ctx.lineTo(s.x2+s.dx,s.y2+s.dy);ctx.stroke();ctx.setLineDash([]);
     const sp=Math.min(1,drag.speed/700);ctx.fillStyle='#0006';ctx.fillRect(W/2-80,H-26,160,12);ctx.fillStyle=sp>.75?'#e0453a':sp>.5?'#f2c21b':'#2fa35a';ctx.fillRect(W/2-80,H-26,160*sp,12);ctx.fillStyle='#fff';ctx.font='700 11px Nunito';ctx.textAlign='center';ctx.fillText('Zitter-Meter',W/2,H-32);}
   raf=requestAnimationFrame(loop);}
-function end(){G.busy=true;const r=[...G.pl].sort((a,b)=>b.s-a.s);if(!r[0].cpu){sWin();confetti();}else sLose();
+function end(){G.busy=true;const r=[...G.pl].sort((a,b)=>b.s-a.s);if(MON){mEnd(r);return;}if(!r[0].cpu){sWin();confetti();}else sLose();
   setTimeout(()=>modal(`<div class="big">🥢🏆</div><h2 style="text-align:center">${esc(r[0].n)} gewinnt!</h2><ol>${r.map(p=>`<li><b>${esc(p.n)}</b>: ${p.s} Punkte (${p.cnt} Stäbchen)</li>`).join('')}</ol><div class="row"><button data-v="m">Menü</button><button class="primary" data-v="a">Nochmal</button></div>`,null,false).then(v=>v==='a'?start():menu()),600);}
-$('#btnPass').onclick=()=>{if(G&&!G.busy)next();};
+$('#btnPass').onclick=()=>{if(G&&!G.busy){if(MON)NET.emit({t:'pass'});next();}};
 function menu(){cancelAnimationFrame(raf);G=null;$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');}
 $('#btnMenu').onclick=menu;$('#btnStart').onclick=start;applyTheme();plist();
-if(window.NET&&NET.supported()){NET.race({title:'Mikado',unit:'Punkte',start:()=>{players=[{n:'Du',cpu:false},{n:'Computer',cpu:true}];start();},score:()=>G?G.pl[0].s:0,ends:{end:()=>G.pl[0].s}});}
+/* ---------- Online: alle am selben Stäbchen-Haufen ---------- */
+var MON=false,mApply=false,mStarted=false,mKeep=null;
+function mDo(ev){if(!G)return;const s=G.st[ev.i];mApply=true;try{
+  if(ev.t==='pass')next();
+  else if(ev.t==='fail'&&s)fail(s);
+  else if(ev.t==='take'&&s){const ang=Math.atan2(s.y2-s.y1,s.x2-s.x1)+Math.PI/2;for(let k=1;k<=12;k++)setTimeout(()=>{s.dx=Math.cos(ang)*k*8;s.dy=Math.sin(ang)*k*8;if(k===12){s.dx=s.dy=0;}},k*25);take(s);}
+  }finally{mApply=false;}}
+function mEnd(r){const me=r[0].uid===NET.myUid();if(me){sWin();confetti();}else sLose();
+  setTimeout(()=>modal(`<div class="big">🥢🏆</div><h2 style="text-align:center">${esc(r[0].n)} gewinnt!</h2><ol>${r.map(p=>`<li><b>${esc(p.n)}</b>: ${p.s} Punkte (${p.cnt} Stäbchen)</li>`).join('')}</ol><div class="row">${NET.isHost()?'<button class="primary" data-v="a">🔄 Nochmal</button>':''}<button data-v="l">Verlassen</button></div>`,null,false).then(v=>{if(v==='a')NET.clearData().then(()=>NET.again());else{NET.leave();mOff();}}),600);}
+function mOff(){MON=false;mStarted=false;if(mKeep){players=mKeep;mKeep=null;}menu();}
+if(window.NET&&NET.supported()){NET.coop({title:'Mikado',label:'Online zusammen spielen',note:'Alle am selben Stäbchen-Haufen – ihr zieht abwechselnd. Wackelt es, ist der Nächste dran!',max:4,
+  start(){MON=true;mStarted=false;NET.evReset();$('#setup').classList.add('hidden');$('#game').classList.remove('hidden');$('#turn').textContent='⏳ Gleich geht’s los …';if(NET.isHost())NET.put('cfg',{n:nSt});},
+  onData(d){if(!MON)return;if(!mStarted&&d.cfg){mStarted=true;mKeep=mKeep||players;const save=nSt;nSt=d.cfg.n;players=NET.players().map(p=>({n:p.name,cpu:false,uid:p.uid}));NET.seeded(()=>start());nSt=save;}
+    if(mStarted)NET.evPump(mDo);},
+  stop(){if(MON)mOff();}});}
 
 initHelp('mikado');
 </script>

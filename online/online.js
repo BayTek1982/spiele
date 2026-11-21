@@ -174,6 +174,11 @@ NET.step=function(i,ok,maxMs){if(!NET.active())return Promise.resolve();const me
       const all=pl.every(p=>d[p.uid]!=null);const left=Math.max(0,Math.ceil((maxMs-(Date.now()-t0))/1000));
       bar.innerHTML=pl.map(p=>`${esc(p.av||'')} ${esc(p.name)} ${d[p.uid]==null?'⏳':d[p.uid]?'✅':'❌'}`).join(' &nbsp;·&nbsp; ')+(all?'':`<div style="font-size:11px;opacity:.75;font-weight:700">Warte auf die anderen … ${left}s</div>`);
       if(all||Date.now()-t0>maxMs){setTimeout(()=>{bar.remove();res();},all?1300:0);return;}setTimeout(tick,250);};tick();});};
+/* Ereignisse für Rundenspiele: in Reihenfolge, eigene werden übersprungen */
+NET.evReset=function(){this._evDone=0;};
+NET.emit=function(ev){if(!NET.active())return;const n=this._evDone||0;this._evDone=n+1;NET.put('e/'+String(n).padStart(5,'0'),{...ev,by:O.me.uid});};
+NET.evPump=function(fn){const d=(NET.room&&NET.room.data&&NET.room.data.e)||{};let n=this._evDone||0;while(d[String(n).padStart(5,'0')]){const ev=d[String(n).padStart(5,'0')];n++;this._evDone=n;if(ev.by!==O.me.uid){try{fn(ev);}catch(e){console.warn(e);}}}};
+NET.myUid=()=>O.me&&O.me.uid;
 NET.active=()=>!!(NET.roomId&&NET.room&&NET.room.status==='play');
 function raceDone(v){RACE.done=true;clearInterval(RACE.iv);NET.put('sc/'+O.me.uid,{s:v,d:true,n:O.me.name,a:O.me.av});toast('🏁 Fertig! Warte auf die anderen …');}
 NET.raceDone=v=>{if(RACE.on&&!RACE.done)raceDone(v);};NET._race=RACE;

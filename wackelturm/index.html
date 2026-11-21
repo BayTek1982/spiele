@@ -187,10 +187,10 @@ $('#btnStart').onclick=()=>{
   $('#setup').classList.add('hidden');$('#game').classList.remove('hidden');newTower();
 };
 $('#btnMenu').onclick=()=>{$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');renderSetup();};
-$('#btnAgain').onclick=()=>newTower();
-function newTower(){
+$('#btnAgain').onclick=()=>{if(TON){if(!NET.isHost())return;const c=Math.floor(Math.random()*players.length);NET.emit({t:'new',cur:c});newTower(c);return;}newTower();};
+function newTower(fc){
   tower=[];for(let i=0;i<LAYERS;i++)tower.push([1,1,1]);
-  cur=Math.floor(Math.random()*players.length);if(cfg.mode==='cpu')cur=0;moves=0;over=false;busy=false;instab=0;
+  cur=fc!=null?fc:Math.floor(Math.random()*players.length);if(cfg.mode==='cpu')cur=0;moves=0;over=false;busy=false;instab=0;
   $('#tower').classList.remove('wob');buildDom();updRisk();renderPlayers();turnMsg();
 }
 const topFull=()=>tower[tower.length-1].every(Boolean);
@@ -216,22 +216,22 @@ function markLocks(){$$('#tower .brick').forEach(b=>{const li=+b.dataset.l;const
 function updRisk(){instab=calcInstab();const pct=Math.min(100,Math.round((instab/.6)*70+moves*.8));$('#riskBar').style.width=pct+'%';
   const t=$('#tower');if(pct>8){t.style.setProperty('--wa',(pct/100*1.6).toFixed(2)+'deg');t.style.setProperty('--wt',(1.6-pct/100*.7).toFixed(2)+'s');t.classList.add('wob');}else t.classList.remove('wob');}
 function renderPlayers(){$('#players').innerHTML=players.map((p,i)=>`<div class="pchip ${i===cur&&!over?'cur':''}">${p.cpu?'🤖 ':''}${esc(p.n)}<small>${p.lost} × umgeworfen</small></div>`).join('');}
-function turnMsg(){const p=players[cur];$('#status').textContent=p.cpu?'🤖 Computer überlegt …':(cfg.mode==='cpu'?'Du bist dran – zieh einen Stein!':`${p.n} ist dran!`);markLocks();if(p.cpu)setTimeout(cpuTurn,900);}
-async function pick(li,bi,byCpu){
-  if(busy||over||(!byCpu&&players[cur].cpu))return;if(!tower[li][bi])return;
+function turnMsg(){const p=players[cur];if(TON){$('#status').textContent=p.uid===NET.myUid()?'👉 Du bist dran – zieh einen Stein!':`⏳ ${p.n} ist dran …`;markLocks();return;}$('#status').textContent=p.cpu?'🤖 Computer überlegt …':(cfg.mode==='cpu'?'Du bist dran – zieh einen Stein!':`${p.n} ist dran!`);markLocks();if(p.cpu)setTimeout(cpuTurn,900);}
+async function pick(li,bi,byCpu,force){
+  if(busy||over||(!byCpu&&players[cur].cpu))return;if(!tower[li][bi])return;if(TON&&!force&&players[cur].uid!==NET.myUid())return;
   if(locked(li)){$('#status').textContent='Aus den obersten Reihen darf man nichts nehmen!';tone(220,.1);return;}
   busy=true;markLocks();
-  const risk=riskOf(li,bi);const el=$(`#tower .brick[data-l="${li}"][data-b="${bi}"]`);
+  const risk=riskOf(li,bi);const rA=force?force.a:Math.random()<risk,rB=force?force.b:Math.random()<.006+(moves+1)*.0008;if(TON&&!force)NET.emit({t:'pick',li,bi,a:rA,b:rB});const el=$(`#tower .brick[data-l="${li}"][data-b="${bi}"]`);
   tone(300+Math.random()*60,.15,0,'sawtooth',.05);
   el.classList.add('pull');await sleep(380);
   tower[li][bi]=0;el.classList.add('gone');el.classList.remove('pull');moves++;
   const l=tower[li];
-  if(!layerOk(l)||Math.random()<risk){return collapse();}
+  if(!layerOk(l)||rA){return collapse();}
   // oben drauflegen
   await sleep(150);
   let top=tower[tower.length-1];if(top.every(Boolean)){tower.push([0,0,0]);top=tower[tower.length-1];}
   const slot=top.indexOf(0);top[slot]=1;
-  if(Math.random()<.006+moves*.0008)return collapse();
+  if(rB)return collapse();
   buildDom();const nb=$(`#tower .brick[data-l="${tower.length-1}"][data-b="${slot}"]`);if(nb)nb.classList.add('new');tone(520,.06,0,'square',.05);
   updRisk();busy=false;cur=(cur+1)%players.length;renderPlayers();turnMsg();
 }
@@ -256,7 +256,15 @@ function cpuTurn(){
   pick(pickO.li,pickO.bi,true);
 }
 window.onTheme=()=>{};applyTheme();renderSetup();
-if(window.NET&&NET.supported()){NET.race({title:'Wackelturm',unit:'Steine',start:()=>$('#btnStart').click(),score:()=>moves||0,ends:{collapse:()=>moves}});}
+/* ---------- Online: alle am selben Turm ---------- */
+var TON=false;
+function tDo(ev){if(ev.t==='pick')pick(ev.li,ev.bi,true,{a:!!ev.a,b:!!ev.b});else if(ev.t==='new')newTower(ev.cur);}
+setInterval(()=>{if(TON){$('#btnAgain').style.display=NET.isHost()?'':'none';}},800);
+if(window.NET&&NET.supported()){NET.coop({title:'Wackelturm',label:'Online zusammen spielen',note:'Alle am selben Turm – ihr zieht abwechselnd einen Stein. Wer ihn umwirft, verliert!',max:4,
+  start(){TON=true;NET.evReset();players=NET.players().map(p=>({n:p.name,cpu:false,uid:p.uid,lost:0}));$('#setup').classList.add('hidden');$('#game').classList.remove('hidden');newTower(0);},
+  onData(){if(TON)NET.evPump(tDo);},
+  stop(){if(TON){TON=false;$('#btnAgain').style.display='';$('#btnMenu').onclick();}}});
+  $('#btnMenu').addEventListener('click',()=>{if(TON){TON=false;NET.leave();$('#btnAgain').style.display='';}});}
 
 initHelp('wackelturm');
 </script>
