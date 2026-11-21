@@ -182,14 +182,14 @@ const upper=s=>['1','2','3','4','5','6'].reduce((a,k)=>a+(s[k]??0),0);
 const total=s=>{const u=upper(s);return Object.values(s).reduce((a,b)=>a+b,0)+(u>=63?35:0);};
 function start(){if(!players.length)return;G={p:players.map(p=>({...p,s:{}})),cur:0,d:[0,0,0,0,0],held:[false,false,false,false,false],rolls:0,last:null};
   $('#setup').classList.add('hidden');$('#game').classList.remove('hidden');turn();}
-function turn(){G.d=[0,0,0,0,0];G.held=[false,false,false,false,false];G.rolls=0;render();const P=G.p[G.cur];
+function turn(){if(GON){render();return;}G.d=[0,0,0,0,0];G.held=[false,false,false,false,false];G.rolls=0;render();const P=G.p[G.cur];
   if(P.cpu){busy=true;setTimeout(cpuTurn,700);}else busy=false;}
-function render(){const P=G.p[G.cur];$('#who').textContent=`${P.cpu?'🤖':'🎲'} ${P.n} ist dran`;
+function render(){const P=G.p[G.cur];$('#who').textContent=GON?(P.uid===myUid?'🎲 Du bist dran!':`⏳ ${P.n} ist dran …`):`${P.cpu?'🤖':'🎲'} ${P.n} ist dran`;
   $('#dice').innerHTML=G.d.map((v,i)=>`<div class="die ${G.held[i]?'held':''} ${v?'':'empty'}" data-i="${i}">${[...Array(9)].map((_,k)=>`<i class="${v&&PIPS[v].includes(k)?'on':''}"></i>`).join('')}</div>`).join('');
   $('#hint').textContent=G.rolls===0?'Würfle zuerst!':G.rolls<3?`Noch ${3-G.rolls}× würfeln – tippe Würfel zum Behalten an, oder trage unten ein.`:'Trage jetzt dein Ergebnis unten ein.';
   $('#btnRoll').disabled=G.rolls>=3||busy;$('#btnRoll').textContent=`🎲 Würfeln (${3-G.rolls})`;
   let h=`<tr><th></th>${G.p.map((p,i)=>`<th class="${i===G.cur?'cur':''}">${esc(p.n)}</th>`).join('')}</tr>`;
-  const row=(k,l)=>`<tr><td>${l}</td>${G.p.map((p,i)=>{const v=p.s[k];if(v!=null)return `<td class="used ${G.last===i+':'+k?'last':''}">${v===0?'–':v}</td>`;if(i===G.cur&&G.rolls>0&&!P.cpu){const sv=score(G.d,k);return `<td class="pick ${sv?'':'zero'}" data-k="${k}">${sv}</td>`;}return '<td></td>';}).join('')}</tr>`;
+  const row=(k,l)=>`<tr><td>${l}</td>${G.p.map((p,i)=>{const v=p.s[k];if(v!=null)return `<td class="used ${G.last===i+':'+k?'last':''}">${v===0?'–':v}</td>`;if(i===G.cur&&G.rolls>0&&!P.cpu&&(!GON||P.uid===myUid)){const sv=score(G.d,k);return `<td class="pick ${sv?'':'zero'}" data-k="${k}">${sv}</td>`;}return '<td></td>';}).join('')}</tr>`;
   CATS.slice(0,6).forEach(([k,l])=>h+=row(k,l));
   h+=`<tr class="sum"><td>Bonus (ab 63)</td>${G.p.map(p=>{const u=upper(p.s);return `<td>${u>=63?'+35':u+'/63'}</td>`;}).join('')}</tr>`;
   CATS.slice(6).forEach(([k,l])=>h+=row(k,l));
@@ -197,12 +197,12 @@ function render(){const P=G.p[G.cur];$('#who').textContent=`${P.cpu?'🤖':'🎲
 async function roll(){if(G.rolls>=3)return;G.rolls++;for(let i=0;i<5;i++)if(!G.held[i]||!G.d[i])G.d[i]=1+Math.floor(Math.random()*6);
   render();$$('#dice .die').forEach((el,i)=>{if(!G.held[i])el.classList.add('roll');});for(let k=0;k<5;k++)tone(300+Math.random()*300,.04,k*.05,'square',.05);
   const cnt=[0,0,0,0,0,0,0];G.d.forEach(v=>cnt[v]++);if(Math.max(...cnt)===5){setTimeout(()=>{sWin();confetti();},400);}}
-$('#btnRoll').onclick=()=>{if(busy)return;roll();};
-$('#dice').onclick=e=>{const el=e.target.closest('.die');if(!el||busy||G.rolls===0||G.rolls>=3)return;const i=+el.dataset.i;G.held[i]=!G.held[i];tone(500,.04);render();};
-$('#sheet').onclick=e=>{const td=e.target.closest('td.pick');if(!td||busy)return;commit(td.dataset.k);};
+$('#btnRoll').onclick=async()=>{if(busy||(GON&&!myT()))return;await roll();if(GON)sync();};
+$('#dice').onclick=e=>{const el=e.target.closest('.die');if(!el||busy||G.rolls===0||G.rolls>=3)return;if(GON&&!myT())return;const i=+el.dataset.i;G.held[i]=!G.held[i];tone(500,.04);render();if(GON)sync();};
+$('#sheet').onclick=e=>{const td=e.target.closest('td.pick');if(!td||busy||(GON&&!myT()))return;commit(td.dataset.k);};
 async function commit(k){const P=G.p[G.cur];const v=score(G.d,k);if(v===0&&!P.cpu&&!(await confirmBox(`<b>${CATS.find(c=>c[0]===k)[1]}</b> mit 0 Punkten streichen?`,'Streichen','Abbrechen')))return;
   P.s[k]=v;G.last=G.cur+':'+k;v?tone(660,.1):tone(220,.15,0,'sine');
-  const done=G.p.every(p=>Object.keys(p.s).length===13);if(done){render();setTimeout(end,700);return;}
+  const done=G.p.every(p=>Object.keys(p.s).length===13);if(GON){if(!done){G.cur=(G.cur+1)%G.p.length;G.d=[0,0,0,0,0];G.held=[false,false,false,false,false];G.rolls=0;}render();sync();if(done)setTimeout(end,700);return;}if(done){render();setTimeout(end,700);return;}
   G.cur=(G.cur+1)%G.p.length;setTimeout(turn,P.cpu?900:250);if(P.cpu)render();}
 /* Computer-Strategie */
 function cpuKeep(d,open,rollsLeft){const cnt=[0,0,0,0,0,0,0];d.forEach(v=>cnt[v]++);
@@ -222,12 +222,26 @@ async function cpuTurn(){const P=G.p[G.cur];const open=CATS.map(c=>c[0]).filter(
     const keep=cpuKeep(G.d,open,2-r);if(keep.length===5)break;G.held=G.d.map((v,i)=>keep.includes(i));render();await sleep(700);}
   const k=cpuPick(G.d,P.s);commit(k);}
 function end(){const res=G.p.map(p=>({n:p.n,cpu:p.cpu,t:total(p.s)})).sort((a,b)=>b.t-a.t);const b=KIT.get('gw-best',0);const humanBest=Math.max(0,...res.filter(r=>!r.cpu).map(r=>r.t));if(humanBest>b)KIT.set('gw-best',humanBest);
+  if(GON){gEnd(res);return;}
   if(!res[0].cpu){sWin();confetti();}else sLose();
   modal(`<div class="big">${res[0].cpu?'🤖':'🏆'}</div><h2 style="text-align:center">${esc(res[0].n)} gewinnt!</h2><ol>${res.map(r=>`<li><b>${esc(r.n)}</b>: ${r.t} Punkte</li>`).join('')}</ol>${humanBest>b?'<p style="text-align:center">⭐ Neuer Rekord!</p>':''}<div class="row"><button data-v="m">Menü</button><button class="primary" data-v="a">Nochmal</button></div>`,null,false).then(v=>{if(v==='a')start();else menu();});}
 function menu(){$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');const b=KIT.get('gw-best',0);$('#best').textContent=b?`Rekord: ${b} Punkte`:'';}
 $('#btnMenu').onclick=async()=>{if(await confirmBox('Spiel wirklich beenden?','Beenden','Weiterspielen'))menu();};$('#btnStart').onclick=start;
 applyTheme();plist();menu();
-if(window.NET&&NET.supported()){NET.race({title:'Glückswürfel',unit:'Punkte',start:()=>{players=[{n:(window.ONLINE&&ONLINE.me?ONLINE.me.name:'Ich'),cpu:false}];start();},score:()=>G?total(G.p[0].s):0,ends:{end:()=>total(G.p[0].s)}});}
+/* ---------- Online: abwechselnd würfeln am gemeinsamen Block ---------- */
+var GON=false,myUid=null;
+const myT=()=>G&&G.p[G.cur]&&G.p[G.cur].uid===myUid;
+function sync(){NET.send(JSON.parse(JSON.stringify(G)));}
+function gEnd(res){const me=(NET.me()||{}).name;const win=res[0];if(win.n===me){sWin();confetti();}else sLose();
+  modal(`<div class="big">🏆</div><h2 style="text-align:center">${esc(win.n)} gewinnt!</h2><ol>${res.map(r=>`<li><b>${esc(r.n)}</b>: ${r.t} Punkte</li>`).join('')}</ol><div class="row">${NET.isHost()?'<button class="primary" data-v="a">🔄 Nochmal</button>':''}<button data-v="l">Verlassen</button></div>`,null,false).then(v=>{if(v==='a')NET.again();else{NET.leave();GON=false;menu();}});}
+if(window.NET&&NET.supported()){NET.coop({title:'Glückswürfel',label:'Online zusammen spielen',note:'Alle am selben Punkteblock – ihr würfelt abwechselnd und seht jeden Wurf live.',max:4,
+  start(){GON=true;myUid=(NET.me()||{}).uid;$('#setup').classList.add('hidden');$('#game').classList.remove('hidden');
+    if(NET.isHost()){G={p:NET.players().map(p=>({n:p.name,cpu:false,uid:p.uid,s:{}})),cur:0,d:[0,0,0,0,0],held:[false,false,false,false,false],rolls:0,last:null};busy=false;render();sync();}
+    else{$('#who').textContent='⏳ Gleich geht’s los …';}},
+  onState(st){if(!GON||!st)return;const oldR=G?G.rolls:0;const oldCur=G?G.cur:-1;G=st;G.p=Object.values(G.p||{}).map(p=>({...p,s:p.s||{}}));G.d=Object.values(G.d||[0,0,0,0,0]);G.held=Object.values(G.held||[false,false,false,false,false]).map(Boolean);G.last=G.last||null;busy=false;render();
+    if(G.rolls>oldR&&G.cur===oldCur){$$('#dice .die').forEach((el,i)=>{if(!G.held[i])el.classList.add('roll');});for(let k=0;k<5;k++)tone(300+Math.random()*300,.04,k*.05,'square',.05);}
+    if(G.p.every(p=>Object.keys(p.s).length===13))setTimeout(end,700);},
+  stop(){if(GON){GON=false;menu();}}});}
 
 initHelp('glueckswuerfel');
 </script>

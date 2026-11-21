@@ -228,7 +228,7 @@ function newCpu(){
   C.marks[12]=1;setBall('#cBall',0,false);$('#cLast').innerHTML='';$('#status').textContent=spd?'Gleich geht\'s los …':'Tippe auf „Nächste Kugel“';renderC();segSpd();schedule();
 }
 function stopCpu(){clearTimeout(cTimer);cTimer=null;}
-function schedule(){stopCpu();if(!C||C.over||!spd||mode!=='cpu')return;cTimer=setTimeout(()=>{drawC();schedule();},spd*1000);}
+function schedule(){stopCpu();if(BON){if(NET.isHost()&&C&&!C.over)cTimer=setTimeout(()=>{if(C&&!C.over&&BON)NET.put('k',C.list.length+1);schedule();},(spd||5)*1000);return;}if(!C||C.over||!spd||mode!=='cpu')return;cTimer=setTimeout(()=>{drawC();schedule();},spd*1000);}
 function drawC(){
   if(!C||C.over||!C.bag.length)return;const n=C.bag.pop();C.called.add(n);C.list.push(n);
   setBall('#cBall',n);last5('#cLast',C.list);tone(880,.06);speak(n);
@@ -249,8 +249,8 @@ $('#cCard').onclick=e=>{const c=e.target.closest('.n');if(!c||!C||C.over)return;
   C.marks[i]=C.marks[i]?0:1;tone(660,.05);renderC();};
 $('#btnBingo').onclick=()=>{if(!C||C.over)return;const ok=C.marks.map((m,i)=>m&&(C.g[i]===0||C.called.has(C.g[i])));const l=lineWin(ok);
   if(!l){$('#status').textContent='Noch kein Bingo – du brauchst eine volle Reihe!';tone(220,.12);return;}
-  C.over=true;stopCpu();renderC();l.forEach(i=>$(`#cCard .n[data-i="${i}"]`).classList.add('win'));$('#status').textContent='🎉 BINGO! Du hast gewonnen!';confetti();sWin();};
-$('#btnDraw').onclick=drawC;$('#btnNewC').onclick=newCpu;
+  if(BON){NET.put('win',{n:(NET.me()||{}).name,u:(NET.me()||{}).uid,l});return;}C.over=true;stopCpu();renderC();l.forEach(i=>$(`#cCard .n[data-i="${i}"]`).classList.add('win'));$('#status').textContent='🎉 BINGO! Du hast gewonnen!';confetti();sWin();};
+$('#btnDraw').onclick=()=>{if(BON){if(NET.isHost())NET.put('k',C.list.length+1);return;}drawC();};$('#btnNewC').onclick=()=>{if(BON)return;newCpu();};
 
 /* ===== Ansager ===== */
 let A=KIT.get('bingo-ans',null),aTimer=null;
@@ -283,7 +283,20 @@ $('#btnKClear').onclick=()=>{K.marks=Array(25).fill(0);K.marks[12]=1;saveK();ren
 $('#btnKNew').onclick=async()=>{if(!(await confirmBox('Neue Karte nehmen? Deine Markierungen gehen verloren.','Neue Karte')))return;K={no:1+Math.floor(Math.random()*9999),marks:Array(25).fill(0)};K.marks[12]=1;saveK();renderK();};
 document.addEventListener('visibilitychange',()=>{if(document.hidden){stopCpu();stopAuto();}else if(mode==='cpu')schedule();});
 window.onTheme=()=>{};applyTheme();showMode();
-if(window.NET&&NET.supported()){let rbOn=false;NET.race({title:'Bingo',unit:'Punkte',start:()=>{mode='cpu';try{KIT.set('bingo-mode','cpu');}catch(e){}showMode();newCpu();rbOn=true;},score:()=>0});setInterval(()=>{if(rbOn&&C&&C.over){rbOn=false;NET.raceDone(C.cpus.some(c=>c.calling)?0:Math.max(1,100-C.list.length));}},700);}
+/* ---------- Online: alle spielen mit denselben Kugeln ---------- */
+var BON=false,BOD={};
+function bOthers(){if(!BON||!C)return;const best=Math.max(...LINES.map(l=>l.filter(i=>C.marks[i]).length));NET.live({b:best});
+  $('#cpus').innerHTML=NET.others().map(o=>`<div class="cpu">${esc(o.av||'')} ${esc(o.name)}<div class="bar"><i style="width:${(o.b||0)*20}%"></i></div></div>`).join('')||'<div class="note">Warte auf Mitspieler …</div>';}
+setInterval(bOthers,700);
+if(window.NET&&NET.supported()){NET.coop({title:'Bingo',label:'Online zusammen spielen',note:'Alle hören dieselben Kugeln – jeder hat eine eigene Karte. Wer zuerst eine volle Reihe hat und BINGO drückt, gewinnt!',max:8,
+  start(room,seat){BON=true;BOD={};mode='cpu';showMode();newCpu();stopCpu();C.g=makeCard(1+((NET.seed()+seat*7919)%9999));C.marks=Array(25).fill(0);C.marks[12]=1;C.cpus=[];renderC();
+    $('#btnNewC').style.display='none';$('#btnDraw').classList.toggle('hidden',!NET.isHost());$('#status').textContent=NET.isHost()?'Du bist Ansager: Die Kugeln kommen automatisch.':'Der Gastgeber zieht die Kugeln …';schedule();},
+  onData(d){BOD=d||{};if(!BON||!C)return;const k=d.k||0;while(C.list.length<k&&!C.over)drawC();
+    if(d.win&&!C.over){C.over=true;stopCpu();renderC();const me=d.win.u===(NET.me()||{}).uid;if(me){(d.win.l||[]).forEach(i=>{const el=$(`#cCard .n[data-i="${i}"]`);if(el)el.classList.add('win');});confetti();sWin();}else sLose();
+      $('#status').textContent=me?'🎉 BINGO! Du hast gewonnen!':`📣 ${d.win.n} ruft BINGO und gewinnt!`;
+      setTimeout(()=>modal(`<div class="big">${me?'🏆':'🎱'}</div><h2 style="text-align:center">${me?'Du hast gewonnen!':esc(d.win.n)+' hat gewonnen!'}</h2><p style="text-align:center">nach ${C.list.length} Kugeln</p><div class="row">${NET.isHost()?'<button class="primary" data-v="a">🔄 Neue Runde</button>':''}<button data-v="l">Verlassen</button></div>`,null,false).then(v=>{if(v==='a')NET.clearData().then(()=>NET.again());else{NET.leave();bOff();}}),1500);}},
+  stop(){if(BON)bOff();}});}
+function bOff(){BON=false;stopCpu();$('#btnNewC').style.display='';segSpd();newCpu();}
 
 initHelp('bingo');
 </script>
