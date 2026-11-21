@@ -254,6 +254,7 @@ function found(w){const p=G.players[G.cur];w.by=G.cur;const pts=w.w.length>=7?3:
   if(G.words.every(x=>x.by!==null))return finish();
   if(cfg.mode!=='solo'){clearInterval(timer);clearTimeout(cpuT);setTimeout(()=>nextPlayer(),1100);}}
 function finish(){G.over=true;clearInterval(timer);clearTimeout(cpuT);renderPlayers();
+  if(WON){wEnd();return;}
   if(cfg.mode==='solo'){const s=Math.floor((Date.now()-G.t0)/1000),k='ws-best-'+cfg.diff,b=KIT.get(k,null),rec=!b||s<b;if(rec)KIT.set(k,s);
     $('#status').textContent=`🎉 Alle gefunden in ${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}!${rec?' 🏆 Rekord!':''}`;confetti();sWin();return;}
   const max=Math.max(...G.players.map(p=>p.pts)),win=G.players.filter(p=>p.pts===max);
@@ -277,14 +278,24 @@ window.addEventListener('pointerup',()=>{if(!dragging)return;dragging=false;if(!
 function check(cells){if(!cells){clearSel();return;}const els=$$('#grid .ch');
   const key=cells.join(','),rev=cells.slice().reverse().join(',');
   const w=G.words.find(w=>w.by===null&&(w.cells.join(',')===key||w.cells.join(',')===rev));
-  if(w){clearSel();found(w);}else{cells.forEach(i=>{els[i].classList.add('bad');setTimeout(()=>els[i].classList.remove('bad'),300);});tone(200,.1);setTimeout(clearSel,250);}}
-$('#btnHint').onclick=()=>{if(!canPlay())return;const open=G.words.filter(w=>w.by===null);if(!open.length)return;const w=open[Math.floor(Math.random()*open.length)];const el=$$('#grid .ch')[w.cells[0]];el.classList.remove('hint');void el.offsetWidth;el.classList.add('hint');
+  if(w){clearSel();if(WON){G.cur=wSeat;NET.emit({t:'f',wi:G.words.indexOf(w),s:wSeat});}found(w);}else{cells.forEach(i=>{els[i].classList.add('bad');setTimeout(()=>els[i].classList.remove('bad'),300);});tone(200,.1);setTimeout(clearSel,250);}}
+$('#btnHint').onclick=()=>{if(!canPlay()||WON)return;const open=G.words.filter(w=>w.by===null);if(!open.length)return;const w=open[Math.floor(Math.random()*open.length)];const el=$$('#grid .ch')[w.cells[0]];el.classList.remove('hint');void el.offsetWidth;el.classList.add('hint');
   if(cfg.mode!=='solo'){const p=G.players[G.cur];p.pts=Math.max(0,p.pts-1);renderPlayers();}$('#status').textContent=`💡 Ein Wort beginnt beim blinkenden Buchstaben …`;};
 $('#btnSkip').onclick=()=>{if(!canPlay())return;clearInterval(timer);nextPlayer();};
 $('#btnMenu').onclick=async()=>{if(G&&!G.over&&!(await confirmBox('Spiel beenden?','Beenden','Weiterspielen')))return;token++;clearInterval(timer);clearTimeout(cpuT);$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');renderSetup();};
 $('#btnStart').onclick=start;
 window.onTheme=()=>{};applyTheme();renderSetup();
-if(window.NET&&NET.supported()){NET.race({title:'Wortsuche',lower:true,fmt:v=>Math.floor(v/60)+':'+String(Math.round(v)%60).padStart(2,'0'),start:()=>{cfg.mode='solo';start();},score:()=>G?Math.floor((Date.now()-G.t0)/1000):0,ends:{finish:()=>Math.floor((Date.now()-G.t0)/1000)}});}
+/* ---------- Online: alle suchen im selben Gitter ---------- */
+var WON=false,wSeat=0,wStarted=false,wKeep=null;
+function wDo(ev){if(!G||G.over)return;const w=G.words[ev.wi];if(!w||w.by!==null)return;G.cur=ev.s;found(w);}
+function wEnd(){const r=[...G.players].sort((a,b)=>b.pts-a.pts);const me=r[0]===G.players[wSeat];if(me){sWin();confetti();}else sLose();
+  modal(`<div class="big">🔎🏆</div><h2 style="text-align:center">${esc(r[0].n)} gewinnt!</h2><ol>${r.map(p=>`<li><b style="color:${p.c}">${esc(p.n)}</b>: ${p.pts} Punkte (${p.cnt} Wörter)</li>`).join('')}</ol><div class="row">${NET.isHost()?'<button class="primary" data-v="a">🔄 Nochmal</button>':''}<button data-v="l">Verlassen</button></div>`,null,false).then(v=>{if(v==='a')NET.clearData().then(()=>NET.again());else{NET.leave();wOff();}});}
+function wOff(){WON=false;wStarted=false;if(wKeep){Object.assign(cfg,wKeep);wKeep=null;}$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');renderSetup();}
+if(window.NET&&NET.supported()){NET.coop({title:'Wortsuche',label:'Online zusammen spielen',note:'Alle suchen gleichzeitig im selben Buchstaben-Gitter. Wer ein Wort zuerst findet, bekommt die Punkte!',max:4,
+  start(room,seat){WON=true;wStarted=false;wSeat=seat;NET.evReset();$('#setup').classList.add('hidden');$('#game').classList.remove('hidden');$('#status').textContent='⏳ Gleich geht’s los …';if(NET.isHost())NET.put('cfg',{diff:cfg.diff});},
+  onData(d){if(!WON)return;if(!wStarted&&d.cfg){wStarted=true;wKeep=wKeep||{mode:cfg.mode,diff:cfg.diff};cfg.mode='solo';cfg.diff=d.cfg.diff;NET.seeded(()=>start());G.players=NET.players().map((p,i)=>({n:p.name,c:PCOL[i%PCOL.length],pts:0,cnt:0}));G.cur=wSeat;renderPlayers();$('#status').textContent='🔎 Los! Wer findet die meisten Wörter?';}
+    if(wStarted)NET.evPump(wDo);},
+  stop(){if(WON)wOff();}});}
 
 initHelp('wortsuche');
 </script>

@@ -192,8 +192,8 @@ function render(){const n=G.n,[br,bc]=box(n),s=G.sel,sv=s>=0?G.val[s]:0;
 $('#grid').onclick=e=>{const el=e.target.closest('.sc');if(!el)return;G.sel=+el.dataset.i;tone(500,.03);render();};
 function put(v){const i=G.sel;if(i<0||G.giv[i]||G.val[i]===G.sol[i])return;
   if(G.note){const a=G.notes[i];G.notes[i]=a.includes(v)?a.filter(x=>x!==v):[...a,v];render();return;}
-  G.val[i]=v;G.notes[i]=[];if(v!==G.sol[i]){G.err++;tone(180,.2,0,'sine');}else{tone(700,.07);clearNotes(i,v);checkUnits(i);}
-  render();save();if(G.val.every((x,k)=>x===G.sol[k]))win();}
+  G.val[i]=v;G.notes[i]=[];if(v!==G.sol[i]){G.err++;tone(180,.2,0,'sine');}else{tone(700,.07);clearNotes(i,v);checkUnits(i);if(SUON&&!suApply){NET.emit({t:'v',i,v});suCnt[NET.myUid()]=(suCnt[NET.myUid()]||0)+1;suBar();}}
+  render();if(!SUON)save();if(G.val.every((x,k)=>x===G.sol[k]))win();}
 function clearNotes(i,v){const n=G.n,[br,bc]=box(n),r=Math.floor(i/n),c=i%n;G.notes.forEach((a,k)=>{const y=Math.floor(k/n),x=k%n;if(y===r||x===c||(Math.floor(y/br)===Math.floor(r/br)&&Math.floor(x/bc)===Math.floor(c/bc)))G.notes[k]=a.filter(z=>z!==v);});}
 function checkUnits(i){const n=G.n,[br,bc]=box(n),r=Math.floor(i/n),c=i%n;const units=[[...Array(n)].map((_,k)=>r*n+k),[...Array(n)].map((_,k)=>k*n+c),[...Array(n)].map((_,k)=>(r-r%br+Math.floor(k/bc))*n+(c-c%bc+k%bc))];
   setTimeout(()=>units.forEach(u=>{if(u.every(k=>G.val[k]===G.sol[k])){u.forEach(k=>{const el=$$('#grid .sc')[k];el.classList.remove('done');void el.offsetWidth;el.classList.add('done');});tone(880,.1,0,'triangle',.12);}}),30);}
@@ -202,17 +202,28 @@ document.addEventListener('keydown',e=>{if(!G||$('#game').classList.contains('hi
   const n=G.n;const mv={ArrowUp:-n,ArrowDown:n,ArrowLeft:-1,ArrowRight:1}[e.key];if(mv&&G.sel>=0){G.sel=Math.max(0,Math.min(n*n-1,G.sel+mv));render();}});
 $('#btnNote').onclick=()=>{G.note=!G.note;render();};
 $('#btnDel').onclick=()=>{const i=G.sel;if(i<0||G.giv[i]||G.val[i]===G.sol[i])return;G.val[i]=0;G.notes[i]=[];render();};
-$('#btnHint').onclick=()=>{let i=G.sel;if(i<0||G.giv[i]||G.val[i]===G.sol[i]){const open=G.val.map((v,k)=>v!==G.sol[k]?k:-1).filter(k=>k>=0);if(!open.length)return;i=open[Math.floor(Math.random()*open.length)];G.sel=i;}
+$('#btnHint').onclick=()=>{if(SUON)return;let i=G.sel;if(i<0||G.giv[i]||G.val[i]===G.sol[i]){const open=G.val.map((v,k)=>v!==G.sol[k]?k:-1).filter(k=>k>=0);if(!open.length)return;i=open[Math.floor(Math.random()*open.length)];G.sel=i;}
   const nn=G.note;G.note=false;put(G.sol[i]);G.note=nn;};
 function save(){if(G)KIT.set('su-save',G);}
-function win(){clearInterval(timer);KIT.set('su-save',null);const key=`su-best-${G.n}-${G.lvl}`;const b=KIT.get(key,0);const rec=!b||G.t<b;if(rec)KIT.set(key,G.t);sWin();confetti();
+function win(){if(SUON){suEnd();return;}clearInterval(timer);KIT.set('su-save',null);const key=`su-best-${G.n}-${G.lvl}`;const b=KIT.get(key,0);const rec=!b||G.t<b;if(rec)KIT.set(key,G.t);sWin();confetti();
   modal(`<div class="big">🏆</div><h2 style="text-align:center">Geschafft!</h2><p style="text-align:center">Zeit: <b>${fmtT(G.t)}</b> · Fehler: <b>${G.err}</b>${rec?'<br>⭐ Neue Bestzeit!':''}</p><div class="row"><button data-v="m">Menü</button><button class="primary" data-v="a">Neues Rätsel</button></div>`,null,false).then(v=>{if(v==='a'){cfg.n=G.n;cfg.lvl=G.lvl;start();}else menu();});}
 function menu(){clearInterval(timer);save();$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');showSetup();}
 function showSetup(){const s=KIT.get('su-save',null);$('#btnCont').classList.toggle('hidden',!s);
   const bs=[4,6,9].map(n=>{const b=KIT.get(`su-best-${n}-${cfg.lvl}`,0);return b?`${n}×${n}: ${fmtT(b)}`:null;}).filter(Boolean);$('#best').textContent=bs.length?'Bestzeiten ('+['','Leicht','Mittel','Schwer'][cfg.lvl]+'): '+bs.join(' · '):'';}
 $('#btnMenu').onclick=menu;$('#btnStart').onclick=()=>start();$('#btnCont').onclick=()=>start(KIT.get('su-save',null));
 applyTheme();showSetup();
-if(window.NET&&NET.supported()){NET.race({title:'Zahlen-Sudoku',lower:true,unit:'',fmt:v=>Math.floor(v/60)+':'+String(v%60).padStart(2,'0'),start:()=>start(),score:()=>G?G.t:0,ends:{win:()=>G.t}});}
+/* ---------- Online: gemeinsam dasselbe Rätsel lösen ---------- */
+var SUON=false,suApply=false,suStarted=false,suCnt={},suKeep=null;
+function suBar(){let b=document.getElementById('suBar');if(!b){b=document.createElement('div');b.id='suBar';b.className='note';b.style.cssText='text-align:center;font-weight:800;margin:6px 0';$('#grid').before(b);}
+  b.innerHTML='👥 Team-Rätsel: '+NET.players().map(p=>`${esc(p.av||'')} ${esc(p.name)}: ${suCnt[p.uid]||0}`).join(' · ');}
+function suDo(ev){if(!G)return;if(ev.t==='v'&&G.val[ev.i]!==G.sol[ev.i]){suCnt[ev.by]=(suCnt[ev.by]||0)+1;const sel=G.sel,nt=G.note;G.sel=ev.i;G.note=false;suApply=true;try{put(ev.v);}finally{suApply=false;}G.sel=sel;G.note=nt;const el=$$('#grid .sc')[ev.i];if(el){el.classList.remove('done');void el.offsetWidth;el.classList.add('done');}render();suBar();}}
+function suEnd(){clearInterval(timer);sWin();confetti();const r=NET.players().map(p=>({n:p.name,c:suCnt[p.uid]||0})).sort((a,b)=>b.c-a.c);
+  modal(`<div class="big">🧩🏆</div><h2 style="text-align:center">Zusammen geschafft!</h2><p style="text-align:center">Zeit: <b>${fmtT(G.t)}</b></p><ol>${r.map(p=>`<li><b>${esc(p.n)}</b>: ${p.c} Zahlen eingetragen</li>`).join('')}</ol><div class="row">${NET.isHost()?'<button class="primary" data-v="a">🔄 Neues Rätsel</button>':''}<button data-v="l">Verlassen</button></div>`,null,false).then(v=>{if(v==='a')NET.clearData().then(()=>NET.again());else{NET.leave();suOff();}});}
+function suOff(){SUON=false;suStarted=false;if(suKeep){cfg.n=suKeep.n;cfg.lvl=suKeep.lvl;suKeep=null;}const b=document.getElementById('suBar');if(b)b.remove();menu();}
+if(window.NET&&NET.supported()){NET.coop({title:'Zahlen-Sudoku',label:'Online zusammen lösen',note:'Alle arbeiten am selben Sudoku – richtige Zahlen erscheinen sofort bei allen!',max:4,
+  start(){SUON=true;suStarted=false;suCnt={};NET.evReset();$('#setup').classList.add('hidden');$('#game').classList.remove('hidden');if(NET.isHost())NET.put('cfg',{n:cfg.n,lvl:cfg.lvl});},
+  onData(d){if(!SUON)return;if(!suStarted&&d.cfg){suStarted=true;suKeep=suKeep||{n:cfg.n,lvl:cfg.lvl};cfg.n=d.cfg.n;cfg.lvl=d.cfg.lvl;NET.seeded(()=>start());suBar();}if(suStarted)NET.evPump(suDo);},
+  stop(){if(SUON)suOff();}});}
 
 initHelp('sudoku');
 </script>
