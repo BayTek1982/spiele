@@ -197,9 +197,9 @@ function renderPlayers(){
 }
 function status(){
   if(cfg.mode==='solo'){const s=Math.floor((Date.now()-t0)/1000);const el=$('#tm');if(el)el.textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');$('#status').textContent=found===cards.length/2?'':'Finde alle Paare!';return;}
-  const p=players[cur];$('#status').textContent=p.cpu?'🤖 Computer ist dran …':(cfg.mode==='cpu'?'Du bist dran!':`${p.n} ist dran!`);
+  const p=players[cur];if(ON){$('#status').textContent=p.uid===myUid?'👉 Du bist dran!':`⏳ ${p.n} ist dran …`;return;}$('#status').textContent=p.cpu?'🤖 Computer ist dran …':(cfg.mode==='cpu'?'Du bist dran!':`${p.n} ist dran!`);
 }
-$('#grid').onclick=e=>{const c=e.target.closest('.mc');if(!c||busy||players[cur].cpu)return;flip(+c.dataset.i);};
+$('#grid').onclick=e=>{const c=e.target.closest('.mc');if(!c||busy||players[cur].cpu)return;if(ON){onClick(+c.dataset.i);return;}flip(+c.dataset.i);};
 function flip(i){
   const el=$(`.mc[data-i="${i}"]`);if(el.classList.contains('up')||el.classList.contains('done')||open.length>=2)return;
   el.classList.add('up');open.push(i);tone(600+open.length*120,.05,0,'sine',.12);
@@ -214,6 +214,7 @@ function check(){
   else{[a,b].forEach(i=>$(`.mc[data-i="${i}"]`).classList.remove('up'));if(players.length>1)cur=(cur+1)%players.length;}
   open=[];busy=false;renderPlayers();
   if(found===cards.length/2)return finish();
+  if(ON)setTimeout(pump,0);
   status();if(players[cur].cpu)setTimeout(cpuTurn,700);
 }
 function finish(){
@@ -221,6 +222,7 @@ function finish(){
   if(cfg.mode==='solo'){const k='paare-best-'+cfg.size,b=KIT.get(k,null),rec=!b||moves<b;if(rec)KIT.set(k,moves);
     const s=Math.floor((Date.now()-t0)/1000);$('#status').textContent=`Geschafft in ${moves} Zügen und ${Math.floor(s/60)}:${String(s%60).padStart(2,'0')} Minuten!${rec?' 🏆 Rekord!':''}`;confetti();sWin();return;}
   const max=Math.max(...players.map(p=>p.s)),win=players.filter(p=>p.s===max);
+  if(ON){onFinish(win,max);return;}
   if(win.length>1)$('#status').textContent='Unentschieden! 🤝';
   else if(win[0].cpu){$('#status').textContent='Der Computer gewinnt 🤖';sLose();return;}
   else{$('#status').textContent=`🏆 ${cfg.mode==='cpu'?'Du gewinnst':win[0].n+' gewinnt'}!`;}
@@ -241,7 +243,22 @@ function cpuTurn(){
 }
 const pickRandom=a=>a.length?a[Math.floor(Math.random()*a.length)]:null;
 window.onTheme=()=>{};applyTheme();renderSetup();
-if(window.NET&&NET.supported()){NET.race({title:'Bilder-Paare',lower:true,unit:'Züge',start:()=>{cfg.mode='solo';start();},score:()=>moves||0,ends:{finish:()=>moves}});}
+/* ---------- Online: zusammen am selben Spielfeld ---------- */
+let ON=false,OD={},myUid=null,done=0,started=false,keepMode=null;
+const pad=n=>String(n).padStart(5,'0');
+function onClick(i){const p=players[cur];if(p.uid!==myUid||busy||open.length>=2)return;const el=$(`.mc[data-i="${i}"]`);if(el.classList.contains('up')||el.classList.contains('done'))return;
+  const f=OD.f||{};const n=Math.max(done,Object.keys(f).length)+(window._pend||0);window._pend=(window._pend||0)+1;NET.put('f/'+pad(n),i).then(()=>{window._pend=Math.max(0,(window._pend||1)-1);});}
+function pump(){if(!ON)return;const f=OD.f||{};while(!busy&&open.length<2&&f[pad(done)]!=null){const i=+f[pad(done)];done++;flip(i);}}
+function onBegin(c){started=true;done=0;window._pend=0;keepMode=cfg.mode;const save={...cfg};cfg.size=c.size;cfg.theme=c.theme;cfg.mode='fam';
+  NET.seeded(()=>start());players=NET.players().map(p=>({n:p.name,s:0,uid:p.uid}));cur=0;renderPlayers();status();cfg.size=save.size;cfg.theme=save.theme;
+  $('#btnAgain').style.display='none';ONLINE.toast('🃏 Abwechselnd aufdecken – wer findet die meisten Paare?');}
+function onFinish(win,max){const meWin=win.some(p=>p.uid===myUid);$('#status').textContent=win.length>1?'Unentschieden! 🤝':`🏆 ${win[0].uid===myUid?'Du gewinnst':win[0].n+' gewinnt'}!`;if(meWin){confetti();sWin();}else sLose();
+  setTimeout(()=>modal(`<div class="big">${meWin?'🏆':'🃏'}</div><h2 style="text-align:center">${win.length>1?'Unentschieden!':esc(win[0].n)+' gewinnt!'}</h2><ol>${[...players].sort((a,b)=>b.s-a.s).map(p=>`<li><b>${esc(p.n)}</b>: ${p.s} Paare</li>`).join('')}</ol><div class="row">${NET.isHost()?'<button class="primary" data-v="a">🔄 Nochmal</button>':''}<button data-v="l">Verlassen</button></div>`,null,false).then(v=>{if(v==='a')NET.clearData().then(()=>NET.again());else{NET.leave();onOff();}}),1200);}
+function onOff(){ON=false;started=false;if(keepMode)cfg.mode=keepMode;$('#btnAgain').style.display='';$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');renderSetup();}
+if(window.NET&&NET.supported()){NET.coop({title:'Bilder-Paare',label:'Online zusammen spielen',note:'Alle am selben Spielfeld – deckt abwechselnd Karten auf. Wer ein Paar findet, darf nochmal!',max:4,
+  start(){ON=true;started=false;OD={};myUid=(NET.me()||{}).uid;$('#setup').classList.add('hidden');$('#game').classList.remove('hidden');$('#grid').innerHTML='';$('#status').textContent='⏳ Gleich geht’s los …';if(NET.isHost())NET.put('cfg',{size:cfg.size,theme:cfg.theme});},
+  onData(d){OD=d||{};if(!ON)return;if(!started&&d.cfg)onBegin(d.cfg);if(started)pump();},
+  onPlayers(){},stop(){if(ON)onOff();}});}
 
 initHelp('bilder-paare');
 </script>

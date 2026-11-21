@@ -247,6 +247,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&running&&!
 window.onTheme=()=>draw();
 reset();applyTheme();draw();
 if(window.NET&&NET.supported()){NET.race({title:'Hüpf-Hoch',unit:'m',start:()=>start(),score:()=>Math.round(maxH||0),ends:{gameOver:()=>Math.round(maxH||0)}});}
+if(window.NET&&NET.supported()){NET.ghostify({ctx:()=>ctx,pos:()=>p?{x:Math.round(p.x+16),y:Math.round(p.y+14)}:null,map:o=>[o.x,o.y-camY]});}
 
 initHelp('huepf-hoch');
 </script>

@@ -307,6 +307,7 @@ const music={t:null,step:0,next:0,
   bass(t,f){try{const o=actx.createOscillator(),g=actx.createGain();o.type='sawtooth';o.frequency.value=f;g.gain.setValueAtTime(.07,t);g.gain.exponentialRampToValueAtTime(.001,t+.2);const fl=actx.createBiquadFilter();fl.type='lowpass';fl.frequency.value=900;o.connect(fl).connect(g).connect(actx.destination);o.start(t);o.stop(t+.22);}catch(e){}}};
 window.onTheme=()=>{};applyTheme();renderMenu();
 if(window.NET&&NET.supported()){NET.race({title:'Würfel-Rush',unit:'%',start:()=>start(0),score:()=>run?Math.min(99,Math.floor(P.x/(L.len-2)*100)):0,ends:{die:()=>Math.min(99,Math.floor(P.x/(L.len-2)*100)),win:()=>100}});}
+if(window.NET&&NET.supported()){NET.ghostify({ctx:()=>ctx,pos:()=>P?{x:+P.x.toFixed(2),y:+P.y.toFixed(2)}:null,map:o=>P?[(o.x-(P.x-4)+.5)*TS,VH*TS-TS*1.4-(o.y+.5)*TS]:null,size:24});}
 
 initHelp('wuerfel-rush');
 </script>

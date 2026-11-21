@@ -198,6 +198,7 @@ const KM={ArrowUp:'t',' ':'t',ArrowLeft:'l',ArrowRight:'r',w:'t',a:'l',d:'r'};
 document.addEventListener('keydown',e=>{const k=KM[e.key];if(k&&G){keys[k]=true;e.preventDefault();}});document.addEventListener('keyup',e=>{const k=KM[e.key];if(k)keys[k]=false;});
 $('#btnRe').onclick=()=>start(G.wi);$('#btnMenu').onclick=()=>{thrustSound(false);menu();};applyTheme();menu();
 if(window.NET&&NET.supported()){NET.race({title:'Mondlandung',unit:'Punkte',start:()=>start(0),score:()=>0,ends:{win:(pts)=>pts,lose:()=>0}});}
+if(window.NET&&NET.supported()){NET.ghostify({ctx:()=>ctx,pos:()=>G?{x:Math.round(G.x),y:Math.round(G.y)}:null,map:o=>[o.x,o.y]});}
 
 initHelp('mondlandung');
 </script>

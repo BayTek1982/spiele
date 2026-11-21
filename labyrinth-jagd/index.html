@@ -331,6 +331,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&running&&!
 window.onTheme=()=>{wallCanvas=null;draw();};
 loadDots();resetActors();hud();applyTheme();draw();
 if(window.NET&&NET.supported()){NET.race({title:'Labyrinth-Jagd',unit:'Punkte',start:()=>start(),score:()=>score||0,ends:{gameOver:()=>score}});}
+if(window.NET&&NET.supported()){NET.ghostify({ctx:()=>ctx,pos:()=>{if(!player)return null;const q=pos(player);return {x:+q[0].toFixed(2),y:+q[1].toFixed(2)};},map:o=>[o.x*T+T/2,o.y*T+T/2],size:22});}
 
 initHelp('labyrinth-jagd');
 </script>

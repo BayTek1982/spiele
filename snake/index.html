@@ -209,6 +209,7 @@ window.onTheme=()=>draw();
 reset();segs();applyTheme();draw();
 setInterval(()=>{if(bonus&&running&&!paused)draw();},120);
 if(window.NET&&NET.supported()){NET.race({title:'Snake',unit:'Punkte',start:()=>start(),score:()=>score||0,ends:{die:()=>score}});}
+if(window.NET&&NET.supported()){NET.ghostify({ctx:()=>ctx,pos:()=>snake?{s:snake.slice(0,60).flat().join(',')}:null,paint:(c,o)=>{const a=String(o.s||'').split(',').map(Number);if(a.length<2)return;const col=['#4a9dff','#ff5aa8','#8e5cf0','#2fbf71'][o.seat%4];c.save();c.globalAlpha=.45;c.fillStyle=col;for(let i=0;i<a.length;i+=2)c.fillRect(a[i]*CS+3,a[i+1]*CS+3,CS-6,CS-6);c.restore();NET.drawGhost(c,o,[a[0]*CS+CS/2,a[1]*CS+CS/2],CS*1.1);}});}
 
 initHelp('snake');
 </script>

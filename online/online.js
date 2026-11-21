@@ -146,7 +146,7 @@ NET.race=function(opts){RACE.opts=opts;if(!O.available)return;
   // End-Funktionen umhüllen
   for(const [fn,get] of Object.entries(opts.ends||{})){const orig=window[fn];if(typeof orig!=='function')continue;window[fn]=function(){try{if(RACE.on&&!RACE.done){const v=get.apply(null,arguments);if(v!==undefined&&v!==null)raceDone(v);}}catch(e){console.warn(e)}return orig.apply(this,arguments);};}
   NET.setup({title:opts.title,min:2,max:8,
-    onStart(room,seat){RACE.on=true;RACE.done=false;RACE.shown=false;NET.clearData&&0;closeRaceRes();try{NET.seeded(()=>opts.start());}catch(e){console.error(e)}raceBoard();clearInterval(RACE.iv);
+    onStart(room,seat){NET._gh={};NET._live={};RACE.on=true;RACE.done=false;RACE.shown=false;NET.clearData&&0;closeRaceRes();try{NET.seeded(()=>opts.start());}catch(e){console.error(e)}raceBoard();clearInterval(RACE.iv);
       RACE.iv=setInterval(()=>{if(!RACE.on||RACE.done)return;let v=0;try{v=opts.score();}catch(e){}if(v!=null&&v!==RACE.last){RACE.last=v;NET.put('sc/'+O.me.uid,{s:v,d:false,n:O.me.name,a:O.me.av});}},1000);
       NET.put('sc/'+O.me.uid,{s:0,d:false,n:O.me.name,a:O.me.av});},
     onData(d){raceBoard(d);if(opts.onData)try{opts.onData(d)}catch(e){console.warn(e)}},
@@ -162,6 +162,9 @@ NET.coop=function(opts){if(!O.available)return;
     onState:opts.onState,
     onData(d,r){if(opts.onData)try{opts.onData(d,r)}catch(e){console.warn(e)}},
     onPlayers(r){if(opts.onPlayers)try{opts.onPlayers(r)}catch(e){}if(r.status==='wait'&&opts.stop)try{opts.stop()}catch(e){}}});};
+NET.drawGhost=function(c,o,pt,size){if(!pt)return;size=size||26;const sc=(c.getTransform?c.getTransform().a:1)||1,cw=c.canvas.width/sc,ch=c.canvas.height/sc;let [x,y]=pt;const off=x<-10||y<-10||x>cw+10||y>ch+10;x=Math.max(14,Math.min(cw-14,x));y=Math.max(size/2+16,Math.min(ch-14,y));
+  c.save();c.globalAlpha=off?.55:.9;c.font=size+'px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillText(o.av||'🙂',x,y);c.font='900 11px Nunito,sans-serif';const t=(off?(pt[1]<0?'▲ ':pt[1]>ch?'▼ ':''):'')+o.name;const w=c.measureText(t).width+8;c.fillStyle='rgba(0,0,0,.65)';c.fillRect(x-w/2,y-size/2-17,w,14);c.fillStyle='#fff';c.fillText(t,x,y-size/2-10);c.restore();};
+NET.ghostify=function(o){const fn=o.draw||'draw';const orig=window[fn];if(typeof orig!=='function')return;window[fn]=function(){const r=orig.apply(this,arguments);try{if(NET.active()){const p=o.pos();if(p)NET.live(p);const c=typeof o.ctx==='function'?o.ctx():o.ctx;if(c)for(const g of NET.others()){if(o.paint)o.paint(c,g);else NET.drawGhost(c,g,o.map(g),o.size);}}}catch(e){}return r;};};
 NET.active=()=>!!(NET.roomId&&NET.room&&NET.room.status==='play');
 function raceDone(v){RACE.done=true;clearInterval(RACE.iv);NET.put('sc/'+O.me.uid,{s:v,d:true,n:O.me.name,a:O.me.av});toast('🏁 Fertig! Warte auf die anderen …');}
 NET.raceDone=v=>{if(RACE.on&&!RACE.done)raceDone(v);};NET._race=RACE;
