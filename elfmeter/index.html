@@ -236,7 +236,7 @@ function sCrowd(good){if(!soundOn||!actx||actx.state!=='running')return;try{cons
 let G=null,meterT=null,meterV=0,meterDir=1,aimPt=null,token=0,keeperPick=null,history=[];
 function start(){
   token++;const A=team(cfg.t1),B=team(cfg.t2);
-  G={T:[A,B],names:cfg.mode==='cpu'?['Du','Computer']:['Spieler 1','Spieler 2'],res:[[],[]],turn:0,kicks:0,over:false};history=[];
+  G={T:[A,B],names:EON?NET.players().slice(0,2).map(p=>p.name):cfg.mode==='cpu'?['Du','Computer']:['Spieler 1','Spieler 2'],res:[[],[]],turn:0,kicks:0,over:false};history=[];
   $('#setup').classList.add('hidden');$('#game').classList.remove('hidden');scene();sWhistle();nextKick();
 }
 const shooterIdx=()=>G.kicks%2; // 0 = Team 1 schießt
@@ -253,6 +253,7 @@ async function nextKick(){
   board();if(decided())return finish();
   const si=shooterIdx(),tk=++token;resetPositions();$('#zones').classList.add('hidden');$('#aim').classList.add('hidden');$('#meterBox').classList.add('hidden');$('#btnShoot').classList.add('hidden');
   const n=G.res[si].length+1;
+  if(EON){eKick(si,tk,n);return;}
   if(cfg.mode==='cpu'){
     if(si===0){$('#role').textContent=`⚽ Du schießt – ${n}. Elfmeter`;$('#msg').textContent='Tippe ins Tor: Wohin willst du schießen?';aimMode(tk);}
     else{$('#role').textContent=`🧤 Du bist Torwart – ${n}. Elfmeter`;cpuShoots(tk);}
@@ -283,7 +284,7 @@ function shotResult(target,power){
   const speed=power<.35?.55:power<.8?.85+power*.15:1.05;return {x,y,power,speed};
 }
 async function humanShot(tk,target,power){
-  const S=shotResult(target,power);history.push(target[0]<168?0:target[0]>232?2:1);
+  const S=shotResult(target,power);if(EON){NET.put('k'+G.kicks+'/s',S);$('#msg').textContent='Schuss abgegeben! Warte auf den Torwart … 🧤';return;}history.push(target[0]<168?0:target[0]>232?2:1);
   // Torwart (Computer oder Mensch) entscheidet
   let dive;
   if(cfg.mode==='cpu'){dive=cpuKeeperGuess(S);}
@@ -363,12 +364,26 @@ function finish(){
   else{const w=a>b?0:1;h=`<div class="big">🏆</div><h2>${G.T[w].f} ${G.names[w]} gewinnt ${Math.max(a,b)}:${Math.min(a,b)}!</h2>`;confetti();sWin();}
   $('#msg').textContent='Abpfiff!';
   const c=$('#cover');c.innerHTML=h+'<div class="row" style="justify-content:center"><button class="primary" id="cAgain">Nochmal</button><button id="cMenu">Menü</button></div>';c.classList.remove('hidden');
+  if(EON){const me=(NET.me()||{}).name,w=a>b?0:1;if(G.names[w]!==me){sLose();}$('#cAgain').style.display=NET.isHost()?'':'none';$('#cAgain').onclick=()=>{c.classList.add('hidden');NET.clearData().then(()=>NET.again());};$('#cMenu').textContent='Verlassen';$('#cMenu').onclick=()=>{c.classList.add('hidden');NET.leave();eOff();};return;}
   $('#cAgain').onclick=()=>{c.classList.add('hidden');start();};$('#cMenu').onclick=()=>{c.classList.add('hidden');toMenu();};
 }
 function toMenu(){token++;clearInterval(meterT);$('#cover').classList.add('hidden');$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');renderSetup();}
 $('#btnMenu').onclick=toMenu;$('#btnStart').onclick=start;
 window.onTheme=()=>{};applyTheme();renderSetup();
-if(window.NET&&NET.supported()){NET.race({title:'Elfmeter',unit:'Punkte',start:()=>{cfg.mode='cpu';start();},score:()=>G?G.res[0].filter(Boolean).length*10:0,ends:{finish:()=>G.res[0].filter(Boolean).length*10+(G.res[1].length-G.res[1].filter(Boolean).length)*5}});}
+/* ---------- Online: echtes Elfmeterschießen gegeneinander ---------- */
+var EON=false,EOD={},eSeat=0,eStarted=false,ePlayed={},eKeep=null;
+function eKick(si,tk,n){const sn=G.names[si],kn=G.names[1-si];$('#role').textContent=`⚽ ${sn} schießt · 🧤 ${kn} hält`;
+  if(eSeat===si){$('#msg').textContent=`Du schießt (${n}. Elfmeter)! Tippe ins Tor: Wohin?`;aimMode(tk);}
+  else{$('#msg').textContent=`Du bist Torwart! Tippe die Ecke, in die du springst – ${sn} zielt gerade …`;pickZone(tk,null).then(z=>{if(tk!==token)return;NET.put('k'+G.kicks+'/d',z);$('#msg').textContent='Ecke gewählt! Warte auf den Schuss … ⚽';});}
+  ePump();}
+function ePump(){if(!EON||!G||G.over)return;const k=EOD['k'+G.kicks];if(!k||!k.s||!k.d||ePlayed[G.kicks])return;ePlayed[G.kicks]=1;const z=Object.values(k.d).map(Number);
+  $('#zones').classList.add('hidden');$('#aim').classList.add('hidden');$('#meterBox').classList.add('hidden');$('#btnShoot').classList.add('hidden');play(token,k.s,z,false);}
+function eBegin(c){eStarted=true;ePlayed={};eKeep=eKeep||{mode:cfg.mode,t1:cfg.t1,t2:cfg.t2};cfg.mode='pvp';cfg.t1=c.t1;cfg.t2=c.t2;start();}
+function eOff(){EON=false;eStarted=false;if(eKeep){cfg.mode=eKeep.mode;cfg.t1=eKeep.t1;cfg.t2=eKeep.t2;eKeep=null;}toMenu();}
+if(window.NET&&NET.supported()){NET.coop({title:'Elfmeter',label:'Online gegeneinander',note:'Echtes Elfmeterschießen: Einer schießt, der andere hält – live auf zwei Handys!',min:2,max:2,
+  start(room,seat){EON=true;eStarted=false;EOD={};eSeat=seat;$('#setup').classList.add('hidden');$('#game').classList.remove('hidden');$('#msg').textContent='⏳ Gleich geht’s los …';if(NET.isHost())NET.put('cfg',{t1:cfg.t1,t2:cfg.t2});},
+  onData(d){EOD=d||{};if(!EON)return;if(!eStarted&&d.cfg){eBegin(d.cfg);return;}ePump();},
+  stop(){if(EON)eOff();}});}
 
 initHelp('elfmeter');
 </script>
