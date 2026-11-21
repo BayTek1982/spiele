@@ -158,18 +158,18 @@ let cfg={mode:+KIT.get('bo-mode',1),lvl:+KIT.get('bo-lvl',2),win:+KIT.get('bo-wi
 function bindSeg(id,val,cb){const el=$(id);const set=v=>{el.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v==String(v)));};set(val);el.onclick=e=>{const b=e.target.closest('button');if(!b)return;set(b.dataset.v);cb(b.dataset.v);};}
 bindSeg('#modeSeg',cfg.mode,v=>{cfg.mode=+v;KIT.set('bo-mode',+v);});bindSeg('#lvlSeg',cfg.lvl,v=>{cfg.lvl=+v;KIT.set('bo-lvl',+v);});bindSeg('#winSeg',cfg.win,v=>{cfg.win=+v;KIT.set('bo-win',+v);});
 function newMatch(){wins=[0,0,0,0];round();}
-function round(){const map=[];for(let y=0;y<R;y++){map.push([]);for(let x=0;x<C;x++){let v=0;if(x===0||y===0||x===C-1||y===R-1||(x%2===0&&y%2===0))v=1;else if(Math.random()<.68)v=2;map[y].push(v);}}
+function round(){const rr=BON?NET.rng(NET.seed()+(++bRound)*977):Math.random;const map=[];for(let y=0;y<R;y++){map.push([]);for(let x=0;x<C;x++){let v=0;if(x===0||y===0||x===C-1||y===R-1||(x%2===0&&y%2===0))v=1;else if(rr()<.68)v=2;map[y].push(v);}}
   const starts=[[1,1],[C-2,R-2],[C-2,1],[1,R-2]];for(const [sx,sy] of starts)for(const [dx,dy] of [[0,0],[1,0],[-1,0],[0,1],[0,-1]]){const x=sx+dx,y=sy+dy;if(map[y][x]===2)map[y][x]=0;}
-  const names=cfg.mode===2?[{n:'Spieler 1',c:'#2f7de1',e:'🙂'},{n:'Spieler 2',c:'#ff6ad5',e:'😎'},HEROES[2],HEROES[3]]:HEROES;
-  G={map,items:{},bombs:[],flames:[],pl:starts.map(([x,y],i)=>({i,...names[i],x,y,tx:x,ty:y,mv:0,alive:true,bombs:1,range:2,speed:4.2,human:i===0||(cfg.mode===2&&i===1),think:0,dir:null,face:'d',deadT:0})),t:0,state:'run',parts:[]};
+  const names=BON?NET.players().map((p,i)=>({n:p.name,c:['#2f7de1','#e0453a','#2fa35a','#f2c21b'][i],e:p.av||'🙂'})):cfg.mode===2?[{n:'Spieler 1',c:'#2f7de1',e:'🙂'},{n:'Spieler 2',c:'#ff6ad5',e:'😎'},HEROES[2],HEROES[3]]:HEROES;
+  G={map,items:{},bombs:[],flames:[],pl:starts.map(([x,y],i)=>({i,...names[i],x,y,tx:x,ty:y,mv:0,alive:true,bombs:1,range:2,speed:4.2,human:BON?i===bSeat:(i===0||(cfg.mode===2&&i===1)),remote:BON&&i!==bSeat,think:0,dir:null,face:'d',deadT:0})).filter((p,i)=>!BON||i<NET.players().length),t:0,state:'run',parts:[]};
   $('#setup').classList.add('hidden');$('#game').classList.remove('hidden');bar();last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);}
 function bar(){$('#bar').innerHTML=G.pl.map((p,i)=>`<div class="${p.alive?'':'dead'}" style="border-color:${p.c}">${p.e} ${p.n} ${'🏆'.repeat(wins[i])}</div>`).join('');}
 const solid=(x,y,ignoreBombAt)=>{if(x<0||y<0||x>=C||y>=R)return true;if(G.map[y][x])return true;return G.bombs.some(b=>b.x===x&&b.y===y&&!(ignoreBombAt&&ignoreBombAt[0]===x&&ignoreBombAt[1]===y));};
 const DIRS={u:[0,-1],d:[0,1],l:[-1,0],r:[1,0]};
-function placeBomb(p){if(!p.alive)return;const x=Math.round(p.x),y=Math.round(p.y);if(G.bombs.some(b=>b.x===x&&b.y===y))return;if(G.bombs.filter(b=>b.o===p.i).length>=p.bombs)return;G.bombs.push({x,y,o:p.i,t:2.2,r:p.range});tone(300,.06,0,'square',.06);}
+function placeBomb(p){if(!p.alive)return;const x=Math.round(p.x),y=Math.round(p.y);if(G.bombs.some(b=>b.x===x&&b.y===y))return;if(G.bombs.filter(b=>b.o===p.i).length>=p.bombs)return;G.bombs.push({x,y,o:p.i,t:2.2,r:p.range});tone(300,.06,0,'square',.06);if(BON&&p.i===bSeat)NET.emit({t:'b',x,y,r:p.range,o:p.i});}
 function blastTiles(b){const out=[[b.x,b.y]];for(const [dx,dy] of Object.values(DIRS)){for(let k=1;k<=b.r;k++){const x=b.x+dx*k,y=b.y+dy*k;if(G.map[y][x]===1)break;out.push([x,y]);if(G.map[y][x]===2)break;}}return out;}
 function explode(b){G.bombs=G.bombs.filter(o=>o!==b);const tiles=blastTiles(b);tone(90,.35,0,'sawtooth',.18);tone(60,.4,.03,'square',.12);
-  for(const [x,y] of tiles){G.flames.push({x,y,t:.55,c:x===b.x&&y===b.y});if(G.map[y][x]===2){G.map[y][x]=0;for(let k=0;k<8;k++)G.parts.push({x:x*T+T/2,y:y*T+T/2,vx:(Math.random()-.5)*200,vy:(Math.random()-.5)*200,life:.6,c:'#b07a3a'});const r=Math.random();if(r<.32)G.items[x+','+y]=r<.12?'b':r<.24?'f':'s';}
+  for(const [x,y] of tiles){G.flames.push({x,y,t:.55,c:x===b.x&&y===b.y});if(G.map[y][x]===2){G.map[y][x]=0;for(let k=0;k<8;k++)G.parts.push({x:x*T+T/2,y:y*T+T/2,vx:(Math.random()-.5)*200,vy:(Math.random()-.5)*200,life:.6,c:'#b07a3a'});const r=BON?NET.rng(NET.seed()+bRound*31+x*131+y*7)():Math.random();if(r<.32)G.items[x+','+y]=r<.12?'b':r<.24?'f':'s';}
     else if(G.items[x+','+y]&&!(G.map[y][x]))delete G.items[x+','+y];
     for(const o of G.bombs)if(o.x===x&&o.y===y)o.t=Math.min(o.t,.05);}}
 function danger(){const d=Array.from({length:R},()=>Array(C).fill(99));for(const f of G.flames)d[f.y][f.x]=0;for(const b of G.bombs)for(const [x,y] of blastTiles(b))d[y][x]=Math.min(d[y][x],b.t);return d;}
@@ -190,19 +190,21 @@ function aiThink(p){const x=Math.round(p.x),y=Math.round(p.y);const d=danger();c
   const opts=Object.keys(DIRS).filter(k=>{const [dx,dy]=DIRS[k];return !solid(x+dx,y+dy)&&d[y+dy][x+dx]===99;});p.dir=opts.length?opts[Math.floor(Math.random()*opts.length)]:null;}
 function canEscape(p,x,y){const fake={x,y,r:p.range,t:2.2};const tiles=new Set(blastTiles(fake).map(([a,b])=>a+','+b));const d=danger();G.bombs.push({x,y,o:-1,t:2.2,r:p.range});
   const r=bfs(x,y,(a,b)=>!tiles.has(a+','+b)&&d[b][a]===99,(a,b,s)=>d[b][a]<s/p.speed+.3,8);G.bombs.pop();return !!r&&r.dist<=5;}
-function humanDir(p){if(p.i===0)return keys.u?'u':keys.d?'d':keys.l?'l':keys.r?'r':null;return keys.w?'u':keys.s?'d':keys.a?'l':keys.dd?'r':null;}
+function humanDir(p){if(BON)return p.i===bSeat?(keys.u?'u':keys.d?'d':keys.l?'l':keys.r?'r':null):null;if(p.i===0)return keys.u?'u':keys.d?'d':keys.l?'l':keys.r?'r':null;return keys.w?'u':keys.s?'d':keys.a?'l':keys.dd?'r':null;}
 function step(dt){G.t+=dt;
   for(const b of [...G.bombs]){b.t-=dt;if(b.t<=0)explode(b);}
   for(const f of G.flames)f.t-=dt;G.flames=G.flames.filter(f=>f.t>0);
+  if(BON){const me=G.pl[bSeat];if(me&&me.alive)NET.live({x:+me.x.toFixed(2),y:+me.y.toFixed(2),f:me.face,m:me.mv?1:0});const os=NET.others();for(const p of G.pl){if(!p.remote)continue;const o=os.find(q=>q.seat===p.i);if(o){p.x=o.x;p.y=o.y;p.face=o.f||'d';p.mv=o.m||0;}}}
   for(const p of G.pl){if(!p.alive){p.deadT+=dt;continue;}
+    if(p.remote)continue;
     if(!p.human){p.think-=dt;if(p.mv===0&&p.think<=0){aiThink(p);p.think=[0,.35,.18,.06][cfg.lvl];}}
     if(p.mv===0){const dir=p.human?humanDir(p):p.dir;if(dir){p.face=dir;const [dx,dy]=DIRS[dir];const cx=Math.round(p.x),cy=Math.round(p.y);if(!solid(cx+dx,cy+dy)){p.tx=cx+dx;p.ty=cy+dy;p.mv=1;}}}
     if(p.mv){const dx=p.tx-p.x,dy=p.ty-p.y,dist=Math.hypot(dx,dy),st=p.speed*dt;if(dist<=st){p.x=p.tx;p.y=p.ty;p.mv=0;if(!p.human)p.think=0;}else{p.x+=dx/dist*st;p.y+=dy/dist*st;}}
-    const tx=Math.round(p.x),ty=Math.round(p.y);const it=G.items[tx+','+ty];if(it){delete G.items[tx+','+ty];if(it==='b')p.bombs++;if(it==='f')p.range++;if(it==='s')p.speed=Math.min(7,p.speed+.7);[700,900,1200].forEach((f,k)=>tone(f,.06,k*.05,'triangle',.1));}
-    if(G.flames.some(f=>f.x===tx&&f.y===ty)){p.alive=false;tone(400,.1);tone(200,.3,.1,'sine',.15);for(let k=0;k<16;k++)G.parts.push({x:p.x*T+T/2,y:p.y*T+T/2,vx:(Math.random()-.5)*260,vy:(Math.random()-.5)*260,life:.8,c:p.c});bar();}}
+    const tx=Math.round(p.x),ty=Math.round(p.y);const it=G.items[tx+','+ty];if(it){delete G.items[tx+','+ty];if(it==='b')p.bombs++;if(it==='f')p.range++;if(it==='s')p.speed=Math.min(7,p.speed+.7);if(BON)NET.emit({t:'it',k:tx+','+ty});[700,900,1200].forEach((f,k)=>tone(f,.06,k*.05,'triangle',.1));}
+    if(G.flames.some(f=>f.x===tx&&f.y===ty)){if(BON)NET.emit({t:'die',s:p.i});p.alive=false;tone(400,.1);tone(200,.3,.1,'sine',.15);for(let k=0;k<16;k++)G.parts.push({x:p.x*T+T/2,y:p.y*T+T/2,vx:(Math.random()-.5)*260,vy:(Math.random()-.5)*260,life:.8,c:p.c});bar();}}
   for(const q of G.parts){q.x+=q.vx*dt;q.y+=q.vy*dt;q.life-=dt;}G.parts=G.parts.filter(q=>q.life>0);
-  const alive=G.pl.filter(p=>p.alive);if(G.state==='run'&&(alive.length<=1||(cfg.mode===1&&!G.pl[0].alive)||(cfg.mode===2&&!G.pl[0].alive&&!G.pl[1].alive))){G.state='end';setTimeout(roundEnd,1200);}}
-function roundEnd(){const alive=G.pl.filter(p=>p.alive);let w=alive.length===1?alive[0]:null;if(!w&&alive.length>1)w=null;
+  const alive=G.pl.filter(p=>p.alive);if(G.state==='run'&&(alive.length<=1||(!BON&&cfg.mode===1&&!G.pl[0].alive)||(cfg.mode===2&&!G.pl[0].alive&&!G.pl[1].alive))){G.state='end';setTimeout(roundEnd,1200);}}
+function roundEnd(){if(BON){bEnd();return;}const alive=G.pl.filter(p=>p.alive);let w=alive.length===1?alive[0]:null;if(!w&&alive.length>1)w=null;
   if(w)wins[w.i]++;bar();const champ=wins.findIndex(x=>x>=cfg.win);const humanWon=w&&w.human;if(humanWon){sWin();confetti();}else sLose();
   const txt=w?`${w.e} ${w.n} gewinnt die Runde!`:alive.length?'Die Computer kämpfen weiter – du bist raus!':'Unentschieden – alle erwischt! 💥';
   if(champ>=0){modal(`<div class="big">🏆</div><h2 style="text-align:center">${G.pl[champ].n} ist Arena-Champion!</h2><div class="row"><button data-v="m">Menü</button><button class="primary" data-v="a">Neues Turnier</button></div>`,null,false).then(v=>v==='a'?newMatch():menu());}
@@ -226,13 +228,26 @@ function draw(){const dark=theme==='dark';ctx.fillStyle=dark?'#2a4a2a':'#8fcf6a'
   for(const q of G.parts){ctx.globalAlpha=Math.max(0,q.life);ctx.fillStyle=q.c;ctx.fillRect(q.x-3,q.y-3,6,6);}ctx.globalAlpha=1;}
 function loop(now){const dt=Math.min(.033,(now-last)/1000);last=now;if(G){if(G.state!=='pause')step(dt);draw();}raf=requestAnimationFrame(loop);}
 const KM={ArrowUp:'u',ArrowDown:'d',ArrowLeft:'l',ArrowRight:'r',w:'w',a:'a',s:'s',d:'dd'};
-document.addEventListener('keydown',e=>{if(!G)return;const k=KM[e.key]||KM[e.key.toLowerCase()];if(k){keys[k]=true;e.preventDefault();}if(e.code==='Space'){placeBomb(G.pl[0]);e.preventDefault();}if(e.key.toLowerCase()==='q'&&cfg.mode===2)placeBomb(G.pl[1]);});
+document.addEventListener('keydown',e=>{if(!G)return;const k=KM[e.key]||KM[e.key.toLowerCase()];if(k){keys[k]=true;e.preventDefault();}if(e.code==='Space'){placeBomb(G.pl[BON?bSeat:0]);e.preventDefault();}if(e.key.toLowerCase()==='q'&&cfg.mode===2)placeBomb(G.pl[1]);});
 document.addEventListener('keyup',e=>{const k=KM[e.key]||KM[e.key.toLowerCase()];if(k)keys[k]=false;});
 $$('.dpd button').forEach(b=>{const d=b.dataset.d;const on=e=>{e.preventDefault();keys[d]=true;b.classList.add('on');try{b.setPointerCapture(e.pointerId);}catch(_){}};const off=()=>{keys[d]=false;b.classList.remove('on');};b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);b.oncontextmenu=e=>e.preventDefault();});
-$('#bBomb').addEventListener('pointerdown',e=>{e.preventDefault();if(G)placeBomb(G.pl[0]);$('#bBomb').classList.add('on');setTimeout(()=>$('#bBomb').classList.remove('on'),120);});
+$('#bBomb').addEventListener('pointerdown',e=>{e.preventDefault();if(G)placeBomb(G.pl[BON?bSeat:0]);$('#bBomb').classList.add('on');setTimeout(()=>$('#bBomb').classList.remove('on'),120);});
 function menu(){cancelAnimationFrame(raf);G=null;$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');}
 $('#btnMenu').onclick=menu;$('#btnStart').onclick=newMatch;applyTheme();
-if(window.NET&&NET.supported()){NET.race({title:'Bomben-Arena',unit:'Punkte',start:()=>{cfg.win=1;cfg.mode=1;newMatch();},score:()=>G?Math.round(G.t):0,ends:{roundEnd:()=>Math.round(G.t)+(G.pl[0].alive?100:0)}});}
+/* ---------- Online: alle in einer Arena ---------- */
+var BON=false,bSeat=0,bRound=0,bClose=null;
+function bDo(ev){if(!G)return;if(ev.t==='round'){if(bClose)bClose();round();return;}
+  if(ev.t==='b'){if(!G.bombs.some(b=>b.x===ev.x&&b.y===ev.y))G.bombs.push({x:ev.x,y:ev.y,o:ev.o,t:2.2,r:ev.r});tone(300,.06,0,'square',.06);}
+  else if(ev.t==='it'){delete G.items[ev.k];}
+  else if(ev.t==='die'){const p=G.pl[ev.s];if(p&&p.alive){p.alive=false;tone(400,.1);tone(200,.3,.1,'sine',.15);for(let k=0;k<16;k++)G.parts.push({x:p.x*T+T/2,y:p.y*T+T/2,vx:(Math.random()-.5)*260,vy:(Math.random()-.5)*260,life:.8,c:p.c});bar();}}}
+function bEnd(){const alive=G.pl.filter(p=>p.alive);const w=alive.length===1?alive[0]:null;if(w)wins[w.i]++;bar();const me=w&&w.i===bSeat;if(me){sWin();confetti();}else sLose();
+  const champ=wins.findIndex(x=>x>=3);
+  modal(`<div class="big">${champ>=0?'🏆':me?'🎉':'💥'}</div><h2 style="text-align:center">${champ>=0?esc(G.pl[champ].n)+' ist Arena-Champion!':w?esc(w.n)+' gewinnt die Runde!':'Unentschieden – alle erwischt! 💥'}</h2><p style="text-align:center">${G.pl.map((p,i)=>`${p.e} ${esc(p.n)}: ${'🏆'.repeat(wins[i])||'0'}`).join(' · ')}<br><span class="note">Wer zuerst 3 Runden gewinnt, ist Champion.</span></p><div class="row">${NET.isHost()?`<button class="primary" data-v="a">${champ>=0?'🔄 Neues Turnier':'Nächste Runde ➜'}</button>`:'<span class="note">Der Gastgeber startet die nächste Runde.</span>'}<button data-v="l">Verlassen</button></div>`,(b,close)=>{bClose=()=>{bClose=null;close();};},false).then(v=>{bClose=null;if(v==='a'){if(champ>=0)wins=[0,0,0,0];NET.emit({t:'round',w:champ>=0?1:0});round();}else if(v==='l'){NET.leave();BON=false;menu();}});}
+if(window.NET&&NET.supported()){NET.coop({title:'Bomben-Arena',label:'Online gegeneinander',note:'Alle in einer Arena – legt Bomben, sammelt Items und seid der Letzte, der übrig bleibt!',min:2,max:4,
+  start(room,seat){BON=true;bSeat=seat;bRound=0;wins=[0,0,0,0];NET.evReset();round();},
+  onData(){if(BON)NET.evPump(ev=>{if(ev.t==='round'&&ev.w)wins=[0,0,0,0];bDo(ev);});},
+  stop(){if(BON){BON=false;if(bClose)bClose();menu();}}});
+  $('#btnMenu').addEventListener('click',()=>{if(BON){BON=false;NET.leave();}});}
 
 initHelp('bomben-arena');
 </script>
