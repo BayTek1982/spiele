@@ -97,7 +97,7 @@ canvas{display:block;width:100%;height:auto}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=4"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -197,6 +197,7 @@ hold('#bL','l');hold('#bR','r');hold('#bT','t');
 const KM={ArrowUp:'t',' ':'t',ArrowLeft:'l',ArrowRight:'r',w:'t',a:'l',d:'r'};
 document.addEventListener('keydown',e=>{const k=KM[e.key];if(k&&G){keys[k]=true;e.preventDefault();}});document.addEventListener('keyup',e=>{const k=KM[e.key];if(k)keys[k]=false;});
 $('#btnRe').onclick=()=>start(G.wi);$('#btnMenu').onclick=()=>{thrustSound(false);menu();};applyTheme();menu();
+if(window.NET&&NET.supported()){NET.race({title:'Mondlandung',unit:'Punkte',start:()=>start(0),score:()=>0,ends:{win:(pts)=>pts,lose:()=>0}});}
 
 initHelp('mondlandung');
 </script>

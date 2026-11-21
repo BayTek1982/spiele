@@ -95,7 +95,7 @@ canvas{display:block;width:100%;height:auto}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=4"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -224,6 +224,7 @@ function draw(){const pl=G.pl;const sg=ctx.createLinearGradient(0,0,0,WY);sg.add
   if(G.msg){ctx.globalAlpha=Math.min(1,G.msg.life*2);ctx.font='900 26px Nunito';ctx.textAlign='center';ctx.fillStyle='#fff';ctx.strokeStyle='#000a';ctx.lineWidth=5;ctx.strokeText(G.msg.t,W/2,160);ctx.fillText(G.msg.t,W/2,160);ctx.globalAlpha=1;}}
 function loop(now){const dt=Math.min(.033,(now-last)/1000);last=now;if(G){if(G.st!=='done')step(dt);draw();}raf=requestAnimationFrame(loop);}
 $('#btnMenu').onclick=menu;applyTheme();menu();
+if(window.NET&&NET.supported()){NET.race({title:'Angel-Ausflug',unit:'Punkte',start:()=>{start(0);setTimeout(()=>{if(window.NET&&NET.raceDone)NET.raceDone(G?G.score:0);},180000);ONLINE.toast('🎣 3 Minuten Zeit – fang so viel du kannst!');},score:()=>G?G.score:0});}
 
 initHelp('angel-ausflug');
 </script>

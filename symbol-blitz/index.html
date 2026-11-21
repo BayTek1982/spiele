@@ -116,7 +116,7 @@ button,canvas{touch-action:manipulation}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=4"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -231,6 +231,7 @@ function tapDuo(who,s,el){if(!run)return;const now=Date.now();if(who==='t'?now<l
   else{el.classList.add('bad');tone(200,.12);const d=who==='t'?'#dT':'#dB';$(d).classList.add('lock');if(who==='t')lockT=now+1200;else lockB=now+1200;setTimeout(()=>$(d).classList.remove('lock'),1200);}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&cfg.mode==='cpu'&&run){clearTimeout(cpuT);}else if(!document.hidden&&cfg.mode==='cpu'&&run)planCpu();});
 window.onTheme=()=>{};applyTheme();setup();
+if(window.NET&&NET.supported()){NET.race({title:'Symbol-Blitz',unit:'Punkte',start:()=>{cfg.mode='solo';start();},score:()=>score||0,ends:{endSolo:()=>score}});}
 
 initHelp('symbol-blitz');
 </script>

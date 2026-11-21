@@ -94,7 +94,7 @@ canvas{display:block;width:100%;aspect-ratio:1/1;border-radius:16px;border:1px s
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=4"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -208,6 +208,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&running&&!
 window.onTheme=()=>draw();
 reset();segs();applyTheme();draw();
 setInterval(()=>{if(bonus&&running&&!paused)draw();},120);
+if(window.NET&&NET.supported()){NET.race({title:'Snake',unit:'Punkte',start:()=>start(),score:()=>score||0,ends:{die:()=>score}});}
 
 initHelp('snake');
 </script>

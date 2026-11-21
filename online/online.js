@@ -114,7 +114,7 @@ const NET=window.NET={room:null,roomId:null,seat:-1,_opts:null,_unsub:null,
     this._unsub=O.B.on('rooms/'+id,r=>{if(!r){if(this.roomId===id){toast('Der Raum wurde geschlossen.');this.leave(true);}return;}this.room=r;updLobby();
       if(r.status==='play'&&!started){started=true;closeLobby();if(r.host===O.me.uid)O.statInc('o');this._opts.onStart&&this._opts.onStart(r,this.seat);}
       if(r.state&&r.rev!==lastRev&&started){lastRev=r.rev;if(r.by!==O.me.uid||r.forceAll)this._opts.onState&&this._opts.onState(r.state,r);}
-      if(r.status==='wait'&&started){started=false;lastRev=-1;}
+      if(r.status==='wait'&&started){started=false;lastRev=-1;if(this._opts&&this._opts.onStart)lobby(r.host===O.me.uid);}
       if(started&&this._opts.onData){const dj=JSON.stringify(r.data||null);if(dj!==this._lastData){this._lastData=dj;this._opts.onData(r.data||{},r);}}
       this._opts.onPlayers&&this._opts.onPlayers(r);});},
   async start(){if(!this.room||this.room.host!==O.me.uid)return;await O.B.update('rooms/'+this.roomId,{status:'play',startedAt:now()});},
@@ -128,6 +128,35 @@ const NET=window.NET={room:null,roomId:null,seat:-1,_opts:null,_unsub:null,
   players(){return Object.entries(this.room?.players||{}).map(([uid,p])=>({uid,...p})).sort((a,b)=>a.seat-b.seat);},
   isHost(){return this.room&&O.me&&this.room.host===O.me.uid;},
   async invite(fid){await O.B.set(`invites/${fid}/${this.roomId}`,{from:O.me.uid,name:O.me.name,av:O.me.av,game:GAME.id,title:this._opts.title||GAME.title,ts:now()});toast('Einladung gesendet! 📨');}};
+/* ---------- Online-Wettkampf für Einzelspiele ---------- */
+const RACE={on:false,done:false,iv:null,opts:null,shown:false};
+NET.race=function(opts){RACE.opts=opts;if(!O.available)return;
+  const mount=()=>{const m=opts.mount?document.querySelector(opts.mount):document.body;if(!m||document.getElementById('raceBtn'))return;injectCss();const d=document.createElement('div');d.className='on-card';d.id='raceBtn';d.style.marginBottom='12px';
+    d.innerHTML=`<div class="on-row"><span style="font-size:28px">🏁</span><div class="on-sp"><b>Online-Wettkampf</b><div class="on-note">Spielt gleichzeitig mit Freunden – wer schafft ${opts.lower?'die beste Zeit':'die meisten Punkte'}?</div></div><button class="on-btn p">Starten</button></div>`;
+    d.querySelector('button').onclick=()=>NET.create();if(opts.mount)m.prepend(d);else{const h=document.querySelector('#app > header')||document.querySelector('header');const idea=document.querySelector('#app > .idea');(idea||h).after(d);}};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
+  // End-Funktionen umhüllen
+  for(const [fn,get] of Object.entries(opts.ends||{})){const orig=window[fn];if(typeof orig!=='function')continue;window[fn]=function(){try{if(RACE.on&&!RACE.done){const v=get.apply(null,arguments);if(v!==undefined&&v!==null)raceDone(v);}}catch(e){console.warn(e)}return orig.apply(this,arguments);};}
+  NET.setup({title:opts.title,min:2,max:8,
+    onStart(room,seat){RACE.on=true;RACE.done=false;RACE.shown=false;NET.clearData&&0;closeRaceRes();try{opts.start();}catch(e){console.error(e)}raceBoard();clearInterval(RACE.iv);
+      RACE.iv=setInterval(()=>{if(!RACE.on||RACE.done)return;let v=0;try{v=opts.score();}catch(e){}if(v!=null&&v!==RACE.last){RACE.last=v;NET.put('sc/'+O.me.uid,{s:v,d:false,n:O.me.name,a:O.me.av});}},1000);
+      NET.put('sc/'+O.me.uid,{s:0,d:false,n:O.me.name,a:O.me.av});},
+    onData(d){raceBoard(d);},
+    onPlayers(r){if(r.status==='wait'&&RACE.on){RACE.on=false;clearInterval(RACE.iv);const b=document.getElementById('raceBoard');if(b)b.remove();}}});};
+function raceDone(v){RACE.done=true;clearInterval(RACE.iv);NET.put('sc/'+O.me.uid,{s:v,d:true,n:O.me.name,a:O.me.av});toast('🏁 Fertig! Warte auf die anderen …');}
+NET.raceDone=v=>{if(RACE.on&&!RACE.done)raceDone(v);};
+function raceBoard(d){if(!RACE.on)return;injectCss();d=d||(NET.room&&NET.room.data)||{};const sc=d.sc||{};const lower=RACE.opts.lower;const unit=RACE.opts.unit||'';
+  const pl=NET.players().map(p=>({...p,...(sc[p.uid]||{s:0,d:false})}));pl.sort((a,b)=>(lower?(a.d?a.s:1e12)-(b.d?b.s:1e12):b.s-a.s));
+  let b=document.getElementById('raceBoard');if(!b){b=document.createElement('div');b.id='raceBoard';b.style.cssText='position:fixed;left:8px;top:8px;z-index:85;background:var(--card,#1b1f27);border:2px solid var(--acc,#ff8a1a);border-radius:14px;padding:6px 10px;font-size:13px;max-width:200px;box-shadow:0 6px 18px #0007;opacity:.93;cursor:pointer';b.onclick=()=>b.classList.toggle('mini');document.body.appendChild(b);}
+  const fmt=v=>RACE.opts.fmt?RACE.opts.fmt(v):Math.round(v).toLocaleString('de-DE');
+  b.innerHTML=`<b>🏁 Wettkampf</b>`+pl.map((p,i)=>`<div style="display:flex;gap:6px;align-items:center;margin-top:3px"><span>${i===0?'🥇':i===1?'🥈':i===2?'🥉':'·'}</span><span>${esc(p.av||'')}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}${p.uid===O.me.uid?' (du)':''}</span><b>${p.d||!lower?fmt(p.s):'…'}</b>${p.d?'✓':''}</div>`).join('');
+  const all=pl.length>1&&pl.every(p=>p.d);if(all&&!RACE.shown){RACE.shown=true;setTimeout(()=>raceResult(pl),900);}}
+let raceRes=null;function closeRaceRes(){if(raceRes){raceRes.remove();raceRes=null;}}
+function raceResult(pl){closeRaceRes();const fmt=v=>RACE.opts.fmt?RACE.opts.fmt(v):Math.round(v).toLocaleString('de-DE');const meWin=pl[0].uid===O.me.uid;
+  raceRes=document.createElement('div');raceRes.className='on-ov';raceRes.innerHTML=`<div class="on-sheet" style="text-align:center"><div style="font-size:54px">${meWin?'🏆':'🏁'}</div><h2>${esc(pl[0].name)} gewinnt den Wettkampf!</h2><div class="on-list" style="text-align:left">${pl.map((p,i)=>`<div class="on-it">${['🥇','🥈','🥉'][i]||(i+1)+'.'} ${avHTML(p.av)}<div class="t"><b>${esc(p.name)}${p.uid===O.me.uid?' (du)':''}</b></div><b>${fmt(p.s)} ${esc(RACE.opts.unit||'')}</b></div>`).join('')}</div>
+    <div class="on-row" style="justify-content:center;margin-top:10px">${NET.isHost()?'<button class="on-btn p" id="rcAgain">🔄 Nochmal (gleiche Gruppe)</button>':'<span class="on-note">Der Gastgeber kann eine neue Runde starten.</span>'}<button class="on-btn" id="rcLeave">Verlassen</button></div></div>`;document.body.appendChild(raceRes);
+  if(meWin){try{window.confetti&&confetti();window.sWin&&sWin();}catch(e){}}
+  const a=raceRes.querySelector('#rcAgain');if(a)a.onclick=async()=>{closeRaceRes();await NET.clearData();RACE.on=false;NET.again();};raceRes.querySelector('#rcLeave').onclick=()=>{closeRaceRes();RACE.on=false;const b=document.getElementById('raceBoard');if(b)b.remove();NET.leave();};}
 /* ---------- Oberfläche ---------- */
 const css=`.on-fab{position:fixed;right:14px;bottom:14px;z-index:80;width:56px;height:56px;border-radius:50%;border:2px solid var(--line,#333);background:var(--card,#1b1f27);color:var(--txt,#fff);font-size:26px;box-shadow:0 6px 18px #0006;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .on-hb{position:relative}.on-hb b{position:absolute;top:-6px;right:-6px;background:#e0453a;color:#fff;font-size:11px;border-radius:999px;padding:1px 5px;font-family:system-ui}

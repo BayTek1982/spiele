@@ -109,7 +109,7 @@ button,canvas{touch-action:manipulation}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=4"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -212,6 +212,7 @@ function showSetup(){const s=KIT.get('su-save',null);$('#btnCont').classList.tog
   const bs=[4,6,9].map(n=>{const b=KIT.get(`su-best-${n}-${cfg.lvl}`,0);return b?`${n}×${n}: ${fmtT(b)}`:null;}).filter(Boolean);$('#best').textContent=bs.length?'Bestzeiten ('+['','Leicht','Mittel','Schwer'][cfg.lvl]+'): '+bs.join(' · '):'';}
 $('#btnMenu').onclick=menu;$('#btnStart').onclick=()=>start();$('#btnCont').onclick=()=>start(KIT.get('su-save',null));
 applyTheme();showSetup();
+if(window.NET&&NET.supported()){NET.race({title:'Zahlen-Sudoku',lower:true,unit:'',fmt:v=>Math.floor(v/60)+':'+String(v%60).padStart(2,'0'),start:()=>start(),score:()=>G?G.t:0,ends:{win:()=>G.t}});}
 
 initHelp('sudoku');
 </script>

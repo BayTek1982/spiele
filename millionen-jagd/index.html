@@ -127,7 +127,7 @@ button,canvas{touch-action:manipulation}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=4"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -408,6 +408,7 @@ const music={nodes:[],iv:null,lv:0,
   suspense(){if(!soundOn||!actx)return;try{const o=actx.createOscillator(),g=actx.createGain();o.type='sawtooth';o.frequency.setValueAtTime(110,actx.currentTime);o.frequency.linearRampToValueAtTime(220,actx.currentTime+1.6);g.gain.setValueAtTime(.0001,actx.currentTime);g.gain.exponentialRampToValueAtTime(.06,actx.currentTime+1.2);g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+1.8);const f=actx.createBiquadFilter();f.type='lowpass';f.frequency.value=700;o.connect(f).connect(g).connect(actx.destination);o.start();o.stop(actx.currentTime+1.9);}catch(e){}}};
 $('#btnStart').onclick=startGame;
 window.onTheme=()=>{};applyTheme();best();G=null;ladder();
+if(window.NET&&NET.supported()){NET.race({title:'Millionen-Jagd',unit:'€',fmt:v=>Math.round(v).toLocaleString('de-DE')+' €',start:()=>startGame(),score:()=>G&&G.lv>0?PRIZES[G.lv-1]:0,ends:{finish:(w)=>w}});}
 
 initHelp('millionen-jagd');
 </script>

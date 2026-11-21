@@ -103,7 +103,7 @@ button,canvas{touch-action:manipulation}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=4"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -261,6 +261,7 @@ function end(){$('#prog').style.width='100%';const key=`fq-best-${cfg.mode}-${cf
 function menu(){$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');$('#best').textContent=`📒 Album: ${album.size} von ${C.length} Flaggen gesammelt`;}
 $('#btnAlbum').onclick=()=>infoBox(`<h2>📒 Flaggen-Album (${album.size}/${C.length})</h2><div class="album">${C.map(c=>`<span class="${album.has(c.n)?'got':''}" title="${album.has(c.n)?esc(c.n):'?'}">${c.f}</span>`).join('')}</div>`,'Schließen');
 $('#btnMenu').onclick=menu;$('#btnStart').onclick=start;applyTheme();menu();
+if(window.NET&&NET.supported()){NET.race({title:'Flaggen-Quiz',unit:'Punkte',start:()=>start(),score:()=>G?G.pts:0,ends:{end:()=>G.pts}});}
 
 initHelp('flaggen-quiz');
 </script>

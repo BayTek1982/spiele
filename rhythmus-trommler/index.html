@@ -93,7 +93,7 @@ canvas{display:block;width:100%;height:auto}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=4"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -207,6 +207,7 @@ const press=e=>{const b=e.target.closest('button');if(!b)return;e.preventDefault
 cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect();hit(Math.min(3,Math.floor((e.clientX-r.left)/r.width*4)));});
 document.addEventListener('keydown',e=>{if(e.repeat)return;const i=LANES.findIndex(l=>l.k===e.key.toLowerCase());if(i>=0)hit(i);});
 $('#btnMenu').onclick=menu;applyTheme();menu();
+if(window.NET&&NET.supported()){NET.race({title:'Rhythmus-Trommler',unit:'Punkte',start:()=>start(0),score:()=>G?G.score:0,ends:{end:()=>G.score}});}
 
 initHelp('rhythmus-trommler');
 </script>

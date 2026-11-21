@@ -93,7 +93,7 @@ canvas{display:block;width:100%;height:auto}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=4"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -214,6 +214,7 @@ function hold(id,k){const b=$(id);const on=e=>{e.preventDefault();keys[k]=true;b
 hold('#bL','l');hold('#bR','r');
 document.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')keys.l=true;if(e.key==='ArrowRight')keys.r=true;});document.addEventListener('keyup',e=>{if(e.key==='ArrowLeft')keys.l=false;if(e.key==='ArrowRight')keys.r=false;});
 $('#btnRe').onclick=()=>start(G.li);$('#btnMenu').onclick=menu;applyTheme();menu();
+if(window.NET&&NET.supported()){NET.race({title:'Pinguin-Kellner',unit:'Gläser',start:()=>start(0),score:()=>G?G.gl.filter(g=>g.on).length:0,ends:{finish:()=>G.done?null:(G.x>=G.L.len?G.gl.filter(g=>g.on).length:0)}});}
 
 initHelp('pinguin-kellner');
 </script>

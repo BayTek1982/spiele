@@ -141,7 +141,7 @@ button,canvas{touch-action:manipulation}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=4"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -683,6 +683,7 @@ document.addEventListener('keydown',e=>{if($('#play').classList.contains('hidden
   else if(e.key==='Enter'&&G.answered){e.preventDefault();$('#btnNext').click();}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&G&&!G.answered&&G.lv.t){/* Zeit läuft weiter – fair für alle */}});
 window.onTheme=()=>{};applyTheme();renderSetup();
+if(window.NET&&NET.supported()){NET.race({title:"Alea's Quiz",unit:'Punkte',start:()=>start(),score:()=>G&&G.players[0]?G.players[0].pts:0,ends:{finish:()=>G.players[0].pts}});}
 
 initHelp('quiz');
 </script>

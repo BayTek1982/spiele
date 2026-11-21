@@ -100,7 +100,7 @@ canvas{display:block;width:100%;height:auto;touch-action:none}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=4"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -285,6 +285,7 @@ function draw(){const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#7fc
 function loop(now){const dt=Math.min(.033,(now-last)/1000);last=now;if(G){const n=3;for(let k=0;k<n;k++)step(dt/n);draw();}raf=requestAnimationFrame(loop);}
 $('#btnRe').onclick=()=>start(G.li);$('#btnBack').onclick=menu;
 applyTheme();menu();
+if(window.NET&&NET.supported()){NET.race({title:'Schleuder-Spatzen',unit:'Punkte',start:()=>start(0),score:()=>G?G.score:0,ends:{win:()=>G.score+(G.queue.length+(G.bird&&!G.bird.fly?1:0))*10000,checkEnd:()=>(G.queue.length||G.rc.every(c=>!c.alive))?null:G.score}});}
 
 initHelp('schleuder-spatzen');
 </script>

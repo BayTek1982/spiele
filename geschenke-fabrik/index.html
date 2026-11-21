@@ -96,7 +96,7 @@ canvas{display:block;width:100%;height:auto}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=4"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -204,6 +204,7 @@ document.addEventListener('keydown',e=>{if(!G)return;const k='1234'.indexOf(e.ke
 $('#btnPause').onclick=()=>{if(!G||G.state==='over')return;G.state=G.state==='run'?'pause':'run';$('#btnPause').textContent=G.state==='run'?'⏸ Pause':'▶ Weiter';last=performance.now();};
 function menu(){cancelAnimationFrame(raf);G=null;$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');const b=KIT.get('gf-best',0);$('#best').textContent=b?`Rekord: ${b} Punkte`:'';}
 $('#btnMenu').onclick=menu;$('#btnStart').onclick=start;applyTheme();menu();
+if(window.NET&&NET.supported()){NET.race({title:'Geschenke-Fabrik',unit:'Punkte',start:()=>start(),score:()=>G?G.score:0,ends:{over:()=>G.score}});}
 
 initHelp('geschenke-fabrik');
 </script>

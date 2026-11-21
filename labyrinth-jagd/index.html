@@ -92,7 +92,7 @@ canvas{display:block;width:100%;height:auto;border-radius:14px;border:1px solid 
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=4"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -330,6 +330,7 @@ $('#btnPause').onclick=togglePause;$('#btnGo').onclick=start;
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&running&&!paused)togglePause();});
 window.onTheme=()=>{wallCanvas=null;draw();};
 loadDots();resetActors();hud();applyTheme();draw();
+if(window.NET&&NET.supported()){NET.race({title:'Labyrinth-Jagd',unit:'Punkte',start:()=>start(),score:()=>score||0,ends:{gameOver:()=>score}});}
 
 initHelp('labyrinth-jagd');
 </script>
