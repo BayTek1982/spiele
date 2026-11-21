@@ -208,7 +208,7 @@ function start(){
   $('#status').textContent='Finde das gemeinsame Bild!';drawSolo();
 }
 function drawSolo(){drawDisc('#dC',center);drawDisc('#dP',mine,tapMine);$('#dP').classList.toggle('lock',Date.now()<lockMe);if(cfg.mode==='cpu')planCpu();}
-function tapMine(s,el){if(!run||Date.now()<lockMe)return;
+function tapMine(s,el){if(!run||Date.now()<lockMe)return;if(XON){xTap(s,el);return;}
   if(s===common(center,mine)){el.classList.add('hit');tone(880,.06);tone(1175,.08,.06);score++;$('#v1').textContent=score;
     if(cfg.mode==='cpu'&&score>=15)return endCpu(true);
     center=mine;[mine]=next(1);clearTimeout(cpuT);setTimeout(()=>{if(run)drawSolo();},220);}
@@ -231,7 +231,26 @@ function tapDuo(who,s,el){if(!run)return;const now=Date.now();if(who==='t'?now<l
   else{el.classList.add('bad');tone(200,.12);const d=who==='t'?'#dT':'#dB';$(d).classList.add('lock');if(who==='t')lockT=now+1200;else lockB=now+1200;setTimeout(()=>$(d).classList.remove('lock'),1200);}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&cfg.mode==='cpu'&&run){clearTimeout(cpuT);}else if(!document.hidden&&cfg.mode==='cpu'&&run)planCpu();});
 window.onTheme=()=>{};applyTheme();setup();
-if(window.NET&&NET.supported()){NET.race({title:'Symbol-Blitz',unit:'Punkte',start:()=>{cfg.mode='solo';start();},score:()=>score||0,ends:{endSolo:()=>score}});}
+/* ---------- Online: alle sehen dieselbe Mitte – wer zuerst findet, punktet ---------- */
+var XON=false,xR=0,xSc={},xDone={},xSeat=0,xDeck=null,xClose=null;const XWIN=10;
+function xCards(r){const n=NET.players().length,L=xDeck.length;const k=(r*(n+1))%L;return {c:xDeck[k],m:xDeck[(k+1+xSeat)%L]};}
+function xBar(){$('#k1').textContent='Punkte';$('#k2').textContent='Ziel';$('#v2').textContent=XWIN;$('#v1').textContent=xSc[NET.myUid()]||0;
+  let b=document.getElementById('xBar');if(!b){b=document.createElement('div');b.id='xBar';b.className='note';b.style.cssText='text-align:center;font-weight:900;margin:4px 0';$('#status').after(b);}
+  b.innerHTML=NET.players().map(p=>`${esc(p.av||'')} ${esc(p.name)}: ${xSc[p.uid]||0}`).join(' · ');}
+function xRound(){const {c,m}=xCards(xR);center=c;mine=m;lockMe=0;$('#status').textContent='Finde das gemeinsame Bild – schneller als die anderen!';drawDisc('#dC',center);drawDisc('#dP',mine,tapMine);$('#dP').classList.remove('lock');xBar();}
+function xTap(s,el){if(xDone[xR])return;if(s===common(center,mine)){el.classList.add('hit');NET.emit({t:'w',r:xR});xWin(xR,NET.myUid());}
+  else{el.classList.add('bad');tone(200,.12);lockMe=Date.now()+1200;$('#dP').classList.add('lock');$('#status').textContent='Falsch – kurz warten!';setTimeout(()=>{$('#dP').classList.remove('lock');},1200);}}
+function xWin(r,uid){if(xDone[r])return;xDone[r]=uid;xSc[uid]=(xSc[uid]||0)+1;const p=NET.players().find(q=>q.uid===uid);const me=uid===NET.myUid();
+  if(me){tone(880,.06);tone(1175,.08,.06);}else{tone(330,.1,0,'square',.08);const cs=common(center,mine);const el=$(`#dC .sym[data-s="${cs}"]`);if(el)el.classList.add('hit');}
+  $('#status').textContent=me?'⚡ Du warst am schnellsten!':`⚡ ${p?p.name:'?'} war schneller!`;xBar();
+  if(xSc[uid]>=XWIN){run=false;setTimeout(()=>xEnd(),900);return;}setTimeout(()=>{if(XON&&run){xR=r+1;xRound();}},800);}
+function xEnd(){const r=NET.players().map(p=>({n:p.name,s:xSc[p.uid]||0,me:p.uid===NET.myUid()})).sort((a,b)=>b.s-a.s);if(r[0].me){sWin();confetti();}else sLose();
+  modal(`<div class="big">⚡🏆</div><h2 style="text-align:center">${esc(r[0].n)} gewinnt!</h2><ol>${r.map(p=>`<li><b>${esc(p.n)}</b>: ${p.s} Punkte</li>`).join('')}</ol><div class="row">${NET.isHost()?'<button class="primary" data-v="a">🔄 Nochmal</button>':''}<button data-v="l">Verlassen</button></div>`,(b,c)=>{xClose=c;},false).then(v=>{xClose=null;if(v==='a')NET.clearData().then(()=>NET.again());else if(v==='l'){NET.leave();xOff();}});}
+function xOff(){XON=false;stop();const b=document.getElementById('xBar');if(b)b.remove();$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');}
+if(window.NET&&NET.supported()){NET.coop({title:'Symbol-Blitz',label:'Online gegeneinander',note:'Alle sehen dieselbe Mitte – wer zuerst das gemeinsame Bild findet, bekommt den Punkt. Wer hat zuerst 10?',max:4,
+  start(room,seat){XON=true;xSeat=seat;xR=0;xSc={};xDone={};NET.evReset();stop();run=true;xDeck=deck();$('#setup').classList.add('hidden');$('#game').classList.remove('hidden');$('#solo').classList.remove('hidden');$('#duo').classList.add('hidden');$('#timer').classList.add('hidden');xRound();},
+  onData(){if(XON)NET.evPump(ev=>{if(ev.t==='w')xWin(ev.r,ev.by);});},
+  stop(){if(XON){if(xClose)xClose();xOff();}}});}
 
 initHelp('symbol-blitz');
 </script>

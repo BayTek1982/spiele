@@ -225,7 +225,8 @@ function finishRound(winner){if(G.done)return;G.done=true;const q=G.qs[G.i];
   if(!G.solo&&winner!=null){G.sc[winner]+=G.pot;}
   const slots=$$('#board .slot'),opened=new Set(G.open);setTimeout(()=>{slots.forEach((el,k)=>{if(!opened.has(k)&&el.isConnected){el.classList.remove('hid');el.classList.add('open','missed');}});},500);
   if(!G.solo&&winner!=null){$('#pot').textContent=`🎉 ${G.names[winner]} bekommt ${G.pot} Punkte!`;sWin();}
-  renderTopOnlyScores();$('#btnNext').classList.remove('hidden');$('#btnNext').textContent=G.i<G.qs.length-1?'Nächste Frage ➜':'🏁 Ergebnis';}
+  renderTopOnlyScores();$('#btnNext').classList.remove('hidden');$('#btnNext').textContent=G.i<G.qs.length-1?'Nächste Frage ➜':'🏁 Ergebnis';
+  if(window.NET&&NET.raceOn()&&G.solo&&G.i<G.qs.length-1){$('#btnNext').classList.add('hidden');const i=G.i;setTimeout(()=>NET.step(i,true,60000).then(()=>{if(G&&G.i===i)$('#btnNext').onclick();}),1500);}}
 function renderTopOnlyScores(){const p=$('#pot').textContent;renderTop();$('#pot').textContent=p;}
 $('#board').onclick=e=>{const el=e.target.closest('.slot.hid');if(!el||G.solo||G.done)return;const k=+el.dataset.k;
   reveal(k);if(G.steal){finishRound(G.team);return;}renderTop();if(G.open.size===G.qs[G.i].a.length)finishRound(G.team);};
