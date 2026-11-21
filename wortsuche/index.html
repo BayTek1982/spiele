@@ -117,7 +117,7 @@ button,canvas{touch-action:manipulation}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=6"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -284,6 +284,7 @@ $('#btnSkip').onclick=()=>{if(!canPlay())return;clearInterval(timer);nextPlayer(
 $('#btnMenu').onclick=async()=>{if(G&&!G.over&&!(await confirmBox('Spiel beenden?','Beenden','Weiterspielen')))return;token++;clearInterval(timer);clearTimeout(cpuT);$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');renderSetup();};
 $('#btnStart').onclick=start;
 window.onTheme=()=>{};applyTheme();renderSetup();
+if(window.NET&&NET.supported()){NET.race({title:'Wortsuche',lower:true,fmt:v=>Math.floor(v/60)+':'+String(Math.round(v)%60).padStart(2,'0'),start:()=>{cfg.mode='solo';start();},score:()=>G?Math.floor((Date.now()-G.t0)/1000):0,ends:{finish:()=>Math.floor((Date.now()-G.t0)/1000)}});}
 
 initHelp('wortsuche');
 </script>

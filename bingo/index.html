@@ -143,7 +143,7 @@ button,canvas{touch-action:manipulation}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=6"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -283,6 +283,7 @@ $('#btnKClear').onclick=()=>{K.marks=Array(25).fill(0);K.marks[12]=1;saveK();ren
 $('#btnKNew').onclick=async()=>{if(!(await confirmBox('Neue Karte nehmen? Deine Markierungen gehen verloren.','Neue Karte')))return;K={no:1+Math.floor(Math.random()*9999),marks:Array(25).fill(0)};K.marks[12]=1;saveK();renderK();};
 document.addEventListener('visibilitychange',()=>{if(document.hidden){stopCpu();stopAuto();}else if(mode==='cpu')schedule();});
 window.onTheme=()=>{};applyTheme();showMode();
+if(window.NET&&NET.supported()){let rbOn=false;NET.race({title:'Bingo',unit:'Punkte',start:()=>{mode='cpu';try{KIT.set('bingo-mode','cpu');}catch(e){}showMode();newCpu();rbOn=true;},score:()=>0});setInterval(()=>{if(rbOn&&C&&C.over){rbOn=false;NET.raceDone(C.cpus.some(c=>c.calling)?0:Math.max(1,100-C.list.length));}},700);}
 
 initHelp('bingo');
 </script>

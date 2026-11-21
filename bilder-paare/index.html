@@ -109,7 +109,7 @@ button,canvas{touch-action:manipulation}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=6"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -241,6 +241,7 @@ function cpuTurn(){
 }
 const pickRandom=a=>a.length?a[Math.floor(Math.random()*a.length)]:null;
 window.onTheme=()=>{};applyTheme();renderSetup();
+if(window.NET&&NET.supported()){NET.race({title:'Bilder-Paare',lower:true,unit:'Züge',start:()=>{cfg.mode='solo';start();},score:()=>moves||0,ends:{finish:()=>moves}});}
 
 initHelp('bilder-paare');
 </script>

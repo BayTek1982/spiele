@@ -123,7 +123,7 @@ button,canvas{touch-action:manipulation}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=6"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -368,6 +368,7 @@ function finish(){
 function toMenu(){token++;clearInterval(meterT);$('#cover').classList.add('hidden');$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');renderSetup();}
 $('#btnMenu').onclick=toMenu;$('#btnStart').onclick=start;
 window.onTheme=()=>{};applyTheme();renderSetup();
+if(window.NET&&NET.supported()){NET.race({title:'Elfmeter',unit:'Punkte',start:()=>{cfg.mode='cpu';start();},score:()=>G?G.res[0].filter(Boolean).length*10:0,ends:{finish:()=>G.res[0].filter(Boolean).length*10+(G.res[1].length-G.res[1].filter(Boolean).length)*5}});}
 
 initHelp('elfmeter');
 </script>

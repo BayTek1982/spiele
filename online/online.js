@@ -144,7 +144,7 @@ NET.race=function(opts){RACE.opts=opts;if(!O.available)return;
     onData(d){raceBoard(d);},
     onPlayers(r){if(r.status==='wait'&&RACE.on){RACE.on=false;clearInterval(RACE.iv);const b=document.getElementById('raceBoard');if(b)b.remove();}}});};
 function raceDone(v){RACE.done=true;clearInterval(RACE.iv);NET.put('sc/'+O.me.uid,{s:v,d:true,n:O.me.name,a:O.me.av});toast('🏁 Fertig! Warte auf die anderen …');}
-NET.raceDone=v=>{if(RACE.on&&!RACE.done)raceDone(v);};
+NET.raceDone=v=>{if(RACE.on&&!RACE.done)raceDone(v);};NET._race=RACE;
 function raceBoard(d){if(!RACE.on)return;injectCss();d=d||(NET.room&&NET.room.data)||{};const sc=d.sc||{};const lower=RACE.opts.lower;const unit=RACE.opts.unit||'';
   const pl=NET.players().map(p=>({...p,...(sc[p.uid]||{s:0,d:false})}));pl.sort((a,b)=>(lower?(a.d?a.s:1e12)-(b.d?b.s:1e12):b.s-a.s));
   let b=document.getElementById('raceBoard');if(!b){b=document.createElement('div');b.id='raceBoard';b.style.cssText='position:fixed;left:8px;top:8px;z-index:85;background:var(--card,#1b1f27);border:2px solid var(--acc,#ff8a1a);border-radius:14px;padding:6px 10px;font-size:13px;max-width:200px;box-shadow:0 6px 18px #0007;opacity:.93;cursor:pointer';b.onclick=()=>b.classList.toggle('mini');document.body.appendChild(b);}

@@ -101,7 +101,7 @@ canvas{display:block;width:100%;height:auto}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=6"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -301,6 +301,7 @@ const KM={ArrowLeft:'l',ArrowRight:'r',a:'l',d:'r',' ':'j',ArrowUp:'j',w:'j',z:'
 document.addEventListener('keydown',e=>{const k=KM[e.key];if(!k||!G)return;e.preventDefault();if(k==='j'&&!keys.j)jumpPressed=true;keys[k]=true;});document.addEventListener('keyup',e=>{const k=KM[e.key];if(k)keys[k]=false;});
 $('#btnPause').onclick=()=>{if(!G)return;G.paused=!G.paused;$('#btnPause').textContent=G.paused?'▶ Weiter':'⏸ Pause';if(G.paused)stopMusic();else startMusic(G.W.music,G.li);last=performance.now();};
 $('#btnMenu').onclick=worldsMenu;applyTheme();worldsMenu();
+if(window.NET&&NET.supported()){NET.race({title:'Bayo-Land',unit:'Punkte',start:()=>start(0),score:()=>G?G.coins:0,ends:{win:()=>G.coins+G.lives*20,die:()=>G.lives<=1?G.coins:null}});}
 
 initHelp('bayo-land');
 </script>

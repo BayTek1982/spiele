@@ -106,7 +106,7 @@ button,canvas{touch-action:manipulation}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=6"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -206,6 +206,7 @@ $('#btnTip').onclick=()=>{if(!G||G.over)return;const miss=[...new Set([...G.w].f
 $('#btnMenu').onclick=()=>{$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');showStat();};
 $('#btnStart').onclick=start;$('#secret').onkeydown=e=>{if(e.key==='Enter')start();};
 window.onTheme=()=>{if(G)drawScene();};applyTheme();
+if(window.NET&&NET.supported()){NET.race({title:'Schneemann-Raten',unit:'Punkte',start:()=>{cfg.mode='solo';start();},score:()=>0,ends:{end:(w)=>w?(7-G.f)*10+10:0}});}
 
 initHelp('schneemann-raten');
 </script>

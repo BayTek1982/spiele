@@ -100,7 +100,7 @@ canvas{display:block;width:100%;height:auto;touch-action:none}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=6"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -212,6 +212,7 @@ function end(){G.busy=true;const r=[...G.pl].sort((a,b)=>b.s-a.s);if(!r[0].cpu){
 $('#btnPass').onclick=()=>{if(G&&!G.busy)next();};
 function menu(){cancelAnimationFrame(raf);G=null;$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');}
 $('#btnMenu').onclick=menu;$('#btnStart').onclick=start;applyTheme();plist();
+if(window.NET&&NET.supported()){NET.race({title:'Mikado',unit:'Punkte',start:()=>{players=[{n:'Du',cpu:false},{n:'Computer',cpu:true}];start();},score:()=>G?G.pl[0].s:0,ends:{end:()=>G.pl[0].s}});}
 
 initHelp('mikado');
 </script>

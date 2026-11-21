@@ -101,7 +101,7 @@ canvas{display:block;width:100%;height:auto}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=6"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -232,6 +232,7 @@ $$('.dpd button').forEach(b=>{const d=b.dataset.d;const on=e=>{e.preventDefault(
 $('#bBomb').addEventListener('pointerdown',e=>{e.preventDefault();if(G)placeBomb(G.pl[0]);$('#bBomb').classList.add('on');setTimeout(()=>$('#bBomb').classList.remove('on'),120);});
 function menu(){cancelAnimationFrame(raf);G=null;$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');}
 $('#btnMenu').onclick=menu;$('#btnStart').onclick=newMatch;applyTheme();
+if(window.NET&&NET.supported()){NET.race({title:'Bomben-Arena',unit:'Punkte',start:()=>{cfg.win=1;cfg.mode=1;newMatch();},score:()=>G?Math.round(G.t):0,ends:{roundEnd:()=>Math.round(G.t)+(G.pl[0].alive?100:0)}});}
 
 initHelp('bomben-arena');
 </script>

@@ -116,7 +116,7 @@ table.sheet{width:100%;border-collapse:collapse;font-size:14.5px}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=6"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -227,6 +227,7 @@ function end(){const res=G.p.map(p=>({n:p.n,cpu:p.cpu,t:total(p.s)})).sort((a,b)
 function menu(){$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');const b=KIT.get('gw-best',0);$('#best').textContent=b?`Rekord: ${b} Punkte`:'';}
 $('#btnMenu').onclick=async()=>{if(await confirmBox('Spiel wirklich beenden?','Beenden','Weiterspielen'))menu();};$('#btnStart').onclick=start;
 applyTheme();plist();menu();
+if(window.NET&&NET.supported()){NET.race({title:'Glückswürfel',unit:'Punkte',start:()=>{players=[{n:(window.ONLINE&&ONLINE.me?ONLINE.me.name:'Ich'),cpu:false}];start();},score:()=>G?total(G.p[0].s):0,ends:{end:()=>total(G.p[0].s)}});}
 
 initHelp('glueckswuerfel');
 </script>

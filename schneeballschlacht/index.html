@@ -96,7 +96,7 @@ canvas{display:block;width:100%;height:auto;touch-action:none}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=6"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -214,6 +214,7 @@ function end(){G.state='done';const w=G.p[0].hp>0?0:1;const youWin=cfg.mode!=='c
   modal(`<div class="big">${youWin?'🏆❄️':'🥶'}</div><h2 style="text-align:center">${cfg.mode==='cpu'?(w===0?'Du hast gewonnen!':'Der Computer gewinnt!'):G.p[w].name+' gewinnt!'}</h2><div class="row"><button data-v="m">Menü</button><button class="primary" data-v="a">Revanche!</button></div>`,null,false).then(v=>v==='a'?start():menu());}
 function menu(){cancelAnimationFrame(raf);G=null;$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');}
 $('#btnMenu').onclick=menu;$('#btnStart').onclick=start;window.onTheme=()=>{};applyTheme();
+if(window.NET&&NET.supported()){NET.race({title:'Schneeballschlacht',unit:'Punkte',start:()=>{cfg.mode='cpu';start();},score:()=>G?(3-G.p[1].hp)*10:0,ends:{end:()=>G.p[0].hp*10+(3-G.p[1].hp)*10}});}
 
 initHelp('schneeballschlacht');
 </script>

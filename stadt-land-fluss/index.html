@@ -124,7 +124,7 @@ button,canvas{touch-action:manipulation}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=6"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -214,6 +214,7 @@ $('#btnEnd').onclick=async()=>{if(!(await confirmBox('Spiel beenden und Sieger z
   await infoBox(`<div class="big">🏆</div><h2 style="text-align:center">${esc(r[0].n)} gewinnt!</h2><ol>${r.map(p=>`<li><b>${esc(p.n)}</b>: ${p.t} Punkte</li>`).join('')}</ol><p style="text-align:center">${G.round} Runden gespielt</p>`,'Zum Menü');
   $('#game').classList.add('hidden');$('#setup').classList.remove('hidden');};
 $('#btnStart').onclick=start;applyTheme();plist();cats();
+if(window.NET&&NET.supported()){let rsOn=false;NET.race({title:'Stadt-Land-Fluss',unit:'Punkte',start:()=>{cfg.pl=[(window.ONLINE&&ONLINE.me?ONLINE.me.name:'Ich')];start();rsOn=true;ONLINE.toast('✏️ 3 Runden – tipp deine Antworten direkt ins Handy!');},score:()=>G?G.pl[0].t:0});setInterval(()=>{if(rsOn&&G&&G.round>=3&&!$('#phaseSpin').classList.contains('hidden')){rsOn=false;NET.raceDone(G.pl[0].t);}},700);}
 
 initHelp('stadt-land-fluss');
 </script>

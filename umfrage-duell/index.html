@@ -120,7 +120,7 @@ button,canvas{touch-action:manipulation}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=6"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -246,6 +246,7 @@ $('#btnNext').onclick=()=>{G.i++;if(G.i<G.qs.length){if(!G.solo)G.team=G.i%2;rou
   else{const w=G.sc[0]===G.sc[1]?null:G.sc[0]>G.sc[1]?0:1;sWin();confetti();infoBox(`<div class="big">🏆</div><h2 style="text-align:center">${w==null?'Unentschieden!':esc(G.names[w])+' gewinnt!'}</h2><p style="text-align:center">${esc(G.names[0])}: <b>${G.sc[0]}</b> · ${esc(G.names[1])}: <b>${G.sc[1]}</b></p>`,'Menü').then(menu);}};
 function menu(){$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');}
 $('#btnMenu').onclick=menu;$('#btnStart').onclick=start;applyTheme();
+if(window.NET&&NET.supported()){let ruOn=false;NET.race({title:'Umfrage-Duell',unit:'Punkte',start:()=>{cfg.mode='solo';start();ruOn=true;},score:()=>G?G.total||0:0});setInterval(()=>{if(ruOn&&G&&G.solo&&G.done&&G.i>=G.qs.length-1){ruOn=false;NET.raceDone(G.total);}},700);}
 
 initHelp('umfrage-duell');
 </script>

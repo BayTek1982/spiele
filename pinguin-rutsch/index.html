@@ -106,7 +106,7 @@ button,canvas{touch-action:manipulation}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=6"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -271,6 +271,7 @@ function draw(){
   if(big){ctx.fillStyle='#fff';ctx.strokeStyle='#0a2a4d';ctx.lineWidth=6;ctx.font='bold 90px Nunito';ctx.textAlign='center';ctx.textBaseline='middle';ctx.strokeText(big,C,C);ctx.fillText(big,C,C);ctx.textBaseline='alphabetic';}
 }
 window.onTheme=()=>{};applyTheme();seg();
+if(window.NET&&NET.supported()){NET.race({title:'Pinguin-Rutsch',unit:'Siege',start:()=>startMatch(),score:()=>wins[0]||0,ends:{endRound:(w)=>{const w2=[...wins];if(w)w2[w.i]++;const best=Math.max(...w2),need=Math.ceil(cfg.rounds/2);return (best>=need||round>=cfg.rounds)?w2[0]:null;}}});}
 
 initHelp('pinguin-rutsch');
 </script>

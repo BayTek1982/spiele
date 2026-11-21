@@ -107,7 +107,7 @@ button,canvas{touch-action:manipulation}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=6"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -278,6 +278,7 @@ function draw(){
 }
 window.onTheme=()=>{};applyTheme();renderSetup();
 setInterval(()=>{if(!run&&!$('#game').classList.contains('hidden'))draw();},50);
+if(window.NET&&NET.supported()){NET.race({title:'Schlitten-Mutprobe',unit:'m',fmt:v=>(Math.round(v*10)/10).toLocaleString('de-DE'),start:()=>start(),score:()=>S[0]?S[0].total:0,ends:{endRound:()=>round>=cfg.rounds?S[0].total+(S[0].phase==='fall'?0:Math.round(S[0].x*10)/10):null}});}
 
 initHelp('schlitten-mutprobe');
 </script>

@@ -118,7 +118,7 @@ button,canvas{touch-action:manipulation}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=6"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -256,6 +256,7 @@ function cpuTurn(){
   pick(pickO.li,pickO.bi,true);
 }
 window.onTheme=()=>{};applyTheme();renderSetup();
+if(window.NET&&NET.supported()){NET.race({title:'Wackelturm',unit:'Steine',start:()=>$('#btnStart').click(),score:()=>moves||0,ends:{collapse:()=>moves}});}
 
 initHelp('wackelturm');
 </script>

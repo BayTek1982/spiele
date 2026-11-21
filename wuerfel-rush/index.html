@@ -106,7 +106,7 @@ button,canvas{touch-action:manipulation}
 
   <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
 </div>
-<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=5"></script>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=6"></script>
 <script>
 const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
 const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -306,6 +306,7 @@ const music={t:null,step:0,next:0,
   hat(t,v){try{const b=actx.createBuffer(1,2205,44100),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;const s=actx.createBufferSource(),f=actx.createBiquadFilter(),g=actx.createGain();s.buffer=b;f.type='highpass';f.frequency.value=7000;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+.05);s.connect(f).connect(g).connect(actx.destination);s.start(t);}catch(e){}},
   bass(t,f){try{const o=actx.createOscillator(),g=actx.createGain();o.type='sawtooth';o.frequency.value=f;g.gain.setValueAtTime(.07,t);g.gain.exponentialRampToValueAtTime(.001,t+.2);const fl=actx.createBiquadFilter();fl.type='lowpass';fl.frequency.value=900;o.connect(fl).connect(g).connect(actx.destination);o.start(t);o.stop(t+.22);}catch(e){}}};
 window.onTheme=()=>{};applyTheme();renderMenu();
+if(window.NET&&NET.supported()){NET.race({title:'Würfel-Rush',unit:'%',start:()=>start(0),score:()=>run?Math.min(99,Math.floor(P.x/(L.len-2)*100)):0,ends:{die:()=>Math.min(99,Math.floor(P.x/(L.len-2)*100)),win:()=>100}});}
 
 initHelp('wuerfel-rush');
 </script>
