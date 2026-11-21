@@ -158,7 +158,7 @@ NET.coop=function(opts){if(!O.available)return;
     d.querySelector('button').onclick=()=>NET.create();if(opts.mount)m.prepend(d);else{const h=document.querySelector('#app > header')||document.querySelector('header');const idea=document.querySelector('#app > .idea');(idea||h).after(d);}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
   NET.setup({title:opts.title,min:opts.min||2,max:opts.max||4,
-    onStart(room,seat){NET._gh={};NET._live={};try{NET.seeded(()=>opts.start(room,seat));}catch(e){console.error(e)}},
+    onStart(room,seat){NET._gh={};NET._live={};try{NET.seeded(()=>opts.start(room,seat));}catch(e){console.error(e)}setTimeout(()=>{if(opts.onData&&NET.room)try{opts.onData(NET.room.data||{},NET.room)}catch(e){console.warn(e)}},0);},
     onState:opts.onState,
     onData(d,r){if(opts.onData)try{opts.onData(d,r)}catch(e){console.warn(e)}},
     onPlayers(r){if(opts.onPlayers)try{opts.onPlayers(r)}catch(e){}if(r.status==='wait'&&opts.stop)try{opts.stop()}catch(e){}}});};

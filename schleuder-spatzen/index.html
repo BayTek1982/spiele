@@ -177,17 +177,17 @@ function menu(){cancelAnimationFrame(raf);$('#game').classList.add('hidden');$('
 $('#lvls').onclick=e=>{const el=e.target.closest('.lv');if(!el||el.classList.contains('lock'))return;start(+el.dataset.i);};
 function start(i){const d=LEVELS[i]();G={li:i,bl:d.bl.map(o=>({...o,hp:MAT[o.mat].hp,vy:0,max:MAT[o.mat].hp})),rc:d.rc.map(o=>({...o,vy:0,alive:true,blink:0})),queue:d.birds.split(''),bird:null,deb:[],fx:[],score:0,drag:null,state:'aim',settle:0,feathers:[],t:0,trail:[],lastTrail:[]};
   $('#menu').classList.add('hidden');$('#game').classList.remove('hidden');$('#lvlName').textContent=`Level ${i+1}: ${NAMES[i]}`;nextBird();last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);}
-function nextBird(){if(!G.queue.length){G.bird=null;return;}const t=G.queue.shift();G.bird={t,x:SX,y:SY,vx:0,vy:0,r:BIRD[t].r,m:BIRD[t].m,fly:false,used:false,still:0,dead:false,rot:0};G.state='aim';hud();
+function nextBird(){if(!G.queue.length){G.bird=null;return;}if(SPON)setTimeout(spTurn,30);const t=G.queue.shift();G.bird={t,x:SX,y:SY,vx:0,vy:0,r:BIRD[t].r,m:BIRD[t].m,fly:false,used:false,still:0,dead:false,rot:0};G.state='aim';hud();
   $('#hint').textContent=t==='p'?'⚫ Specht: Während des Flugs tippen = Sturzflug!':t==='e'?'🦉 Eule: schwer und stark – zerbricht Stein!':'Spatz nach hinten ziehen und loslassen.';}
 function hud(){$('#score').textContent=G.score;const ico={s:'🟤',p:'⚫',e:'🦉'};$('#birds').textContent=(G.bird&&!G.bird.fly?ico[G.bird.t]:'')+G.queue.map(t=>ico[t]).join('');}
 /* Eingabe */
 function pos(e){const r=cv.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};}
-cv.addEventListener('pointerdown',e=>{if(!G)return;const p=pos(e);const B=G.bird;if(!B)return;
+cv.addEventListener('pointerdown',e=>{if(!G)return;const p=pos(e);const B=G.bird;if(!B)return;if(SPON&&!spMy())return;
   if(!B.fly&&G.state==='aim'&&Math.hypot(p.x-B.x,p.y-B.y)<70){G.drag=p;cv.setPointerCapture(e.pointerId);tone(300,.05);return;}
-  if(B.fly&&!B.used&&B.t==='p'){B.used=true;B.vx*=.15;B.vy=1000;B.drill=true;tone(900,.08);tone(500,.15,.06,'sawtooth',.08);}});
+  if(B.fly&&!B.used&&B.t==='p'){if(SPON)NET.emit({t:'p'});B.used=true;B.vx*=.15;B.vy=1000;B.drill=true;tone(900,.08);tone(500,.15,.06,'sawtooth',.08);}});
 cv.addEventListener('pointermove',e=>{if(!G||!G.drag)return;const p=pos(e);let dx=p.x-SX,dy=p.y-SY;const d=Math.hypot(dx,dy),mx=105;if(d>mx){dx*=mx/d;dy*=mx/d;}G.bird.x=SX+dx;G.bird.y=SY+dy;});
 cv.addEventListener('pointerup',e=>{if(!G||!G.drag)return;G.drag=null;const B=G.bird;const dx=SX-B.x,dy=SY-B.y,d=Math.hypot(dx,dy);if(d<15){B.x=SX;B.y=SY;return;}
-  const k=8.2;B.vx=dx*k;B.vy=dy*k;B.fly=true;G.state='fly';G.lastTrail=G.trail;G.trail=[];hud();[600,800].forEach((f,i)=>tone(f,.06,i*.04,'triangle',.12));tone(200,.15,0,'sine',.12);});
+  const k=8.2;B.vx=dx*k;B.vy=dy*k;if(SPON)NET.emit({t:'s',vx:B.vx,vy:B.vy});B.fly=true;G.state='fly';G.lastTrail=G.trail;G.trail=[];hud();[600,800].forEach((f,i)=>tone(f,.06,i*.04,'triangle',.12));tone(200,.15,0,'sine',.12);});
 /* Physik */
 const overlap=(a1,a2,b1,b2)=>Math.min(a2,b2)-Math.max(a1,b1);
 function circleBox(c,b){const nx=Math.max(b.x,Math.min(c.x,b.x+b.w)),ny=Math.max(b.y,Math.min(c.y,b.y+b.h));const dx=c.x-nx,dy=c.y-ny,d=Math.hypot(dx,dy);if(d<c.r){return d>0?{nx:dx/d,ny:dy/d,pen:c.r-d}:{nx:0,ny:-1,pen:c.r};}return null;}
@@ -231,12 +231,12 @@ function step(dt){G.t+=dt;const B=G.bird;
   for(const f of G.fx){f.y-=40*dt;f.life-=dt;}G.fx=G.fx.filter(f=>f.life>0);
   for(const c of G.rc){c.blink-=dt;if(c.blink<-2.5-Math.random()*3)c.blink=.15;}
   // Spielstand
-  if(G.state==='settle'){G.settle+=dt;const moving=G.deb.some(d=>Math.hypot(d.vx,d.vy)>40)||G.bl.some(b=>!b.dead&&b.vy>0);if(G.settle>1&&!moving){checkEnd();}}
-  if(G.state!=='done'&&G.rc.every(c=>!c.alive)&&G.state!=='win'){G.state='win';const g=G;setTimeout(()=>{if(G===g)win();},1200);}
+  if(G.state==='settle'){G.settle+=dt;const moving=G.deb.some(d=>Math.hypot(d.vx,d.vy)>40)||G.bl.some(b=>!b.dead&&b.vy>0);if(G.settle>1&&!moving){if(SPON)spSettle();else checkEnd();}}
+  if(G.state!=='done'&&G.rc.every(c=>!c.alive)&&G.state!=='win'&&(!SPON||spMy())){if(SPON)spSnapSend();G.state='win';const g=G;setTimeout(()=>{if(G===g)win();},1200);}
   hud();}
-function checkEnd(){if(G.state==='win'||G.state==='done')return;if(G.rc.every(c=>!c.alive))return;if(G.queue.length){nextBird();return;}G.state='done';sLose();
+function checkEnd(){if(G.state==='win'||G.state==='done')return;if(G.rc.every(c=>!c.alive))return;if(G.queue.length){nextBird();return;}G.state='done';sLose();if(SPON){spEnd(false);return;}
   setTimeout(()=>modal(`<div class="big">🦝😜</div><h2 style="text-align:center">Die Waschbären lachen!</h2><p style="text-align:center">Noch ${G.rc.filter(c=>c.alive).length} Waschbär(en) übrig. Versuch's nochmal!</p><div class="row"><button data-v="m">Level</button><button class="primary" data-v="a">Nochmal</button></div>`,null,false).then(v=>v==='a'?start(G.li):menu()),600);}
-function win(){const left=G.queue.length+(G.bird&&!G.bird.fly?1:0);G.score+=left*10000;const tot=LEVELS[G.li]().birds.length;const used=tot-left;const st=used<=Math.ceil(tot/2)?3:left>=1?2:1;
+function win(){const left=G.queue.length+(G.bird&&!G.bird.fly?1:0);G.score+=left*10000;if(SPON){G.state='done';sWin();confetti();hud();spEnd(true,left);return;}const tot=LEVELS[G.li]().birds.length;const used=tot-left;const st=used<=Math.ceil(tot/2)?3:left>=1?2:1;
   const old=prog[G.li]||{st:0,sc:0};prog[G.li]={st:Math.max(old.st,st),sc:Math.max(old.sc,G.score)};KIT.set('sp-prog',prog);G.state='done';sWin();confetti();hud();
   modal(`<div class="big">🐦🌻</div><h2 style="text-align:center">Level geschafft!</h2><p style="text-align:center;font-size:26px">${'⭐'.repeat(st)}${'☆'.repeat(3-st)}</p><p style="text-align:center">${G.score} Punkte${left?` (inkl. ${left}× 10.000 Bonus für übrige Vögel)`:''}</p><div class="row"><button data-v="m">Level</button><button data-v="a">Nochmal</button>${G.li<LEVELS.length-1?'<button class="primary" data-v="n">Weiter ➜</button>':''}</div>`,null,false).then(v=>v==='n'?start(G.li+1):v==='a'?start(G.li):menu());}
 /* Zeichnen */
@@ -285,7 +285,27 @@ function draw(){const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#7fc
 function loop(now){const dt=Math.min(.033,(now-last)/1000);last=now;if(G){const n=3;for(let k=0;k<n;k++)step(dt/n);draw();}raf=requestAnimationFrame(loop);}
 $('#btnRe').onclick=()=>start(G.li);$('#btnBack').onclick=menu;
 applyTheme();menu();
-if(window.NET&&NET.supported()){NET.race({title:'Schleuder-Spatzen',unit:'Punkte',start:()=>start(0),score:()=>G?G.score:0,ends:{win:()=>G.score+(G.queue.length+(G.bird&&!G.bird.fly?1:0))*10000,checkEnd:()=>(G.queue.length||G.rc.every(c=>!c.alive))?null:G.score}});}
+/* ---------- Online: zusammen abwechselnd schleudern ---------- */
+var SPON=false,spWait=false,spClose=null,spTot=0;
+function spShot(){return spTot-G.queue.length-1;}
+function spShooter(){const pl=NET.players();return pl[((spShot()%pl.length)+pl.length)%pl.length];}
+function spMy(){const p=spShooter();return p&&p.uid===NET.myUid();}
+function spTurn(){if(!SPON||!G||!G.bird)return;const p=spShooter();$('#hint').textContent=spMy()?'👉 Du bist dran: Vogel nach hinten ziehen und loslassen!':`⏳ ${p?p.name:'?'} schleudert …`;}
+function spSnap(){return {bl:G.bl.map(b=>({...b})),rc:G.rc.map(c=>({...c})),score:G.score};}
+function spSnapSend(){NET.emit({t:'st',s:spSnap()});}
+function spApply(sn){G.bl=sn.bl.map(b=>({...b}));G.rc=sn.rc.map(c=>({...c}));G.score=sn.score;hud();}
+function spSettle(){if(G.state!=='settle')return;if(spMy()){spSnapSend();checkEnd();}else{G.state='waitsnap';$('#hint').textContent='⏳ Warte auf den Mitspieler …';}}
+function spDo(ev){if(ev.t==='go'){if(spClose)spClose();spGo(ev.li);return;}if(!G)return;
+  if(ev.t==='s'){const B=G.bird;if(!B)return;B.x=SX;B.y=SY;B.vx=ev.vx;B.vy=ev.vy;B.fly=true;G.state='fly';G.lastTrail=G.trail;G.trail=[];hud();[600,800].forEach((f,i)=>tone(f,.06,i*.04,'triangle',.12));}
+  else if(ev.t==='p'){const B=G.bird;if(B&&B.fly&&!B.used&&B.t==='p'){B.used=true;B.vx*=.15;B.vy=1000;B.drill=true;tone(900,.08);}}
+  else if(ev.t==='st'){spApply(ev.s);if(G.rc.every(c=>!c.alive)){if(G.state!=='win'&&G.state!=='done'){G.state='win';const g=G;setTimeout(()=>{if(G===g)win();},800);}}else if(G.state==='waitsnap'||G.state==='settle'){G.state='settle';checkEnd();}}
+  else if(ev.t==='go'){if(spClose)spClose();spGo(ev.li);}}
+function spEnd(won,left){setTimeout(()=>modal(`<div class="big">${won?'🐦🌻':'🦝😜'}</div><h2 style="text-align:center">${won?'Zusammen geschafft!':'Die Waschbären lachen!'}</h2><p style="text-align:center">${won?`${G.score} Team-Punkte${left?` (inkl. ${left}× 10.000 Bonus)`:''}`:`Noch ${G.rc.filter(c=>c.alive).length} Waschbär(en) übrig.`}</p><div class="row">${NET.isHost()?`<button data-v="a">Nochmal</button>${won&&G.li<LEVELS.length-1?'<button class="primary" data-v="n">Nächstes Level ➜</button>':''}`:'<span class="note">Der Gastgeber wählt, wie es weitergeht.</span>'}<button data-v="l">Verlassen</button></div>`,(b,c)=>{spClose=c;},false).then(v=>{spClose=null;if(v==='a'||v==='n'){const li=v==='n'?G.li+1:G.li;NET.emit({t:'go',li});spGo(li);}else if(v==='l'){NET.leave();SPON=false;menu();}}),600);}
+function spGo(li){if(spClose)spClose();spTot=LEVELS[li]().birds.length;start(li);spTurn();ONLINE.toast('🐦 Ihr schleudert abwechselnd – gemeinsam gegen die Waschbären!');}
+if(window.NET&&NET.supported()){NET.coop({title:'Schleuder-Spatzen',label:'Online zusammen spielen',note:'Gemeinsam gegen die Waschbären: Ihr schleudert die Vögel abwechselnd auf dasselbe Level!',max:4,
+  start(){SPON=true;NET.evReset();if(NET.isHost()){NET.emit({t:'go',li:0});spGo(0);}else{$('#menu').classList.add('hidden');$('#game').classList.remove('hidden');}},
+  onData(){if(SPON)NET.evPump(spDo);},
+  stop(){if(SPON){SPON=false;menu();}}});}
 
 initHelp('schleuder-spatzen');
 </script>
