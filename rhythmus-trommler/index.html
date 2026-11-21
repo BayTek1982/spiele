@@ -180,14 +180,15 @@ function start(i){const S=SONGS[i];const C=makeChart(S);G={si:i,S,C,score:0,comb
     for(let k=0;k<4;k++)synth(k===0?1320:880,G.a0+2-4*C.beat+k*C.beat,.05,'square',.06);}
   G.p0=performance.now()+100;cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);}
 const now=()=>G.a0!=null&&actx?actx.currentTime-G.a0:(performance.now()-G.p0)/1000;
-function hit(l){if(!G||G.state!=='play')return;const t=now();G.laneFx[l]=.15;const btn=$$('#pads button')[l];btn.classList.add('hit');setTimeout(()=>btn.classList.remove('hit'),90);
+function hit(l){if(!G||G.state!=='play')return;if(TON&&!tMine(l)){drum(l,actx?actx.currentTime:0,.25);return;}const t=now();G.laneFx[l]=.15;const btn=$$('#pads button')[l];btn.classList.add('hit');setTimeout(()=>btn.classList.remove('hit'),90);
   let best=null;for(const n of G.C.notes){if(n.l!==l||n.hit||n.miss)continue;const d=Math.abs(n.t-t);if(d<.16&&(!best||d<Math.abs(best.t-t)))best=n;if(n.t>t+.2)break;}
+  if(best&&TON)NET.emit({t:'h',k:G.C.notes.indexOf(best)});
   if(best){best.hit=true;const d=Math.abs(best.t-t);const perf=d<.07;G.combo++;G.maxc=Math.max(G.maxc,G.combo);const mult=G.combo>=30?3:G.combo>=10?2:1;G.score+=(perf?100:50)*mult;perf?G.perf++:G.good++;
     G.fx.push({l,t:perf?'PERFEKT':'GUT',c:perf?'#7dff8a':'#ffd23f',life:.5});drum(l,actx?actx.currentTime:0,1);}
   else{drum(l,actx?actx.currentTime:0,.4);}}
-function step(){const t=now();for(const n of G.C.notes){if(!n.hit&&!n.miss&&t-n.t>.16){n.miss=true;G.miss++;G.combo=0;G.fx.push({l:n.l,t:'DANEBEN',c:'#ff6b6b',life:.5});}}
+function step(){const t=now();for(const n of G.C.notes){if(!n.hit&&!n.miss&&t-n.t>.16&&TON&&!tMine(n.l)){n.miss=true;continue;}if(!n.hit&&!n.miss&&t-n.t>.16){n.miss=true;G.miss++;G.combo=0;G.fx.push({l:n.l,t:'DANEBEN',c:'#ff6b6b',life:.5});}}
   for(const f of G.fx)f.life-=1/60;G.fx=G.fx.filter(f=>f.life>0);G.laneFx=G.laneFx.map(v=>Math.max(0,v-1/60));
-  $('#score').textContent=G.score;$('#combo').textContent=G.combo>=5?`🔥 ${G.combo}er Combo${G.combo>=30?' ×3':G.combo>=10?' ×2':''}`:'';
+  $('#score').textContent=TON?`${G.score} · Band ${tTeam()}`:G.score;if(TON)NET.live({sc:G.score});$('#combo').textContent=G.combo>=5?`🔥 ${G.combo}er Combo${G.combo>=30?' ×3':G.combo>=10?' ×2':''}`:'';
   if(t>G.C.end&&G.state==='play'){G.state='end';end();}}
 function draw(){const t=now();const lw=W/4;ctx.fillStyle='#0c0614';ctx.fillRect(0,0,W,H);
   const pulse=Math.max(0,1-((t-2)%(G.C.beat))/G.C.beat);
@@ -195,19 +196,35 @@ function draw(){const t=now();const lw=W/4;ctx.fillStyle='#0c0614';ctx.fillRect(
   ctx.strokeStyle='#ffffff10';for(let k=0;k<20;k++){const bt=Math.ceil(t/G.C.beat)*G.C.beat+k*G.C.beat;const y=HL-(bt-t)*360;if(y<0)break;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
   ctx.fillStyle=`rgba(255,79,160,${.4+pulse*.6})`;ctx.fillRect(0,HL-3,W,6);ctx.shadowColor='#ff4fa0';ctx.shadowBlur=18*pulse;ctx.fillRect(0,HL-1,W,2);ctx.shadowBlur=0;
   for(let i=0;i<4;i++){ctx.strokeStyle=LANES[i].c;ctx.lineWidth=3;ctx.beginPath();ctx.arc(i*lw+lw/2,HL,26,0,7);ctx.stroke();}
-  for(const n of G.C.notes){if(n.hit)continue;const y=HL-(n.t-t)*360;if(y<-30)break;if(y>H+30)continue;const x=n.l*lw+lw/2;ctx.globalAlpha=n.miss?.3:1;ctx.fillStyle=LANES[n.l].c;ctx.beginPath();ctx.arc(x,y,22,0,7);ctx.fill();ctx.fillStyle='#fff8';ctx.beginPath();ctx.arc(x-6,y-6,7,0,7);ctx.fill();ctx.globalAlpha=1;}
+  for(const n of G.C.notes){if(n.hit)continue;const y=HL-(n.t-t)*360;if(y<-30)break;if(y>H+30)continue;const x=n.l*lw+lw/2;ctx.globalAlpha=n.miss?.3:(TON&&!tMine(n.l)?.4:1);ctx.fillStyle=LANES[n.l].c;ctx.beginPath();ctx.arc(x,y,22,0,7);ctx.fill();ctx.fillStyle='#fff8';ctx.beginPath();ctx.arc(x-6,y-6,7,0,7);ctx.fill();ctx.globalAlpha=1;}
+  if(TON){ctx.textAlign='center';ctx.font='800 13px Nunito';for(let i=0;i<4;i++){const p=tOwner(i);ctx.fillStyle=tMine(i)?'#fff':'#ffffff77';ctx.fillText(tMine(i)?'⭐ DU':p?p.name:'',i*lw+lw/2,18);}}
   ctx.textAlign='center';ctx.font='900 20px Nunito';for(const f of G.fx){ctx.globalAlpha=f.life*2;ctx.fillStyle=f.c;ctx.fillText(f.t,f.l*lw+lw/2,HL-50-(.5-f.life)*60);}ctx.globalAlpha=1;
   if(t<2){ctx.fillStyle='#fff';ctx.font='900 64px JetBrains Mono';const c=Math.ceil((2-t)/G.C.beat);ctx.fillText(c>4?'':String(c),W/2,H/2);}
   const prog=Math.min(1,t/G.C.end);ctx.fillStyle='#ffffff22';ctx.fillRect(0,H-6,W,6);ctx.fillStyle='#ff4fa0';ctx.fillRect(0,H-6,W*prog,6);}
 function loop(){if(G){step();draw();}raf=requestAnimationFrame(loop);}
-function end(){const tot=G.C.notes.length;const acc=(G.perf+G.good*.5)/tot;const st=acc>=.9?3:acc>=.7?2:acc>=.45?1:0;const old=prog[G.si];
+function end(){if(TON){tEnd();return;}const tot=G.C.notes.length;const acc=(G.perf+G.good*.5)/tot;const st=acc>=.9?3:acc>=.7?2:acc>=.45?1:0;const old=prog[G.si];
   if(st&&(!old||G.score>old.sc||st>old.st)){prog[G.si]={st:Math.max(st,old?.st||0),sc:Math.max(G.score,old?.sc||0)};KIT.set('rt-prog',prog);}if(st>=2){sWin();confetti();}
   modal(`<div class="big">${st?'🥁🎉':'🥁'}</div><h2 style="text-align:center">${['Weiter üben!','Gut gemacht!','Super Rhythmus!','Trommel-Profi!'][st]}</h2><p style="text-align:center;font-size:24px">${'⭐'.repeat(st)}${'☆'.repeat(3-st)}</p><p style="text-align:center"><b>${G.score}</b> Punkte · Treffer ${Math.round(acc*100)} %<br>Perfekt ${G.perf} · Gut ${G.good} · Daneben ${G.miss}<br>Beste Combo: ${G.maxc}</p><div class="row"><button data-v="m">Lieder</button><button class="primary" data-v="a">Nochmal</button></div>`,null,false).then(v=>{const i=G.si;stopAudio();v==='a'?start(i):menu();});}
 const press=e=>{const b=e.target.closest('button');if(!b)return;e.preventDefault();hit(+b.dataset.i);};$('#pads').addEventListener('pointerdown',press);
 cv.addEventListener('pointerdown',e=>{const r=cv.getBoundingClientRect();hit(Math.min(3,Math.floor((e.clientX-r.left)/r.width*4)));});
 document.addEventListener('keydown',e=>{if(e.repeat)return;const i=LANES.findIndex(l=>l.k===e.key.toLowerCase());if(i>=0)hit(i);});
 $('#btnMenu').onclick=menu;applyTheme();menu();
-if(window.NET&&NET.supported()){NET.race({title:'Rhythmus-Trommler',unit:'Punkte',start:()=>start(0),score:()=>G?G.score:0,ends:{end:()=>G.score}});}
+/* ---------- Online: Trommel-Band – jeder spielt seine Trommeln ---------- */
+var TON=false,tSeat=0,tClose=null;
+function tN(){return Math.max(1,NET.players().length);}
+function tMine(l){return l%tN()===tSeat;}
+function tOwner(l){const pl=NET.players();return pl[l%tN()];}
+function tTeam(){let t=G?G.score:0;for(const o of NET.others()){const l=NET.liveOf(o.uid);if(l&&l.sc)t+=l.sc;}return t;}
+function tEnd(){stopAudio();const pl=NET.players();const sc=pl.map(p=>p.uid===NET.myUid()?G.score:((NET.liveOf(p.uid)||{}).sc||0));const tot=sc.reduce((a,b)=>a+b,0);
+  const all=G.C.notes.length,hits=G.C.notes.filter(n=>n.hit).length;const acc=hits/all;const st=acc>=.9?3:acc>=.7?2:acc>=.45?1:0;if(st>=2){sWin();confetti();}
+  modal(`<div class="big">🥁🎸🎉</div><h2 style="text-align:center">${['Weiter üben, Band!','Gute Band!','Super Band!','Profi-Band!'][st]}</h2><p style="text-align:center;font-size:24px">${'⭐'.repeat(st)}${'☆'.repeat(3-st)}</p><p style="text-align:center"><b>${tot}</b> Band-Punkte · ${Math.round(acc*100)} % aller Noten getroffen</p><ol>${pl.map((p,k)=>`<li><b>${esc(p.name)}</b>: ${sc[k]} Punkte</li>`).join('')}</ol><div class="row">${NET.isHost()?'<button class="primary" data-v="a">🔄 Neues Lied</button>':''}<button data-v="l">Verlassen</button></div>`,(b,c)=>{tClose=c;},false).then(v=>{tClose=null;if(v==='a')tPick();else if(v==='l'){NET.leave();TON=false;menu();}});}
+function tPick(){if(!NET.isHost()){return;}modal(`<h2>🎵 Welches Lied spielt eure Band?</h2><div class="row" style="flex-direction:column">${SONGS.map((S,i)=>`<button data-v="${i}">${S.e} ${esc(S.n)}</button>`).join('')}</div>`,null,false).then(v=>{if(v==null)return;NET.emit({t:'go',si:+v});tGo(+v);});}
+function tGo(si){if(tClose)tClose();stopAudio();start(si);const mine=[0,1,2,3].filter(tMine).map(l=>LANES[l].e+' '+LANES[l].n).join(' + ');ONLINE.toast(`🥁 Du spielst: ${mine}`);}
+if(window.NET&&NET.supported()){NET.coop({title:'Rhythmus-Trommler',label:'Online als Band spielen',note:'Jeder spielt seine eigenen Trommeln im selben Lied – nur zusammen klingt es richtig!',max:4,
+  start(room,seat){TON=true;tSeat=seat;NET.evReset();$('#menu').classList.add('hidden');$('#game').classList.remove('hidden');if(NET.isHost())tPick();else ONLINE.toast('🎵 Der Gastgeber wählt das Lied …');},
+  onData(){if(TON)NET.evPump(ev=>{if(ev.t==='go')tGo(ev.si);else if(ev.t==='h'&&G){const n=G.C.notes[ev.k];if(n&&!n.hit){n.hit=true;G.laneFx[n.l]=.15;drum(n.l,actx?actx.currentTime:0,.9);}}});},
+  stop(){if(TON){TON=false;stopAudio();menu();}}});
+  $('#btnMenu').addEventListener('click',()=>{if(TON){TON=false;NET.leave();}});}
 
 initHelp('rhythmus-trommler');
 </script>
