@@ -154,14 +154,14 @@ const hill=x=>GY-Math.max(0,110*Math.exp(-(((x-480)/110)**2)));
 function mkWall(x0){const cells=[];for(let c=0;c<3;c++)for(let r=0;r<7;r++)cells.push({x:x0+c*16,y:GY-(r+1)*16,on:true});return cells;}
 function start(){G={p:[{x:110,hp:3,name:cfg.mode==='cpu'?'Du':'Spieler 1',col:'#e0453a'},{x:850,hp:3,name:cfg.mode==='cpu'?'Computer':'Spieler 2',col:'#2f7de1'}],walls:[mkWall(190),mkWall(722)],turn:0,ball:null,drag:null,parts:[],flakes:Array.from({length:70},()=>({x:Math.random()*W,y:Math.random()*H,s:1+Math.random()*2})),t:0,state:'aim',hitFx:[]};
   newWind();$('#setup').classList.add('hidden');$('#game').classList.remove('hidden');last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);turnMsg();}
-function newWind(){G.wind=cfg.wind?(Math.random()*2-1)*(cfg.wind===1?60:150):0;$('#wind').textContent=G.wind?`🌬️ ${G.wind<0?'←':''} ${Math.abs(Math.round(G.wind/10))} ${G.wind>0?'→':''}`:'🌬️ windstill';}
+function newWind(){const rr=SBON?NET.rng(NET.seed()+(++sbW)*313)():Math.random();G.wind=cfg.wind?(rr*2-1)*(cfg.wind===1?60:150):0;$('#wind').textContent=G.wind?`🌬️ ${G.wind<0?'←':''} ${Math.abs(Math.round(G.wind/10))} ${G.wind>0?'→':''}`:'🌬️ windstill';}
 function hud(){const h=p=>`${p.name} ${'❤️'.repeat(p.hp)}${'🤍'.repeat(3-p.hp)}`;$('#h1').textContent=h(G.p[0]);$('#h2').textContent=h(G.p[1]);}
-function turnMsg(){hud();const P=G.p[G.turn];G.state='aim';if(cfg.mode==='cpu'&&G.turn===1){$('#msg').textContent='🤖 Computer zielt …';setTimeout(cpuThrow,1100);}else $('#msg').textContent=`${G.turn===0?'🔴':'🔵'} ${P.name}: Figur antippen und nach hinten ziehen!`;}
+function turnMsg(){hud();const P=G.p[G.turn];G.state='aim';if(SBON){$('#msg').textContent=G.turn===sbSeat?`${G.turn===0?'🔴':'🔵'} Du bist dran: Figur antippen und nach hinten ziehen!`:`⏳ ${P.name} zielt …`;return;}if(cfg.mode==='cpu'&&G.turn===1){$('#msg').textContent='🤖 Computer zielt …';setTimeout(cpuThrow,1100);}else $('#msg').textContent=`${G.turn===0?'🔴':'🔵'} ${P.name}: Figur antippen und nach hinten ziehen!`;}
 function pos(e){const r=cv.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};}
 const handY=i=>GY-62;
-cv.addEventListener('pointerdown',e=>{if(!G||G.state!=='aim'||(cfg.mode==='cpu'&&G.turn===1))return;const p=pos(e),P=G.p[G.turn];if(Math.abs(p.x-P.x)<90&&p.y>GY-170){G.drag={x0:P.x,y0:handY(),x:p.x,y:p.y};cv.setPointerCapture(e.pointerId);}});
+cv.addEventListener('pointerdown',e=>{if(!G||G.state!=='aim'||(SBON?G.turn!==sbSeat:(cfg.mode==='cpu'&&G.turn===1)))return;const p=pos(e),P=G.p[G.turn];if(Math.abs(p.x-P.x)<90&&p.y>GY-170){G.drag={x0:P.x,y0:handY(),x:p.x,y:p.y};cv.setPointerCapture(e.pointerId);}});
 cv.addEventListener('pointermove',e=>{if(!G||!G.drag)return;const p=pos(e);G.drag.x=p.x;G.drag.y=p.y;});
-cv.addEventListener('pointerup',()=>{if(!G||!G.drag)return;const d=G.drag;G.drag=null;const v=dragV(d);if(!v)return;throwBall(v.vx,v.vy);});
+cv.addEventListener('pointerup',()=>{if(!G||!G.drag)return;const d=G.drag;G.drag=null;const v=dragV(d);if(!v)return;if(SBON)NET.emit({t:'th',vx:v.vx,vy:v.vy});throwBall(v.vx,v.vy);});
 function dragV(d){let dx=d.x0-d.x,dy=d.y0-d.y;const L=Math.hypot(dx,dy);if(L<12)return null;const m=Math.min(L,140)/L;return {vx:dx*m*5.4,vy:dy*m*5.4};}
 function throwBall(vx,vy){const P=G.p[G.turn];G.ball={x:P.x+(G.turn?-14:14),y:handY(),vx,vy,trail:[]};G.state='fly';tone(500,.06,0,'triangle',.12);tone(300,.1,.03,'sine',.1);G.throwT=performance.now();}
 function cpuThrow(){if(!G||G.state!=='aim')return;const me=G.p[1],tg=G.p[0];// beste Wurf-Suche per Simulation
@@ -169,7 +169,7 @@ function cpuThrow(){if(!G||G.state!=='aim')return;const me=G.p[1],tg=G.p[0];// b
   const err=[0,.16,.08,.035][cfg.lvl];const a=best.a*(1+(Math.random()-.5)*err*1.6),s=best.s*(1+(Math.random()-.5)*err);throwBall(-Math.cos(a*Math.PI/180)*s,-Math.sin(a*Math.PI/180)*s);}
 function sim(x,y,vx,vy){const dt=1/60;for(let k=0;k<600;k++){vx+=G.wind*dt;vy+=GR*dt;x+=vx*dt;y+=vy*dt;if(y>hill(x))return x;for(const w of G.walls)for(const c of w)if(c.on&&x>c.x&&x<c.x+16&&y>c.y&&y<c.y+16)return -999;if(x<0||x>W)return x;}return x;}
 function burst(x,y,n=16){for(let k=0;k<n;k++)G.parts.push({x,y,vx:(Math.random()-.5)*260,vy:-Math.random()*240,life:.7+Math.random()*.4});}
-function land(hit){G.ball=null;G.state='wait';const T=G.turn;
+function land(hit){G.ball=null;G.state='wait';const T=G.turn;if(SBON&&T===sbSeat)NET.emit({t:'hp',hp:G.p.map(p=>p.hp)});
   setTimeout(()=>{if(G.p.some(p=>p.hp<=0)){end();return;}G.turn=1-T;newWind();turnMsg();},hit?1300:900);}
 function step(dt){G.t+=dt;for(const f of G.flakes){f.y+=f.s*20*dt;f.x+=(G.wind*.15+Math.sin(G.t+f.y/40)*8)*dt;if(f.y>H){f.y=-5;f.x=Math.random()*W;}if(f.x>W)f.x=0;if(f.x<0)f.x=W;}
   const b=G.ball;if(b){b.vx+=G.wind*dt;b.vy+=GR*dt;b.x+=b.vx*dt;b.y+=b.vy*dt;b.trail.push([b.x,b.y]);if(b.trail.length>18)b.trail.shift();
@@ -210,11 +210,17 @@ function draw(){const dark=theme==='dark';const g=ctx.createLinearGradient(0,0,0
   for(const f of G.flakes){ctx.globalAlpha=.8;ctx.beginPath();ctx.arc(f.x,f.y,f.s,0,7);ctx.fill();}ctx.globalAlpha=1;
   ctx.font='900 26px Nunito, sans-serif';ctx.textAlign='center';for(const f of G.hitFx){ctx.globalAlpha=Math.min(1,f.life);ctx.fillStyle='#ffd23f';ctx.strokeStyle='#0007';ctx.lineWidth=5;ctx.strokeText(f.t,f.x,f.y);ctx.fillText(f.t,f.x,f.y);}ctx.globalAlpha=1;}
 function loop(now){const dt=Math.min(.033,(now-last)/1000);last=now;if(G){step(dt);draw();}raf=requestAnimationFrame(loop);}
-function end(){G.state='done';const w=G.p[0].hp>0?0:1;const youWin=cfg.mode!=='cpu'||w===0;if(youWin){sWin();confetti();}else sLose();
+function end(){G.state='done';const w=G.p[0].hp>0?0:1;if(SBON){const me=w===sbSeat;if(me){sWin();confetti();}else sLose();modal(`<div class="big">${me?'🏆❄️':'🥶'}</div><h2 style="text-align:center">${esc(G.p[w].name)} gewinnt!</h2><div class="row">${NET.isHost()?'<button class="primary" data-v="a">🔄 Revanche</button>':''}<button data-v="l">Verlassen</button></div>`,null,false).then(v=>{if(v==='a')NET.clearData().then(()=>NET.again());else{NET.leave();SBON=false;menu();}});return;}const youWin=cfg.mode!=='cpu'||w===0;if(youWin){sWin();confetti();}else sLose();
   modal(`<div class="big">${youWin?'🏆❄️':'🥶'}</div><h2 style="text-align:center">${cfg.mode==='cpu'?(w===0?'Du hast gewonnen!':'Der Computer gewinnt!'):G.p[w].name+' gewinnt!'}</h2><div class="row"><button data-v="m">Menü</button><button class="primary" data-v="a">Revanche!</button></div>`,null,false).then(v=>v==='a'?start():menu());}
 function menu(){cancelAnimationFrame(raf);G=null;$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');}
 $('#btnMenu').onclick=menu;$('#btnStart').onclick=start;window.onTheme=()=>{};applyTheme();
-if(window.NET&&NET.supported()){NET.race({title:'Schneeballschlacht',unit:'Punkte',start:()=>{cfg.mode='cpu';start();},score:()=>G?(3-G.p[1].hp)*10:0,ends:{end:()=>G.p[0].hp*10+(3-G.p[1].hp)*10}});}
+/* ---------- Online: echte Schneeballschlacht gegeneinander ---------- */
+var SBON=false,sbSeat=0,sbW=0;
+function sbDo(ev){if(!G)return;if(ev.t==='th'&&G.state==='aim'&&G.turn!==sbSeat)throwBall(ev.vx,ev.vy);else if(ev.t==='hp'){(ev.hp||[]).forEach((h,i)=>{if(G.p[i])G.p[i].hp=h;});hud();}}
+if(window.NET&&NET.supported()){NET.coop({title:'Schneeballschlacht',label:'Online gegeneinander',note:'Echte Schneeballschlacht auf zwei Handys – ihr werft abwechselnd!',min:2,max:2,
+  start(room,seat){SBON=true;sbSeat=seat;sbW=0;NET.evReset();const keep=cfg.mode;cfg.mode='2p';start();cfg.mode=keep;const pl=NET.players();G.p[0].name=pl[0]?pl[0].name:'?';G.p[1].name=pl[1]?pl[1].name:'?';turnMsg();},
+  onData(){if(SBON)NET.evPump(sbDo);},
+  stop(){if(SBON){SBON=false;menu();}}});}
 
 initHelp('schneeballschlacht');
 </script>
