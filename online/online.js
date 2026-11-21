@@ -178,6 +178,8 @@ NET.step=function(i,ok,maxMs){if(!NET.active())return Promise.resolve();const me
 NET.evReset=function(){this._evSeen=new Set();this._evN=0;};
 NET.emit=function(ev){if(!NET.active())return;this._evSeen=this._evSeen||new Set();this._evN=(this._evN||0)+1;const k=String(Date.now()).padStart(14,'0')+String(this._evN%1000).padStart(3,'0')+'_'+O.me.uid.slice(0,6);this._evSeen.add(k);NET.put('e/'+k,{...ev,by:O.me.uid});};
 NET.evPump=function(fn){const d=(NET.room&&NET.room.data&&NET.room.data.e)||{};this._evSeen=this._evSeen||new Set();for(const k of Object.keys(d).sort()){if(this._evSeen.has(k))continue;this._evSeen.add(k);const ev=d[k];if(ev.by!==O.me.uid){try{fn(ev);}catch(e){console.warn(e);}}}};
+NET.liveOf=function(uid){return (this._live||{})[uid];};
+NET.hostUid=function(){return this.room&&this.room.host;};
 NET.myUid=()=>O.me&&O.me.uid;
 NET.active=()=>!!(NET.roomId&&NET.room&&NET.room.status==='play');
 function raceDone(v){RACE.done=true;clearInterval(RACE.iv);NET.put('sc/'+O.me.uid,{s:v,d:true,n:O.me.name,a:O.me.av});toast('🏁 Fertig! Warte auf die anderen …');}

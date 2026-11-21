@@ -186,24 +186,44 @@ function gen(){const n=lvl===1?6:9;
     return {sus,cul,pc,loot:rnd(LOOT),seen:new Set(),out:new Set(),found:[],needed:used.length};}}
 function start(){G=gen();$('#setup').classList.add('hidden');$('#game').classList.remove('hidden');
   $('#case').innerHTML=`<h2>📁 Fall Nr. ${100+stat.solved+stat.lost+1}</h2>Oh nein! <b>${G.loot[1]} ${G.loot[0]}</b> ist verschwunden! Alle ${G.sus.length} Verdächtigen waren heute im Haus. Untersuche die Orte und finde heraus, <b>wer es war</b>!`;render();[262,330,392,311].forEach((f,k)=>tone(f,.25,k*.22,'triangle',.1));}
-function render(){$('#sus').innerHTML=G.sus.map((s,i)=>`<div class="s ${G.out.has(i)?'out':''}" data-i="${i}"><div class="face">${s.e}${s.hut?'<span class="acc h">🎩</span>':''}${s.brille?'<span class="acc g">👓</span>':''}</div><div class="nm">${s.nm}</div><div class="tr">${s.hut?'🎩 Hut':'– kein Hut'}<br>${s.brille?'👓 Brille':'– keine Brille'}<br><span class="scarf" style="background:${SC[s.schal]}"></span> ${s.schal}<br>${s.gr==='groß'?'📏 groß':'🐾 klein'}</div></div>`).join('');
+function render(){if(KON)kBar();$('#sus').innerHTML=G.sus.map((s,i)=>`<div class="s ${G.out.has(i)?'out':''}" data-i="${i}"><div class="face">${s.e}${s.hut?'<span class="acc h">🎩</span>':''}${s.brille?'<span class="acc g">👓</span>':''}</div><div class="nm">${s.nm}</div><div class="tr">${s.hut?'🎩 Hut':'– kein Hut'}<br>${s.brille?'👓 Brille':'– keine Brille'}<br><span class="scarf" style="background:${SC[s.schal]}"></span> ${s.schal}<br>${s.gr==='groß'?'📏 groß':'🐾 klein'}</div></div>`).join('');
   $('#places').innerHTML=G.pc.map((p,i)=>`<button class="${G.seen.has(i)?'seen':''}" data-i="${i}"><span>${p.p[0]}</span>${p.p[1]}</button>`).join('');
   $('#steps').textContent=`Untersucht: ${G.seen.size} von ${G.pc.length} Orten`;
   $('#clues').innerHTML=G.found.length?G.found.map(t=>`<div class="clue">${t}</div>`).join(''):'<div class="note">Noch keine Hinweise.</div>';}
 $('#sus').onclick=e=>{const el=e.target.closest('.s');if(!el)return;const i=+el.dataset.i;G.out.has(i)?G.out.delete(i):G.out.add(i);tone(G.out.has(i)?300:500,.06);render();};
-$('#places').onclick=async e=>{const b=e.target.closest('button');if(!b)return;const i=+b.dataset.i;if(G.seen.has(i))return;G.seen.add(i);const p=G.pc[i];
+$('#places').onclick=e=>{const b=e.target.closest('button');if(!b)return;const i=+b.dataset.i;if(G.seen.has(i))return;if(KON){if(!kMy())return;NET.emit({t:'v',i});kWho=(NET.players().find(p=>p.uid===NET.myUid())||{}).name||'';}visit(i);};
+async function visit(i){const b=$(`#places button[data-i="${i}"]`);if(G.seen.has(i))return;G.seen.add(i);const p=G.pc[i];
   b.innerHTML='<span class="mag">🔍</span>suche …';for(let k=0;k<3;k++){tone(700+k*90,.05,k*.18,'sine',.08);}await sleep(650);
-  if(!G.dust||!G.dust.length)G.dust=shuffle(['🕸️ Hier ist nur Staub und eine Spinne.','🧦 Du findest eine alte Socke – kein Hinweis.','🐞 Nur ein Marienkäfer. Nichts Verdächtiges.','📦 Lauter Kartons, aber keine Spur.','🍂 Ein paar Blätter, sonst nichts.','🔦 Du leuchtest überall hin – leider keine Spur.']);const t=p.clue?p.clue.t:G.dust.pop();
-  G.found.push(`<b>${p.p[1]}:</b> ${t}`);if(p.clue)tone(990,.15,0,'triangle',.15);render();};
-$('#btnAccuse').onclick=async()=>{const left=G.sus.map((s,i)=>i).filter(i=>!G.out.has(i));
+  if(!G.dust||!G.dust.length)G.dust=shuffle(['🕸️ Hier ist nur Staub und eine Spinne.','🧦 Du findest eine alte Socke – kein Hinweis.','🐞 Nur ein Marienkäfer. Nichts Verdächtiges.','📦 Lauter Kartons, aber keine Spur.','🍂 Ein paar Blätter, sonst nichts.','🔦 Du leuchtest überall hin – leider keine Spur.']);const DU=['🕸️ Hier ist nur Staub und eine Spinne.','🧦 Du findest eine alte Socke – kein Hinweis.','🐞 Nur ein Marienkäfer. Nichts Verdächtiges.','📦 Lauter Kartons, aber keine Spur.','🍂 Ein paar Blätter, sonst nichts.','🔦 Du leuchtest überall hin – leider keine Spur.'];const t=p.clue?p.clue.t:(KON?DU[i%DU.length]:G.dust.pop());
+  G.found.push(`<b>${p.p[1]}:</b> ${t}${KON&&kWho?` <small>(${esc(kWho)})</small>`:''}`);if(p.clue)tone(990,.15,0,'triangle',.15);if(KON)kNext();render();}
+$('#btnAccuse').onclick=async()=>{if(KON&&!kMy()){infoBox('<p>Warte, bis du dran bist!</p>');return;}const left=G.sus.map((s,i)=>i).filter(i=>!G.out.has(i));
   const pick=await modal(`<h2>👉 Wer war es?</h2><div class="sus">${G.sus.map((s,i)=>`<button data-v="${i}" style="${G.out.has(i)?'opacity:.35':''}"><div style="font-size:30px">${s.e}</div>${s.nm.split(' ')[1]}</button>`).join('')}</div><div class="row"><button data-v="x">Abbrechen</button></div>`);
-  if(pick==null||pick==='x')return;const i=+pick,ok=i===G.cul,c=G.sus[G.cul];
+  if(pick==null||pick==='x')return;if(KON){if(!kMy())return;NET.emit({t:'acc',i:+pick});kAcc(+pick,NET.myUid());return;}const i=+pick,ok=i===G.cul,c=G.sus[G.cul];
   if(ok){const extra=G.seen.size-G.needed;const stars=G.seen.size<=G.needed+1?3:G.seen.size<=G.needed+3?2:1;stat.solved++;stat.stars+=stars;KIT.set('kd-st',stat);sWin();confetti();
     modal(`<div class="big">🚔 ${c.e}</div><h2 style="text-align:center">Fall gelöst!</h2><p style="text-align:center"><b>${c.nm}</b> war's! ${G.loot[0]} ist wieder da.<br>${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}<br><small>Du hast ${G.seen.size} Orte untersucht.</small></p><div class="row"><button data-v="m">Menü</button><button class="primary" data-v="a">Nächster Fall</button></div>`,null,false).then(v=>v==='a'?start():menu());}
   else{stat.lost++;KIT.set('kd-st',stat);sLose();modal(`<div class="big">💨 ${c.e}</div><h2 style="text-align:center">Falscher Verdacht!</h2><p style="text-align:center">${G.sus[i].nm} war unschuldig. Der echte Dieb war <b>${c.nm}</b> – und ist entkommen!</p><div class="row"><button data-v="m">Menü</button><button class="primary" data-v="a">Neuer Fall</button></div>`,null,false).then(v=>v==='a'?start():menu());}};
 function menu(){$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');$('#stat').textContent=stat.solved+stat.lost?`Gelöste Fälle: ${stat.solved} · ⭐ ${stat.stars} · Entkommen: ${stat.lost}`:'';}
 $('#btnMenu').onclick=menu;$('#btnStart').onclick=start;applyTheme();menu();
-if(window.NET&&NET.supported()){let rk0=null;NET.race({title:'Krimi-Detektiv',unit:'Punkte',start:()=>{rk0={a:stat.solved,b:stat.lost};start();},score:()=>0});setInterval(()=>{if(rk0&&(stat.solved!==rk0.a||stat.lost!==rk0.b)){const ok=stat.solved>rk0.a;const v=ok?Math.max(10,110-G.seen.size*10):0;rk0=null;NET.raceDone(v);}},700);}
+/* ---------- Online: zusammen ermitteln, abwechselnd ---------- */
+var KON=false,kPl=[],kTurn=0,kOut=new Set(),kWho='',kClose=null;
+function kAlive(){return kPl.filter(p=>!kOut.has(p.uid));}
+function kCur(){const a=kAlive();return a.length?a[kTurn%a.length]:null;}
+function kMy(){const c=kCur();return c&&c.uid===NET.myUid()&&!G.done;}
+function kNext(){kTurn++;}
+function kBar(){let b=document.getElementById('kBar');if(!b){b=document.createElement('div');b.id='kBar';b.className='card';b.style.cssText='text-align:center;font-weight:900;margin:8px 0';$('#places').before(b);}
+  const c=kCur();b.innerHTML=(G.done?'🏁 Fall beendet':c&&c.uid===NET.myUid()?'👉 Du bist dran: Untersuche einen Ort – oder klage an!':`⏳ ${esc(c?c.name:'?')} ist dran …`)+'<div class="note" style="font-weight:700">'+kPl.map(p=>`${esc(p.av||'')} ${esc(p.name)}${kOut.has(p.uid)?' ❌':''}`).join(' · ')+'</div>';}
+function kAcc(i,uid){const who=kPl.find(p=>p.uid===uid);const ok=i===G.cul,c=G.sus[G.cul];const me=uid===NET.myUid();
+  if(ok){G.done=true;render();if(me){sWin();confetti();}else sLose();kEnd(`<div class="big">🚔 ${c.e}</div><h2 style="text-align:center">${me?'Du hast':esc(who?who.name:'?')+' hat'} den Fall gelöst!</h2><p style="text-align:center"><b>${c.nm}</b> war's! ${G.loot[0]} ist wieder da.<br><small>${G.seen.size} Orte untersucht.</small></p>`);return;}
+  kOut.add(uid);tone(200,.25);ONLINE.toast(`💨 ${who?who.name:'?'} hat ${G.sus[i].nm} beschuldigt – falsch! ${who?who.name:''} ist raus.`);if(!G.out.has(i)){G.out.add(i);}
+  if(!kAlive().length){G.done=true;render();sLose();kEnd(`<div class="big">💨 ${c.e}</div><h2 style="text-align:center">Der Dieb ist entkommen!</h2><p style="text-align:center">Es war <b>${c.nm}</b>.</p>`);return;}render();}
+function kEnd(h){setTimeout(()=>modal(h+`<div class="row">${NET.isHost()?'<button class="primary" data-v="a">🔄 Neuer Fall</button>':''}<button data-v="l">Verlassen</button></div>`,(b,c)=>{kClose=c;},false).then(v=>{kClose=null;if(v==='a')NET.clearData().then(()=>NET.again());else if(v==='l'){NET.leave();kOff();}}),700);}
+function kOff(){KON=false;const b=document.getElementById('kBar');if(b)b.remove();menu();}
+function kDo(ev){if(!G)return;kWho=(kPl.find(p=>p.uid===ev.by)||{}).name||'';if(ev.t==='v')visit(ev.i);else if(ev.t==='acc')kAcc(ev.i,ev.by);}
+if(window.NET&&NET.supported()){NET.coop({title:'Krimi-Detektiv',label:'Online zusammen ermitteln',note:'Ihr untersucht abwechselnd die Orte – alle sehen jeden Hinweis. Wer zuerst den richtigen Täter anklagt, gewinnt! Falsch angeklagt = raus.',max:4,
+  start(){KON=true;kPl=NET.players();kTurn=0;kOut=new Set();NET.evReset();start();G.done=false;render();},
+  onData(){if(KON)NET.evPump(kDo);},
+  stop(){if(KON){if(kClose)kClose();kOff();}}});
+  $('#btnMenu').addEventListener('click',()=>{if(KON){NET.leave();KON=false;const b=document.getElementById('kBar');if(b)b.remove();}});}
 
 initHelp('krimi-detektiv');
 </script>

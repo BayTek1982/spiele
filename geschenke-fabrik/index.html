@@ -156,14 +156,14 @@ function start(){G={gifts:[],t:0,spawn:0,score:0,hearts:3,lvl:1,done:0,speed:88,
 function hud(){$('#score').textContent='⭐ '+G.score;$('#lvl').textContent='Stufe '+G.lvl;$('#hearts').textContent='❤️'.repeat(G.hearts)+'🤍'.repeat(3-G.hearts);$('#ribBox').classList.toggle('hidden',G.lvl<3);}
 function spawn(){const needR=G.lvl>=3&&Math.random()<Math.min(.9,.4+G.lvl*.1);G.gifts.push({x:-70,w:56+Math.random()*30,h:44+Math.random()*30,p:Math.floor(Math.random()*4),r:needR?Math.floor(Math.random()*4):-1,gp:-1,gr:-1,toy:TOYS[Math.floor(Math.random()*TOYS.length)],gold:Math.random()<.08,done:false,fall:0,shake:0});}
 function front(){return G.gifts.filter(g=>!g.done&&!g.fall&&g.x>-40).sort((a,b)=>b.x-a.x)[0];}
-function apply(kind,i){if(!G||G.state!=='run')return;const g=front();if(!g)return;
+function apply(kind,i,remote){if(!G||G.state!=='run')return;if(GON&&!GHOST&&!remote){NET.emit({t:'a',k:kind,i});tone(600,.04);return;}const g=front();if(!g)return;
   if(kind==='p'){if(g.gp>=0){bad(g,'Schon eingepackt – jetzt die Schleife!');return;}if(i!==g.p){bad(g,'Falsches Papier!');return;}g.gp=i;tone(520,.06);tone(780,.08,.05);if(g.r<0)finish(g);}
   else{if(g.r<0){bad(g,'Das braucht keine Schleife!');return;}if(g.gp<0){bad(g,'Erst das Papier!');return;}if(i!==g.r){bad(g,'Falsche Schleife!');return;}g.gr=i;finish(g);}}
 function finish(g){g.done=true;const pts=(g.r>=0?20:10)*(g.gold?3:1);G.score+=pts;G.done++;for(let k=0;k<14;k++)G.parts.push({x:g.x,y:BY-g.h-10,vx:(Math.random()-.5)*240,vy:-Math.random()*240,life:.8,c:['#ffd23f','#fff','#ff6ad5'][k%3]});
   G.msg={t:`+${pts}`,x:g.x,y:BY-g.h-30,life:1};[660,880,1046].forEach((f,k)=>tone(f,.08,k*.05,'triangle',.12));
-  if(G.done%8===0){G.lvl++;G.speed+=16;G.msg={t:`Stufe ${G.lvl}! 🚀`,x:W/2,y:120,life:1.6};if(G.lvl===3)setTimeout(()=>{G.state='pause';infoBox('<div class="big">🎀</div><h2 style="text-align:center">Neu: Schleifen!</h2><p style="text-align:center">Manche Geschenke brauchen jetzt eine <b>Schleife</b>. Erst das Papier, dann die Schleife wählen!</p>','Weiter').then(()=>{G.state='run';last=performance.now();});},50);}hud();}
+  if(G.done%8===0){G.lvl++;G.speed+=16;G.msg={t:`Stufe ${G.lvl}! 🚀`,x:W/2,y:120,life:1.6};if(G.lvl===3&&!GON)setTimeout(()=>{G.state='pause';infoBox('<div class="big">🎀</div><h2 style="text-align:center">Neu: Schleifen!</h2><p style="text-align:center">Manche Geschenke brauchen jetzt eine <b>Schleife</b>. Erst das Papier, dann die Schleife wählen!</p>','Weiter').then(()=>{G.state='run';last=performance.now();});},50);}hud();}
 function bad(g,txt){g.shake=.4;G.hearts--;tone(160,.25,0,'sawtooth',.1);G.msg={t:txt,x:Math.min(Math.max(g.x,160),W-160),y:BY-g.h-40,life:1.4};hud();if(G.hearts<=0)over();}
-function over(){G.state='over';const b=KIT.get('gf-best',0);const rec=G.score>b;if(rec)KIT.set('gf-best',G.score);sLose();
+function over(){G.state='over';if(GON){gSnap(true);gOver();return;}const b=KIT.get('gf-best',0);const rec=G.score>b;if(rec)KIT.set('gf-best',G.score);sLose();
   setTimeout(()=>modal(`<div class="big">🎁</div><h2 style="text-align:center">Schichtende!</h2><p style="text-align:center"><b>${G.done}</b> Geschenke eingepackt<br><b>${G.score}</b> Punkte${rec?'<br>⭐ Neuer Rekord!':''}</p><div class="row"><button data-v="m">Menü</button><button class="primary" data-v="a">Nochmal</button></div>`,null,false).then(v=>v==='a'?start():menu()),500);}
 function step(dt){G.t+=dt;G.belt+=G.speed*dt;G.spawn-=dt;const gap=Math.max(1.1,3.2-G.lvl*.25);if(G.spawn<=0){spawn();G.spawn=gap*(.8+Math.random()*.5);}
   for(const g of G.gifts){if(g.fall){g.fall+=dt;g.vy=(g.vy||0)+900*dt;g.yo=(g.yo||0)+g.vy*dt;continue;}g.x+=G.speed*dt*(g.done?1.8:1);if(g.shake>0)g.shake-=dt;
@@ -197,14 +197,29 @@ function draw(){const g0=ctx.createLinearGradient(0,0,0,H);g0.addColorStop(0,'#4
       if(g.r>=0){ctx.fillStyle=RIB[g.r][1];ctx.strokeStyle='#999';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(tx-7,ty+33,7,5,-.4,0,7);ctx.ellipse(tx+7,ty+33,7,5,.4,0,7);ctx.fill();ctx.stroke();}}}
   for(const p of G.parts){ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.c;ctx.fillRect(p.x,p.y,5,5);}ctx.globalAlpha=1;
   if(G.msg){ctx.globalAlpha=Math.min(1,G.msg.life);ctx.font='900 24px Nunito';ctx.textAlign='center';ctx.fillStyle='#ffd23f';ctx.strokeStyle='#000a';ctx.lineWidth=5;ctx.strokeText(G.msg.t,G.msg.x,G.msg.y);ctx.fillText(G.msg.t,G.msg.x,G.msg.y);ctx.globalAlpha=1;}}
-function loop(now){const dt=Math.min(.033,(now-last)/1000);last=now;if(G){if(G.state==='run')step(dt);draw();}raf=requestAnimationFrame(loop);}
+function loop(now){const dt=Math.min(.033,(now-last)/1000);last=now;if(G){if(GON&&!GHOST){gClient(dt);}else{if(G.state==='run')step(dt);if(GON)gSnap();}draw();}raf=requestAnimationFrame(loop);}
 $('#pal').onclick=e=>{const b=e.target.closest('button');if(!b)return;b.classList.remove('flash');void b.offsetWidth;b.classList.add('flash');apply('p',+b.dataset.i);};
 $('#rib').onclick=e=>{const b=e.target.closest('button');if(!b)return;apply('r',+b.dataset.i);};
 document.addEventListener('keydown',e=>{if(!G)return;const k='1234'.indexOf(e.key);if(k>=0)apply('p',k);const r='qwer'.indexOf(e.key);if(r>=0)apply('r',r);});
-$('#btnPause').onclick=()=>{if(!G||G.state==='over')return;G.state=G.state==='run'?'pause':'run';$('#btnPause').textContent=G.state==='run'?'⏸ Pause':'▶ Weiter';last=performance.now();};
+$('#btnPause').onclick=()=>{if(!G||G.state==='over'||GON)return;G.state=G.state==='run'?'pause':'run';$('#btnPause').textContent=G.state==='run'?'⏸ Pause':'▶ Weiter';last=performance.now();};
 function menu(){cancelAnimationFrame(raf);G=null;$('#game').classList.add('hidden');$('#setup').classList.remove('hidden');const b=KIT.get('gf-best',0);$('#best').textContent=b?`Rekord: ${b} Punkte`:'';}
 $('#btnMenu').onclick=menu;$('#btnStart').onclick=start;applyTheme();menu();
-if(window.NET&&NET.supported()){NET.race({title:'Geschenke-Fabrik',unit:'Punkte',start:()=>start(),score:()=>G?G.score:0,ends:{over:()=>G.score}});}
+/* ---------- Online: gemeinsam am selben Fließband ---------- */
+var GON=false,GHOST=false,gLast='',gClose=null,gSeenLvl3=false;
+function gSnap(force){if(!G)return;NET.live({s:{g:G.gifts.map(g=>[Math.round(g.x),Math.round(g.w),Math.round(g.h),g.p,g.r,g.gp,g.gr,g.toy,g.gold?1:0,g.done?1:0,+(g.fall||0).toFixed(2)]),sc:G.score,he:G.hearts,lv:G.lvl,dn:G.done,sp:G.speed,st:G.state,m:G.msg?[G.msg.t,Math.round(G.msg.x),Math.round(G.msg.y),+G.msg.life.toFixed(2)]:null}});}
+function gClient(dt){const h=NET.liveOf(NET.hostUid());const sn=h&&h.s;if(sn&&JSON.stringify(sn)!==gLast){gLast=JSON.stringify(sn);const oldSc=G.score,oldHe=G.hearts;
+    G.gifts=(sn.g||[]).map(a=>({x:a[0],w:a[1],h:a[2],p:a[3],r:a[4],gp:a[5],gr:a[6],toy:a[7],gold:!!a[8],done:!!a[9],fall:a[10],shake:0}));G.score=sn.sc;G.hearts=sn.he;G.lvl=sn.lv;G.done=sn.dn;G.speed=sn.sp;G.msg=sn.m?{t:sn.m[0],x:sn.m[1],y:sn.m[2],life:sn.m[3]}:null;
+    if(G.score>oldSc)[660,880,1046].forEach((f,k)=>tone(f,.08,k*.05,'triangle',.12));if(G.hearts<oldHe)tone(160,.25,0,'sawtooth',.1);hud();
+    if(G.lvl>=3&&!gSeenLvl3){gSeenLvl3=true;ONLINE.toast('🎀 Neu: Manche Geschenke brauchen jetzt eine Schleife!');}
+    if(sn.st==='over'&&G.state!=='over'){G.state='over';gOver();}}
+  else if(G.state==='run'){for(const g of G.gifts)if(!g.fall)g.x+=G.speed*dt*(g.done?1.8:1);}
+  G.belt+=G.speed*dt;for(const p of G.parts){p.vy+=500*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;}G.parts=G.parts.filter(p=>p.life>0);}
+function gOver(){sLose();setTimeout(()=>modal(`<div class="big">🎁</div><h2 style="text-align:center">Schichtende fürs Team!</h2><p style="text-align:center"><b>${G.done}</b> Geschenke zusammen eingepackt<br><b>${G.score}</b> Team-Punkte</p><div class="row">${NET.isHost()?'<button class="primary" data-v="a">🔄 Neue Schicht</button>':''}<button data-v="l">Verlassen</button></div>`,(b,c)=>{gClose=c;},false).then(v=>{gClose=null;if(v==='a')NET.clearData().then(()=>NET.again());else if(v==='l'){NET.leave();GON=false;menu();}}),500);}
+if(window.NET&&NET.supported()){NET.coop({title:'Geschenke-Fabrik',label:'Online zusammen arbeiten',note:'Alle stehen am selben Fließband! Jeder kann Papier und Schleifen wählen – gemeinsam schafft ihr mehr.',max:4,
+  start(){GON=true;GHOST=NET.isHost();gLast='';gSeenLvl3=false;NET.evReset();start();if(GHOST)ONLINE.toast('🎁 Du leitest die Fabrik – packt zusammen ein!');},
+  onData(){if(GON&&GHOST)NET.evPump(ev=>{if(ev.t==='a')apply(ev.k,ev.i,true);});},
+  stop(){if(GON){GON=false;if(gClose)gClose();menu();}}});
+  $('#btnMenu').addEventListener('click',()=>{if(GON){GON=false;NET.leave();}});}
 
 initHelp('geschenke-fabrik');
 </script>
