@@ -165,16 +165,16 @@ const W=600,C=300,cv=$('#cv'),ctx=cv.getContext('2d');
 const COL=[{n:'Rot',c:'#ff4d5e'},{n:'Blau',c:'#3b82f6'},{n:'Grün',c:'#2fbf6a'},{n:'Gelb',c:'#f2c21b'}];
 let P=[],R0=250,R=250,t=0,run=false,round=0,wins=[0,0,0,0],last=0,splash=[],snow=[],cracks=[];
 const PR=22;
-function makePlayers(){const human=cfg.mode;return COL.map((c,i)=>({i,...c,human:i<human,name:i<human?(human===2?(i===0?'Spieler 1':'Spieler 2'):'Du'):'Computer '+c.n,
+function makePlayers(){const human=EON?NET.players().length:cfg.mode;const pl=EON?NET.players():[];return COL.map((c,i)=>({i,...c,human:i<human,uid:pl[i]?pl[i].uid:null,name:EON&&pl[i]?pl[i].name:i<human?(human===2?(i===0?'Spieler 1':'Spieler 2'):'Du'):'Computer '+c.n,
   x:C+Math.cos(Math.PI/2+i*Math.PI/2)*120,y:C+Math.sin(Math.PI/2+i*Math.PI/2)*120,vx:0,vy:0,ax:0,ay:0,alive:true,dash:0,dashT:0,fall:0,face:-Math.PI/2,ai:{t:0,tx:C,ty:C}}));}
 function startMatch(){wins=[0,0,0,0];round=0;$('#setup').classList.add('hidden');$('#game').classList.remove('hidden');$('#dash2').classList.toggle('hidden',cfg.mode!==2);
   $('#hint').textContent=cfg.mode===2?'Unten: Spieler 1 (Rot) · Oben: Spieler 2 (Blau) – Finger ziehen = rutschen':'Finger aufs Eis legen und ziehen = rutschen · SCHUBS = Stoß';nextRound();}
 function nextRound(){round++;P=makePlayers();R=R0;t=0;splash=[];cracks=[];for(let k=0;k<10;k++){const a=Math.random()*6.28;cracks.push({a,r:60+Math.random()*150,l:20+Math.random()*40,b:Math.random()*6.28});}
-  hud();showOver(`<h2>Runde ${round} von ${cfg.rounds}</h2><p>${cfg.mode===2?'Rot (unten) gegen Blau (oben) – und zwei Computer-Pinguine!':'Du bist der <b style="color:#ff4d5e">rote Pinguin</b>.'}</p><button class="primary" id="goBtn">Los! 🐧</button>`);
+  hud();showOver(`<h2>Runde ${round} von ${cfg.rounds}</h2><p>${EON?'Alle auf einer Scholle – wer bleibt als Letzter oben?':cfg.mode===2?'Rot (unten) gegen Blau (oben) – und zwei Computer-Pinguine!':'Du bist der <b style="color:#ff4d5e">rote Pinguin</b>.'}</p><button class="primary" id="goBtn">Los! 🐧</button>`);
   $('#goBtn').onclick=e=>{e.stopPropagation();countdown();};draw();}
-async function countdown(){$('#over').classList.add('hidden');for(const n of['3','2','1','LOS!']){big=n;tone(n==='LOS!'?880:520,.12);draw();await sleep(600);}big='';run=true;last=performance.now();requestAnimationFrame(loop);}
+async function countdown(){$('#over').classList.add('hidden');if(EON)eOv='';for(const n of['3','2','1','LOS!']){big=n;tone(n==='LOS!'?880:520,.12);draw();await sleep(600);}big='';run=true;last=performance.now();requestAnimationFrame(loop);}
 let big='';
-function showOver(h){$('#over').innerHTML=h;$('#over').classList.remove('hidden');}
+function showOver(h){$('#over').innerHTML=h;$('#over').classList.remove('hidden');if(EON&&EHOST){eOv=h.replace(/<button[^>]*>.*?<\/button>/g,'');eSnap(true);}}
 function hud(){$('#hud').innerHTML=P.map(p=>`<div class="p ${p.alive?'':'out'}" style="border-color:${p.c}"><span style="color:${p.c}">●</span> ${esc(p.name)}<br><b>${'⭐'.repeat(wins[p.i])||'–'}</b></div>`).join('');}
 /* Steuerung */
 const touch={};// pointerId -> {pi,ox,oy,x,y}
@@ -185,9 +185,9 @@ const endT=e=>{delete touch[e.pointerId];};cv.addEventListener('pointerup',endT)
 const keys={};document.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key===' '){e.preventDefault();doDash(0);}if(e.key.toLowerCase()==='q')doDash(cfg.mode===2?1:0);if(e.key.startsWith('Arrow'))e.preventDefault();});
 document.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;});
 $('#dash1').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();doDash(0);});$('#dash2').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();doDash(1);});
-function doDash(i){const p=P[i];if(!run||!p||!p.alive||!p.human||p.dash>0)return;dashGo(p);}
+function doDash(i){if(EON&&!EHOST){NET.emit({t:'d'});tone(300,.12,0,'square',.08);return;}if(EON)i=0;const p=P[i];if(!run||!p||!p.alive||!p.human||p.dash>0)return;dashGo(p);}
 function dashGo(p){let dx=p.ax,dy=p.ay;if(Math.hypot(dx,dy)<.1){dx=Math.cos(p.face);dy=Math.sin(p.face);}const l=Math.hypot(dx,dy)||1;p.vx+=dx/l*330;p.vy+=dy/l*330;p.dash=2.2;p.dashT=.25;tone(300,.12,0,'square',.08);}
-function humanInput(p){let ax=0,ay=0;for(const t of Object.values(touch))if(t.pi===p.i){const dx=t.x-t.ox,dy=t.y-t.oy,l=Math.hypot(dx,dy);if(l>8){const k=Math.min(1,l/70);ax=dx/l*k;ay=dy/l*k;}}
+function humanInput(p){if(EON&&p.uid&&p.uid!==NET.myUid()){const l=NET.liveOf(p.uid);p.ax=l&&l.in?l.in[0]:0;p.ay=l&&l.in?l.in[1]:0;return;}let ax=0,ay=0;for(const t of Object.values(touch))if(t.pi===p.i){const dx=t.x-t.ox,dy=t.y-t.oy,l=Math.hypot(dx,dy);if(l>8){const k=Math.min(1,l/70);ax=dx/l*k;ay=dy/l*k;}}
   const map=p.i===0?['arrowleft','arrowright','arrowup','arrowdown']:['a','d','w','s'];if(cfg.mode===1&&p.i===0){for(const k of['a','d','w','s'])if(keys[k]){map.push(k);}}
   if(keys[map[0]]||(cfg.mode===1&&keys.a))ax=-1;if(keys[map[1]]||(cfg.mode===1&&keys.d))ax=1;if(keys[map[2]]||(cfg.mode===1&&keys.w))ay=-1;if(keys[map[3]]||(cfg.mode===1&&keys.s))ay=1;
   p.ax=ax;p.ay=ay;}
@@ -203,7 +203,7 @@ function aiInput(p,dt){const lv=cfg.lvl;p.ai.t-=dt;
   const vOut=((p.x-C)*p.vx+(p.y-C)*p.vy)/(d||1);if(vOut>60&&d>R*.55){dx-=p.vx*1.2;dy-=p.vy*1.2;}
   const l=Math.hypot(dx,dy)||1;p.ax=dx/l*[0,.75,.9,1][lv];p.ay=dy/l*[0,.75,.9,1][lv];
   if(p.dash<=0&&p.ai.tgt&&p.ai.tgt.alive){const dd=Math.hypot(p.ai.tgt.x-p.x,p.ai.tgt.y-p.y);if(dd<95&&Math.random()<[0,.02,.05,.09][lv]&&d<R-40)dashGo(p);}}
-function loop(now){if(!run)return;const dt=Math.min(.033,(now-last)/1000);last=now;update(dt);draw();if(run)requestAnimationFrame(loop);}
+function loop(now){if(!run)return;const dt=Math.min(.033,(now-last)/1000);last=now;update(dt);draw();if(EON)eSnap();if(run)requestAnimationFrame(loop);}
 function update(dt){
   t+=dt;if(t>8)R=Math.max(95,R-dt*(5+cfg.lvl));
   for(const p of P){if(!p.alive)continue;if(p.fall>0){p.fall+=dt;if(p.fall>.8){p.alive=false;hud();}continue;}
@@ -229,7 +229,7 @@ function endRound(w){if(w)wins[w.i]++;hud();
   const wn=w?w.name:'Niemand';const humanWon=w&&w.human;
   if(over){const ch=P[champ];const hw=ch.human;if(hw){confetti();sWin();}else sLose();
     showOver(`<div class="big">${hw?'🏆':'🐧'}</div><h2>${esc(ch.name)} gewinnt das Spiel!</h2><p>${'⭐'.repeat(best)}</p><div class="row" style="justify-content:center"><button class="primary" id="aBtn">Nochmal</button><button id="mBtn">Menü</button></div>`);
-    $('#aBtn').onclick=e=>{e.stopPropagation();startMatch();};$('#mBtn').onclick=e=>{e.stopPropagation();toMenu();};}
+    $('#aBtn').onclick=e=>{e.stopPropagation();startMatch();};$('#mBtn').onclick=e=>{e.stopPropagation();if(EON){NET.leave();EON=false;}toMenu();};}
   else{if(humanWon){sWin();}else tone(330,.2);
     showOver(`<h2>${w?`${esc(wn)} gewinnt Runde ${round}!`:'Alle im Wasser!'}</h2><p>${P.map(p=>`<span style="color:${p.c}">●</span> ${'⭐'.repeat(wins[p.i])||'–'}`).join(' &nbsp; ')}</p><button class="primary" id="nBtn">Nächste Runde</button>`);
     $('#nBtn').onclick=e=>{e.stopPropagation();nextRound();};}}
@@ -271,7 +271,22 @@ function draw(){
   if(big){ctx.fillStyle='#fff';ctx.strokeStyle='#0a2a4d';ctx.lineWidth=6;ctx.font='bold 90px Nunito';ctx.textAlign='center';ctx.textBaseline='middle';ctx.strokeText(big,C,C);ctx.fillText(big,C,C);ctx.textBaseline='alphabetic';}
 }
 window.onTheme=()=>{};applyTheme();seg();
-if(window.NET&&NET.supported()){NET.race({title:'Pinguin-Rutsch',unit:'Siege',start:()=>startMatch(),score:()=>wins[0]||0,ends:{endRound:(w)=>{const w2=[...wins];if(w)w2[w.i]++;const best=Math.max(...w2),need=Math.ceil(cfg.rounds/2);return (best>=need||round>=cfg.rounds)?w2[0]:null;}}});}
+/* ---------- Online: alle auf derselben Eisscholle (Gastgeber rechnet) ---------- */
+var EON=false,EHOST=false,eOv='',eLast='',eRaf=0,eKeepMode=1,eSpl=0;
+function eSnap(force){if(!P.length)return;NET.live({s:{P:P.map(p=>[Math.round(p.x),Math.round(p.y),p.alive?1:0,+p.fall.toFixed(2),+p.face.toFixed(2),p.dashT>0?1:0,p.dash>0?1:0]),R:Math.round(R),sp:splash.map(x=>[Math.round(x.x),Math.round(x.y),+x.t.toFixed(2),x.c]),w:wins,rd:round,big,ov:eOv,cr:cracks.map(c=>[+c.a.toFixed(2),Math.round(c.r),Math.round(c.l),+c.b.toFixed(2)])}});}
+function eMyIn(){const f={i:0,ax:0,ay:0};humanInput(f);return [+f.ax.toFixed(2),+f.ay.toFixed(2)];}
+function eClient(){if(!EON||EHOST)return;NET.live({in:eMyIn()});const h=NET.liveOf(NET.hostUid());const sn=h&&h.s;
+  if(sn){const j=JSON.stringify(sn);if(j!==eLast){eLast=j;if(!P.length)P=makePlayers();sn.P.forEach((a,k)=>{const p=P[k];if(!p)return;p.x=a[0];p.y=a[1];p.alive=!!a[2];p.fall=a[3];p.face=a[4];p.dashT=a[5]?.1:0;p.dash=a[6]?1:0;});
+      R=sn.R;splash=sn.sp.map(a=>({x:a[0],y:a[1],t:a[2],c:a[3]}));if(splash.length>eSpl)tone(500,.08,0,'sine',.12);eSpl=splash.length;wins=sn.w;if(sn.rd!==round){round=sn.rd;}big=sn.big;cracks=sn.cr.map(a=>({a:a[0],r:a[1],l:a[2],b:a[3]}));hud();
+      if(sn.ov){$('#over').innerHTML=sn.ov+'<p class="note">Der Gastgeber startet gleich …</p>';$('#over').classList.remove('hidden');}else $('#over').classList.add('hidden');}
+    draw();const me=P.findIndex(p=>p.uid===NET.myUid());if(me>=0)$('#dash1').classList.toggle('cd',P[me].dash>0);}
+  eRaf=requestAnimationFrame(eClient);}
+if(window.NET&&NET.supported()){NET.coop({title:'Pinguin-Rutsch',label:'Online gegeneinander',note:'Alle Pinguine auf derselben Eisscholle! Schubst euch gegenseitig ins Wasser – freie Plätze bekommen Computer-Pinguine.',max:4,
+  start(){EON=true;EHOST=NET.isHost();eLast='';eOv='';NET.evReset();eKeepMode=cfg.mode;cfg.mode=1;
+    if(EHOST){startMatch();}else{wins=[0,0,0,0];round=0;$('#setup').classList.add('hidden');$('#game').classList.remove('hidden');$('#dash2').classList.add('hidden');P=makePlayers();hud();cancelAnimationFrame(eRaf);eRaf=requestAnimationFrame(eClient);}
+    const me=NET.players().findIndex(p=>p.uid===NET.myUid());$('#hint').textContent=`Du bist der ${['rote','blaue','grüne','gelbe'][me]||''} Pinguin · Finger ziehen = rutschen · SCHUBS = Stoß`;},
+  onData(){if(EON&&EHOST)NET.evPump(ev=>{if(ev.t==='d'){const p=P.find(q=>q.uid===ev.by);if(p&&run&&p.alive&&p.dash<=0)dashGo(p);}});},
+  stop(){if(EON){EON=false;cfg.mode=eKeepMode;cancelAnimationFrame(eRaf);toMenu();}}});}
 
 initHelp('pinguin-rutsch');
 </script>

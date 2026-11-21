@@ -157,7 +157,7 @@ function start(i){const L=LV[i];const bumps=[],ice=[];for(let k=0;k<L.bumps;k++)
   last=performance.now();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);}
 function step(dt){G.t+=dt;if(G.state==='run'){const L=G.L;const ramp=Math.min(1,G.t/1.2);G.x+=L.sp*ramp*dt;
     // Kippen
-    const tq=(keys.l?-1:0)+(keys.r?1:0);G.om+=tq*3.2*dt;G.om*=Math.pow(.02,dt);G.th+=G.om*dt;G.th*=Math.pow(.6,dt);G.th=Math.max(-.6,Math.min(.6,G.th));
+    const tq=KON?kTorque():(keys.l?-1:0)+(keys.r?1:0);G.om+=tq*3.2*dt;G.om*=Math.pow(.02,dt);G.th+=G.om*dt;G.th*=Math.pow(.6,dt);G.th=Math.max(-.6,Math.min(.6,G.th));
     // Buckel
     for(const b of G.bumps){if(G.x>b&&G.x-L.sp*dt*ramp<=b){const imp=(Math.random()<.5?-1:1)*(.5+Math.random()*.6);G.om+=imp*1.6;G.gl.forEach(g=>g.v+=imp*25+(Math.random()-.5)*20);G.bob=.25;tone(140,.08,0,'sine',.15);}}
     const onIce=G.ice.some(([a,b])=>G.x>a&&G.x<b);const fr=onIce?.6:2.2;
@@ -206,15 +206,32 @@ function draw(){const cam=G.x-260;const g=ctx.createLinearGradient(0,0,0,H);g.ad
   for(const p of G.parts){p.vy+=600/60;p.x+=p.vx/60;p.y+=p.vy/60;p.life-=1/60;ctx.globalAlpha=Math.max(0,p.life*1.6);ctx.fillStyle=p.c;ctx.beginPath();ctx.arc(p.x,Math.min(p.y,GY),3,0,7);ctx.fill();}ctx.globalAlpha=1;G.parts=G.parts.filter(p=>p.life>0);
   // Neigungsanzeige
   ctx.fillStyle='#0003';ctx.fillRect(W/2-80,H-34,160,10);ctx.fillStyle=Math.abs(G.th)>.3?'#e0453a':'#2fa35a';ctx.fillRect(W/2-3+G.th/.6*77,H-37,6,16);}
-function loop(now){const dt=Math.min(.033,(now-last)/1000);last=now;if(G){step(dt);draw();}raf=requestAnimationFrame(loop);}
-function finish(){if(!G||G.done)return;G.done=true;const n=G.gl.filter(g=>g.on).length,tot=G.gl.length;const arrived=G.x>=G.L.len;
+function loop(now){const dt=Math.min(.033,(now-last)/1000);last=now;if(G){if(KON&&!KHOST){kClient();}else{step(dt);if(KON)kSnap();}draw();}raf=requestAnimationFrame(loop);}
+function finish(){if(!G||G.done)return;G.done=true;const n=G.gl.filter(g=>g.on).length,tot=G.gl.length;const arrived=G.x>=G.L.len;if(KON){kFin(n,tot,arrived);return;}
   const st=!arrived||n===0?0:n===tot?3:n>=tot/2?2:1;if(st){const old=prog[G.li]||0;if(st>old){prog[G.li]=st;KIT.set('pk-prog',prog);}sWin();if(st===3)confetti();}else sLose();
   modal(`<div class="big">${st?'🐧🍹':'🐧💦'}</div><h2 style="text-align:center">${st===3?'Perfekt serviert!':st?'Serviert!':'Alles verschüttet!'}</h2><p style="text-align:center;font-size:24px">${'⭐'.repeat(st)}${'☆'.repeat(3-st)}</p><p style="text-align:center">${n} von ${tot} Gläsern angekommen.</p><div class="row"><button data-v="m">Bestellungen</button><button data-v="a">Nochmal</button>${st&&G.li<LV.length-1?'<button class="primary" data-v="n">Weiter ➜</button>':''}</div>`,null,false).then(v=>v==='n'?start(G.li+1):v==='a'?start(G.li):menu());}
 function hold(id,k){const b=$(id);const on=e=>{e.preventDefault();keys[k]=true;b.classList.add('on');try{b.setPointerCapture(e.pointerId);}catch(_){}},off=()=>{keys[k]=false;b.classList.remove('on');};b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);b.addEventListener('pointerleave',off);b.oncontextmenu=e=>e.preventDefault();}
 hold('#bL','l');hold('#bR','r');
 document.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')keys.l=true;if(e.key==='ArrowRight')keys.r=true;});document.addEventListener('keyup',e=>{if(e.key==='ArrowLeft')keys.l=false;if(e.key==='ArrowRight')keys.r=false;});
-$('#btnRe').onclick=()=>start(G.li);$('#btnMenu').onclick=menu;applyTheme();menu();
-if(window.NET&&NET.supported()){NET.race({title:'Pinguin-Kellner',unit:'Gläser',start:()=>start(0),score:()=>G?G.gl.filter(g=>g.on).length:0,ends:{finish:()=>G.done?null:(G.x>=G.L.len?G.gl.filter(g=>g.on).length:0)}});}
+$('#btnRe').onclick=()=>{if(KON)return;start(G.li);};$('#btnMenu').onclick=menu;applyTheme();menu();
+/* ---------- Online: alle halten das Tablett zusammen ---------- */
+var KON=false,KHOST=false,kClose=null,kLast='';
+function kIn(){return (keys.l?-1:0)+(keys.r?1:0);}
+function kTorque(){let t=kIn();for(const o of NET.others()){const l=NET.liveOf(o.uid);if(l&&typeof l.in==='number')t+=l.in;}return Math.max(-1.5,Math.min(1.5,t));}
+setInterval(()=>{if(KON&&!KHOST)NET.live({in:kIn()});},120);
+function kSnap(){NET.live({in:kIn(),s:{x:Math.round(G.x),th:+G.th.toFixed(3),b:+G.bob.toFixed(2),st:G.state,t:+G.t.toFixed(2),gl:G.gl.map(g=>[+g.u.toFixed(1),g.on?1:0,g.fall?[Math.round(g.fall.x),Math.round(g.fall.y),+g.fall.a.toFixed(2)]:0]),fin:G.kfin||null}});}
+function kClient(){const h=NET.liveOf(NET.hostUid());const sn=h&&h.s;if(!sn)return;const j=JSON.stringify(sn);if(j===kLast)return;kLast=j;
+  G.x=sn.x;G.th=sn.th;G.bob=sn.b;G.t=sn.t;sn.gl.forEach((a,k)=>{const g=G.gl[k];if(!g)return;if(g.on&&!a[1])tone(1500,.05,0,'triangle',.1);g.u=a[0];g.on=!!a[1];g.fall=a[2]?{x:a[2][0],y:a[2][1],a:a[2][2],vx:0,vy:0}:null;});
+  const n=G.gl.filter(g=>g.on).length;$('#glasses').textContent=`${'🍹'.repeat(n)}${'💔'.repeat(G.gl.length-n)}`;$('#prog').style.width=(G.x/G.L.len*100)+'%';
+  if(sn.fin&&!G.done){G.done=true;kFin(sn.fin[0],sn.fin[1],!!sn.fin[2]);}}
+function kFin(n,tot,arrived){if(KHOST){G.kfin=[n,tot,arrived?1:0];kSnap();}const st=!arrived||n===0?0:n===tot?3:n>=tot/2?2:1;if(st){sWin();if(st===3)confetti();}else sLose();
+  modal(`<div class="big">${st?'🐧🍹':'🐧💦'}</div><h2 style="text-align:center">${st===3?'Perfekt im Team serviert!':st?'Zusammen serviert!':'Alles verschüttet!'}</h2><p style="text-align:center;font-size:24px">${'⭐'.repeat(st)}${'☆'.repeat(3-st)}</p><p style="text-align:center">${n} von ${tot} Gläsern angekommen.</p><div class="row">${KHOST?`<button data-v="a">Nochmal</button>${st&&G.li<LV.length-1?'<button class="primary" data-v="n">Nächste Bestellung ➜</button>':''}`:'<span class="note">Der Gastgeber wählt die nächste Bestellung.</span>'}<button data-v="l">Verlassen</button></div>`,(b,c)=>{kClose=c;},false).then(v=>{kClose=null;if(v==='a'||v==='n'){const li=v==='n'?G.li+1:G.li;NET.emit({t:'go',li});kGo(li);}else if(v==='l'){NET.leave();KON=false;menu();}});}
+function kGo(li){if(kClose)kClose();kLast='';NET.seeded(()=>start(li));G.kfin=null;ONLINE.toast('🐧 Haltet das Tablett gemeinsam gerade – jeder kann kippen!');}
+if(window.NET&&NET.supported()){NET.coop({title:'Pinguin-Kellner',label:'Online zusammen balancieren',note:'Alle halten dasselbe Tablett! Jeder kann nach links oder rechts kippen – nur wenn ihr euch abstimmt, kommt nichts runter.',max:4,
+  start(){KON=true;KHOST=NET.isHost();NET.evReset();kGo(0);},
+  onData(){if(KON)NET.evPump(ev=>{if(ev.t==='go')kGo(ev.li);});},
+  stop(){if(KON){KON=false;if(kClose)kClose();menu();}}});
+  $('#btnMenu')&&$('#btnMenu').addEventListener('click',()=>{if(KON){KON=false;NET.leave();}});}
 
 initHelp('pinguin-kellner');
 </script>
