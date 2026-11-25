@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bayazit-Stadt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<script>try{document.documentElement.dataset.theme=JSON.parse(localStorage.getItem('bs-theme'))||'dark';}catch(e){document.documentElement.dataset.theme='dark';}</script>
+<style>
+:root{--acc:#4aa3ff;--acc-ink:#14181e}
+:root{--bg1:#1f2630;--bg2:#141920;--card:#27303b;--card2:#2f3946;--line:#3a4552;--txt:#eef1f5;--mut:#a7b1bd;--cell:#1b222b;--shadow:rgba(0,0,0,.45)}
+[data-theme=light]{--bg1:#f4f1ea;--bg2:#e9e4d8;--card:#ffffff;--card2:#f2eee6;--line:#ddd5c6;--txt:#1f2630;--mut:#6b7380;--cell:#f7f4ee;--shadow:rgba(60,50,30,.18)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--txt);min-height:100vh;transition:background .3s,color .3s;
+ background:radial-gradient(900px 500px at 12% -10%,color-mix(in srgb,var(--acc) 16%,transparent),transparent 60%),radial-gradient(700px 500px at 110% 15%,rgba(33,195,230,.08),transparent 60%),linear-gradient(180deg,var(--bg1),var(--bg2)) fixed}
+#app{max-width:var(--maxw,640px);margin:0 auto;padding:14px 12px 40px}
+.hidden{display:none!important}
+a.back{color:var(--mut);text-decoration:none;font-weight:700;font-size:14px;display:inline-block;margin:0 0 8px 2px}
+header{display:flex;align-items:center;gap:10px;margin:4px 2px 14px}
+header .logo{font-size:26px}
+header h1{font-family:'JetBrains Mono',monospace;font-size:21px;margin:0;font-weight:800;letter-spacing:-.5px}
+header h1 b{color:var(--acc)}
+.hbtns{margin-left:auto;display:flex;gap:6px}
+.ib{padding:7px 10px!important;font-size:17px!important;line-height:1}
+button{font:inherit;cursor:pointer;border-radius:12px;padding:10px 14px;font-weight:800;color:var(--txt);background:var(--card2);border:1px solid var(--line);transition:filter .15s,transform .1s}
+button:hover:not(:disabled){filter:brightness(1.06)}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--acc);color:var(--acc-ink,#14181e);border-color:var(--acc)}
+button.small{padding:7px 12px;font-size:14px;border-radius:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.card h2{margin:0 0 8px;font-size:18px}
+.card p{margin:0 0 8px;color:var(--mut);line-height:1.45}
+.lbl{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin:0 0 6px}
+.seg{display:flex;background:var(--bg2);border-radius:12px;padding:3px;border:1px solid var(--line)}
+.seg button{flex:1;background:transparent;border:0;padding:8px 6px;border-radius:9px;color:var(--mut);font-size:14px}
+.seg button.on{background:var(--card2);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.opts{display:grid;gap:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.stats{display:flex;gap:8px;margin-bottom:10px}
+.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;text-align:center}
+.stat .k{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+.stat .v{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800}
+.note{font-size:14px;color:var(--mut);margin-top:8px;line-height:1.45}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+.modal .box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;max-width:420px;width:100%;max-height:88vh;overflow:auto;color:var(--txt)}
+.modal .box h2{margin:0 0 10px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.modal .box p,.modal .box li{line-height:1.5}
+.modal .row{justify-content:flex-end;margin-top:14px}
+.big{font-size:46px;text-align:center;margin:2px 0 6px}
+.pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,52px);gap:8px;justify-content:center;margin-top:12px;user-select:none}
+.pad button{font-size:22px;padding:0;touch-action:manipulation}
+.pad .u{grid-column:2}.pad .l{grid-column:1;grid-row:2}.pad .d{grid-column:2;grid-row:2}.pad .r{grid-column:3;grid-row:2}
+.help h2{margin:0 0 6px;font-family:'JetBrains Mono',monospace;font-size:19px}
+.help h3{margin:14px 0 4px;font-size:15px;color:var(--acc)}
+.help p,.help li{line-height:1.5;margin:0 0 6px}
+.help ol,.help ul{margin:0 0 4px;padding-left:20px}
+.help .tip{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px;font-size:14px}
+/* iPhone: kein „Kopieren“-Menü / keine Textauswahl beim langen Drücken */
+button,.seg,canvas,svg,.tile,.ctrl,.ctlpad,.pads,.dpd,.keys,.nums,.wrap,.board,.hud,[data-i],[data-k]{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+button,canvas{touch-action:manipulation}
+
+
+.idea{margin:-6px 2px 14px;font-size:14px;color:var(--mut)}.idea b{color:var(--acc)}
+.topbar{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:6px;margin-bottom:10px}
+.topbar .stat{padding:8px 8px}.topbar .stat .k{font-size:11px}.topbar .stat .v{font-size:15px;white-space:nowrap}
+.xp{height:7px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:4px}.xp i{display:block;height:100%;background:var(--acc)}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.tabs button{padding:9px 2px;font-size:13.5px}.tabs button.on{background:var(--acc);color:#061a2e;border-color:var(--acc)}
+.city{display:grid;gap:5px;padding:5px;border-radius:16px;background:#4a4f57;background-image:repeating-linear-gradient(90deg,transparent 0 18px,rgba(255,255,255,.05) 18px 20px);box-shadow:inset 0 0 0 3px #3a3e45}
+.tl{aspect-ratio:1/1;border-radius:9px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;user-select:none;-webkit-user-select:none}
+.tl.g{background:linear-gradient(160deg,#7fcf5a,#4e9a32);box-shadow:inset 0 -3px 0 rgba(0,0,0,.15)}
+.tl.g:hover{filter:brightness(1.1)}.tl.g .plus{font-size:18px;opacity:.35;color:#fff;font-weight:900}
+.tl.b{background:linear-gradient(160deg,#dfe5ec,#b9c3cf);box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
+.tl.b.w{background:linear-gradient(160deg,#ffe6c7,#f2c08a)}.tl.b.p{background:linear-gradient(160deg,#d7dbe8,#a7b0c8)}.tl.b.f{background:linear-gradient(160deg,#b8f0a0,#6fc24c)}
+.tl .e{font-size:clamp(20px,7vw,38px);line-height:1;transition:transform .3s;filter:drop-shadow(0 2px 1px rgba(0,0,0,.25))}
+.tl .tm{position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:clamp(8px,2.3vw,11px);font-weight:900;font-family:'JetBrains Mono',monospace;color:#fff;text-shadow:0 1px 2px #000,0 0 3px #000}
+.tl .bar{position:absolute;bottom:0;left:0;height:4px;background:var(--acc)}
+.tl .bd{position:absolute;top:2px;right:3px;font-size:clamp(10px,3vw,15px)}
+.tl.ready{box-shadow:0 0 0 3px #ffd23f;animation:rb 1s infinite alternate}.tl.ready .e{transform:scale(1.12)}
+.tl.idle{box-shadow:0 0 0 3px #5ad1ff}
+@keyframes rb{to{box-shadow:0 0 0 6px #ffd23f88}}
+.tl.lock{background:repeating-linear-gradient(45deg,#3a3e45 0 8px,#33373d 8px 16px);cursor:default}
+.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
+.cats button.on{background:var(--acc);color:#061a2e;border-color:var(--acc)}
+.blist{display:grid;gap:7px;max-height:52vh;overflow:auto;padding-right:2px}
+.bi{display:flex;align-items:center;gap:10px;padding:9px;border-radius:12px;background:var(--card2);border:1px solid var(--line);cursor:pointer;text-align:left}
+.bi .e{font-size:32px}.bi div{flex:1}.bi small{color:var(--mut);display:block;line-height:1.3}
+.bi.no{opacity:.5;cursor:default}.bi .cost span{display:inline-block;margin-right:6px;font-weight:800;font-size:13px}.bi .cost span.no{color:#e0453a}
+.inv{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.it{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:8px}
+.it .e{font-size:28px}.it div{flex:1}.it small{color:var(--mut)}
+.order{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:8px;display:flex;gap:10px;align-items:center}
+.order .who{font-size:32px}.order .need{flex:1}.order .need span{display:inline-block;margin-right:8px;font-weight:800}
+.order .need span.no{color:#e0453a}
+.pf{display:grid;gap:8px}.pf .p{display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;background:var(--card2);border:1px solid var(--line);cursor:pointer}
+.pf .p .e{font-size:30px}.pf .p div{flex:1}.pf .p small{color:var(--mut)}
+.kpi{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kpi .stat .v{font-size:20px}
+.meter{height:12px;border-radius:6px;background:var(--line);overflow:hidden;margin:6px 0}.meter i{display:block;height:100%;border-radius:6px}
+.ms{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:var(--card2);border:1px solid var(--line);margin-bottom:6px}
+.ms .e{font-size:24px}.ms div{flex:1}.ms small{color:var(--mut)}
+.float{position:fixed;pointer-events:none;font-weight:900;font-size:20px;z-index:70;animation:up 1s forwards;text-shadow:0 1px 3px #000a;color:#ffd23f}
+@keyframes up{to{transform:translateY(-60px);opacity:0}}
+.inp{width:100%;font:inherit;font-weight:800;font-size:18px;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);color:var(--txt)}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <a class="back hidden" id="hubLink" href="../">‹ Alle Spiele</a>
+  <header><span class="logo">🏙️</span><h1>Bayazit-<b>Stadt</b></h1><div class="hbtns"><button class="ib" id="btnHelp" title="Anleitung">📖</button><button class="ib" id="btnSound" title="Ton">🔊</button><button class="ib" id="btnTheme" title="Hell / Dunkel">☀️</button></div></header>
+
+  <div class="idea">💡 Eine Spielidee von <b>Ilyas</b></div>
+  <section id="profiles">
+    <div class="card"><h2>🏙️ Wer baut?</h2><p>Jeder hat seine <b>eigene Stadt</b>. Mieten und Fabriken laufen auch weiter, wenn das Spiel zu ist!</p><div class="pf" id="pf"></div>
+      <div class="row" style="margin-top:10px"><button class="primary" id="btnNewP">+ Neue Stadt gründen</button></div></div>
+  </section>
+  <section id="game" class="hidden">
+    <div class="topbar">
+      <div class="stat"><div class="k" id="cityName">Stadt</div><div class="v" id="lvl">Lv 1</div><div class="xp"><i id="xp"></i></div></div>
+      <div class="stat"><div class="k">Münzen</div><div class="v" id="coins">0</div></div>
+      <div class="stat"><div class="k">Einwohner</div><div class="v" id="pop">0</div></div>
+      <div class="stat"><div class="k">Laune</div><div class="v" id="happy">🙂</div></div>
+    </div>
+    <div class="tabs" id="tabs"><button data-t="c" class="on">🏙️ Stadt</button><button data-t="o">📋 Wünsche</button><button data-t="s">🏪 Markt</button><button data-t="r">🏛️ Rathaus</button></div>
+    <div id="view"></div>
+    <div class="row" style="justify-content:center;margin-top:12px"><button class="small" id="btnSwitch">👤 Spieler wechseln</button></div>
+  </section>
+
+  <div id="modal" class="modal hidden"><div class="box" id="modalBox"></div></div>
+</div>
+<script src="/online/config.js?v=3"></script><script src="/online/online.js?v=9"></script>
+<script>
+const $=q=>document.querySelector(q),$$=q=>[...document.querySelectorAll(q)];
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const KIT={get(k,d){try{const v=JSON.parse(localStorage.getItem('bs-'+k));return v??d;}catch(e){return d;}},set(k,v){try{localStorage.setItem('bs-'+k,JSON.stringify(v));}catch(e){}}};
+let theme=KIT.get('theme','dark'),soundOn=KIT.get('sound',true);
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function applyTheme(){document.documentElement.dataset.theme=theme;$('#btnTheme').textContent=theme==='dark'?'☀️':'🌙';if(window.onTheme)window.onTheme();}
+$('#btnTheme').onclick=()=>{theme=theme==='dark'?'light':'dark';KIT.set('theme',theme);applyTheme();};
+$('#btnSound').onclick=()=>{soundOn=!soundOn;KIT.set('sound',soundOn);if(window.onSound)try{window.onSound()}catch(e){};$('#btnSound').textContent=soundOn?'🔊':'🔇';};
+$('#btnSound').textContent=soundOn?'🔊':'🔇';
+let actx=null;
+document.addEventListener('pointerdown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}},{passive:true});
+document.addEventListener('keydown',()=>{try{if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();}catch(e){}});
+function tone(f,d=.1,delay=0,type='triangle',v=.18){if(!soundOn||!actx||actx.state!=='running')return;try{const t=actx.currentTime+delay,o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+d+.03);}catch(e){}}
+const sWin=()=>[523,659,784,1046].forEach((f,k)=>tone(f,.18,k*.12));
+const sLose=()=>[392,330,262].forEach((f,k)=>tone(f,.22,k*.15,'sine'));
+function confetti(){try{
+  const c=document.createElement('canvas'),dpr=window.devicePixelRatio||1;c.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:80';document.body.appendChild(c);
+  const ctx=c.getContext('2d'),W=c.width=innerWidth*dpr,H=c.height=innerHeight*dpr,cols=['#e8b04b','#21c3e6','#e0453a','#2fa35a','#f2c21b','#ffffff','#7b5cff'];
+  const ps=Array.from({length:150},()=>({x:W/2+(Math.random()-.5)*W*.3,y:H*.4,vx:(Math.random()-.5)*W*.03,vy:-Math.random()*H*.028-H*.008,r:Math.random()*6,vr:(Math.random()-.5)*.3,s:(6+Math.random()*7)*dpr,c:cols[Math.random()*cols.length|0]}));
+  let t=0;(function f(){t++;ctx.clearRect(0,0,W,H);for(const p of ps){p.vy+=H*.0008;p.vx*=.985;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);ctx.restore();}if(t<170)requestAnimationFrame(f);else c.remove();})();
+}catch(e){}}
+function modal(html,setup,dismiss=true){return new Promise(res=>{const m=$('#modal'),box=$('#modalBox');box.innerHTML=html;m.classList.remove('hidden');
+  const close=v=>{m.classList.add('hidden');box.innerHTML='';m.onclick=null;res(v);};
+  box.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>close(b.dataset.v));if(setup)setup(box,close);
+  m.onclick=e=>{if(e.target===m&&dismiss)close(null);};});}
+const confirmBox=(text,yes='Ja',no='Abbrechen')=>modal(`<p>${text}</p><div class="row"><button data-v="0">${no}</button><button class="primary" data-v="1">${yes}</button></div>`).then(v=>v==='1');
+const infoBox=(html,btn='OK')=>modal(html+`<div class="row"><button class="primary" data-v="1">${btn}</button></div>`);
+// Swipe-Hilfe
+function onSwipe(el,cb){let sx=0,sy=0,act=false;
+  el.addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;act=true;},{passive:true});
+  el.addEventListener('touchmove',e=>{if(!act)return;const t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))>22){cb(Math.abs(dx)>Math.abs(dy)?(dx>0?'r':'l'):(dy>0?'d':'u'));act=false;}e.preventDefault();},{passive:false});
+  el.addEventListener('touchend',()=>act=false);}
+setTimeout(()=>{if(!(window.claude&&window.claude.use))$('#hubLink').classList.remove('hidden');},1500);
+
+function showHelp(){if(!window.HELP)return;return modal(`<div class="help">${window.HELP}</div><div class="row"><button class="primary" data-v="1">Los geht's!</button></div>`);}
+$('#btnHelp').onclick=showHelp;
+function initHelp(id){if(window.HELP&&!KIT.get('help-seen-'+id,false)){KIT.set('help-seen-'+id,true);setTimeout(showHelp,350);}}
+
+/* iPhone: langes Drücken auf Knöpfe/Spielfeld soll kein Menü öffnen */
+document.addEventListener('contextmenu',e=>{if(e.target.closest('button,canvas,svg,.wrap,.ctrl,.pads,.dpd,.keys,.nums,.board'))e.preventDefault();});
+document.addEventListener('selectstart',e=>{if(e.target.closest&&e.target.closest('button,canvas,svg,.wrap,.ctrl,.pads,.dpd,.board'))e.preventDefault();});
+
+
+window.HELP=`<h2>🏙️ So spielst du Bayazit-Stadt</h2>
+<p>Du bist Bürgermeister! Baue aus einer grünen Wiese eine große Stadt.</p>
+<h3>🏠 Wohnhäuser</h3><p>Häuser bringen <b>Einwohner</b>. Die Einwohner zahlen <b>Miete</b> – wenn ein Haus <b style="color:#f2c21b">gelb</b> leuchtet, antippen und Münzen einsammeln.</p>
+<h3>🏭 Betriebe</h3><p>Sägewerk, Ziegelei, Bäckerei & Co. stellen <b>Baustoffe und Waren</b> her. Jeder Betrieb braucht <b>Arbeiter</b> – also genug Einwohner! Tippe einen <b style="color:#5ad1ff">blauen</b> Betrieb an, um die Arbeit zu starten.</p>
+<h3>🌳 Freizeit & Stadt</h3><p>Bäume, Parks, Schulen und das Stadion machen die Leute <b>glücklich</b>. Gute Laune = mehr Miete!</p>
+<h3>📋 Wünsche</h3><p>Bürger wünschen sich Waren. Liefere sie für Münzen und Erfahrung ⭐ – so steigst du Level auf und schaltest neue Gebäude frei.</p>
+<h3>🏪 Markt & 🏛️ Rathaus</h3><p>Im Markt verkaufst du Waren und kaufst neues <b>Bauland</b>. Im Rathaus siehst du alles über deine Stadt und holst dir Belohnungen für Meilensteine.</p>
+<div class="tip">💡 Baustellen, Mieten und Betriebe laufen auch weiter, wenn du das Spiel schließt!</div>`;
+const GOODS={holz:{e:'🪵',n:'Holz',sell:6},ziegel:{e:'🧱',n:'Ziegel',sell:14},brot:{e:'🥖',n:'Brot',sell:11},metall:{e:'🔩',n:'Metall',sell:30},glas:{e:'🪟',n:'Glas',sell:45},spielzeug:{e:'🧸',n:'Spielzeug',sell:60},pizza:{e:'🍕',n:'Pizza',sell:55}};
+const B={
+  huette:{c:'w',e:'🛖',n:'Hütte',lv:1,cost:{m:25},pop:2,rent:5,t:45},
+  haus:{c:'w',e:'🏠',n:'Haus',lv:1,cost:{m:60,holz:2},pop:4,rent:12,t:90},
+  garten:{c:'w',e:'🏡',n:'Haus mit Garten',lv:3,cost:{m:140,holz:3,ziegel:2},pop:6,rent:22,t:150,happy:1},
+  block:{c:'w',e:'🏢',n:'Wohnblock',lv:5,cost:{m:350,ziegel:6,metall:2},pop:14,rent:50,t:240},
+  hoch:{c:'w',e:'🏙️',n:'Hochhaus',lv:8,cost:{m:800,ziegel:10,metall:5,glas:4},pop:30,rent:110,t:420},
+  schloss:{c:'w',e:'🏰',n:'Schloss',lv:10,cost:{m:2000,ziegel:20,glas:8},pop:20,rent:260,t:600,happy:10},
+  saege:{c:'p',e:'🪚',n:'Sägewerk',lv:1,cost:{m:40},jobs:2,prod:'holz',t:40},
+  baecker:{c:'p',e:'🥐',n:'Bäckerei',lv:2,cost:{m:90,holz:2},jobs:2,prod:'brot',t:60},
+  ziegelei:{c:'p',e:'🧱',n:'Ziegelei',lv:2,cost:{m:110,holz:3},jobs:3,prod:'ziegel',t:80},
+  fabrik:{c:'p',e:'🏭',n:'Metallfabrik',lv:4,cost:{m:260,ziegel:4},jobs:5,prod:'metall',t:140},
+  spielz:{c:'p',e:'🧸',n:'Spielzeugladen',lv:5,cost:{m:300,holz:4},jobs:3,prod:'spielzeug',in:{holz:2},t:150},
+  glas:{c:'p',e:'🪟',n:'Glashütte',lv:6,cost:{m:450,ziegel:5,metall:2},jobs:5,prod:'glas',t:200},
+  pizza:{c:'p',e:'🍕',n:'Pizzeria',lv:7,cost:{m:500,ziegel:4,glas:1},jobs:4,prod:'pizza',in:{brot:1},t:120},
+  baum:{c:'f',e:'🌳',n:'Baum',lv:1,cost:{m:10},happy:1},
+  blumen:{c:'f',e:'🌷',n:'Blumenbeet',lv:1,cost:{m:25},happy:2},
+  park:{c:'f',e:'⛲',n:'Park mit Brunnen',lv:2,cost:{m:80,holz:1},happy:4},
+  spiel:{c:'f',e:'🛝',n:'Spielplatz',lv:3,cost:{m:150,holz:3},happy:6},
+  schule:{c:'f',e:'🏫',n:'Schule',lv:4,cost:{m:300,ziegel:5},happy:10,jobs:2},
+  feuer:{c:'f',e:'🚒',n:'Feuerwehr',lv:5,cost:{m:350,ziegel:4,metall:2},happy:10,jobs:3},
+  polizei:{c:'f',e:'🚓',n:'Polizei',lv:5,cost:{m:350,ziegel:4,metall:2},happy:10,jobs:3},
+  kranken:{c:'f',e:'🏥',n:'Krankenhaus',lv:6,cost:{m:600,ziegel:8,glas:2},happy:16,jobs:5},
+  bahnhof:{c:'f',e:'🚉',n:'Bahnhof',lv:7,cost:{m:700,ziegel:6,metall:6},happy:16,jobs:4},
+  rad:{c:'f',e:'🎡',n:'Riesenrad',lv:8,cost:{m:900,metall:8},happy:22,jobs:3},
+  zoo:{c:'f',e:'🦁',n:'Zoo',lv:9,cost:{m:1200,holz:10,ziegel:6},happy:30,jobs:6},
+  stadion:{c:'f',e:'🏟️',n:'Fußballstadion',lv:9,cost:{m:1500,ziegel:12,metall:8,glas:4},happy:35,jobs:8},
+  rakete:{c:'f',e:'🚀',n:'Raketenstartplatz',lv:12,cost:{m:4000,metall:25,glas:10},happy:60,jobs:10}};
+const CATN={w:'🏠 Wohnen',p:'🏭 Betriebe',f:'🌳 Freizeit & Stadt'};
+const LAND=[5,6,7,8,9,10],LANDCOST=[0,200,500,1200,2500,5000];
+const PEOPLE=['👵','👴','🧑‍🍳','👷','🧒','👨‍🔧','👩‍🏫','👮','👩‍⚕️','🧑‍🚒','🤹','🧑‍🎨'];
+const NAMES={'👵':'Oma Gerda','👴':'Opa Ludwig','🧑‍🍳':'Koch Kemal','👷':'Bauarbeiterin Jana','🧒':'Kleiner Ben','👨‍🔧':'Mechaniker Tom','👩‍🏫':'Lehrerin Eva','👮':'Polizist Paul','👩‍⚕️':'Ärztin Selin','🧑‍🚒':'Feuerwehrmann Kai','🤹':'Gaukler Gino','🧑‍🎨':'Malerin Mia'};
+const MILES=[10,25,50,100,200,350,500,800];
+let profiles=KIT.get('stadt-prof',[]),P=null,tab='c',tick=null,bcat='w';
+const save=()=>{if(P){const i=profiles.findIndex(p=>p.id===P.id);if(i>=0)profiles[i]=P;KIT.set('stadt-prof',profiles);}};
+const now=()=>Date.now()/1000;
+const fmt=s=>{s=Math.max(0,Math.ceil(s));return s>=3600?Math.floor(s/3600)+'h '+Math.floor(s%3600/60)+'m':s>=60?Math.floor(s/60)+':'+String(s%60).padStart(2,'0'):s+'s';};
+const buildTime=k=>{const c=B[k].cost.m;return Math.round(Math.min(600,8+c/6));};
+function newCity(name,emo,cname){const P={id:Date.now()+''+Math.random(),name,emo,city:cname,coins:150,xp:0,lv:1,land:0,map:{},inv:{holz:4},orders:[],miles:[],created:now()};
+  P.map['1,1']={k:'baum',done:0};P.map['3,3']={k:'baum',done:0};return P;}
+const size=()=>LAND[P.land];
+function stats(){let pop=0,jobs=0,hap=0,nb=0;const t=now();for(const b of Object.values(P.map)){const d=B[b.k];jobs+=d.jobs||0;if(b.done>t)continue;nb++;pop+=d.pop||0;hap+=d.happy||0;}
+  const z=pop===0?60:Math.max(10,Math.min(100,Math.round(25+100*hap/(pop*.55+4))));return {pop,jobs,hap,nb,z,free:pop-jobs,mult:.6+z/100*.8};}
+const face=z=>z>=85?'😍':z>=65?'😀':z>=45?'🙂':z>=30?'😐':'😟';
+function showProfiles(){clearInterval(tick);P=null;$('#game').classList.add('hidden');$('#profiles').classList.remove('hidden');
+  $('#pf').innerHTML=profiles.length?profiles.map((p,i)=>{const q=P;P=p;const s=stats();P=q;return `<div class="p" data-i="${i}"><span class="e">${p.emo}</span><div><b>${esc(p.city||'Stadt')}</b> <small>von ${esc(p.name)}</small><br><small>Level ${p.lv} · ${s.pop} Einwohner · 🪙 ${p.coins}</small></div><button class="small" data-x="${i}">🗑</button></div>`;}).join(''):'<div class="note">Noch keine Stadt – gründe deine erste!</div>';}
+$('#pf').onclick=async e=>{const x=e.target.closest('[data-x]');if(x){const p=profiles[+x.dataset.x];if(await confirmBox(`Die Stadt <b>${esc(p.city||'')}</b> von <b>${esc(p.name)}</b> wirklich löschen?`,'Löschen','Abbrechen')){profiles.splice(+x.dataset.x,1);KIT.set('stadt-prof',profiles);showProfiles();}return;}
+  const el=e.target.closest('.p');if(el)openCity(profiles[+el.dataset.i]);};
+$('#btnNewP').onclick=()=>{const emos=['👦','👧','🧑','👨','👩','🧔','👵','🧒'];let pick=emos[0],vals=null;
+  modal(`<h2>🏙️ Neue Stadt gründen</h2><p>Wie heißt du?</p><input class="inp" id="pn" maxlength="14" placeholder="Dein Name"><p style="margin-top:10px">Wie soll deine Stadt heißen?</p><input class="inp" id="cn" maxlength="18" placeholder="z. B. Sonnenstadt"><div class="row" id="pe" style="margin-top:10px;justify-content:center">${emos.map((e,i)=>`<button class="small" data-e="${e}" style="font-size:24px;${i?'':'outline:3px solid var(--acc)'}">${e}</button>`).join('')}</div><div class="row"><button data-v="x">Abbrechen</button><button class="primary" id="okNew">Stadt gründen</button></div>`,(box,close)=>{
+    box.querySelector('#pe').onclick=e=>{const b=e.target.closest('button');if(!b)return;pick=b.dataset.e;box.querySelectorAll('#pe button').forEach(x=>x.style.outline=x===b?'3px solid var(--acc)':'');};
+    box.querySelector('#okNew').onclick=()=>{const nm=box.querySelector('#pn').value.trim()||'Bürgermeister '+(profiles.length+1);const cn=box.querySelector('#cn').value.trim()||nm+'stadt';const f=newCity(nm,pick,cn);profiles.push(f);KIT.set('stadt-prof',profiles);close();setTimeout(()=>openCity(f),50);};
+    setTimeout(()=>box.querySelector('#pn').focus(),50);});};
+function openCity(p){P=p;if(P.land==null)P.land=0;$('#profiles').classList.add('hidden');$('#game').classList.remove('hidden');if(!P.orders.length)fillOrders();tab='c';render();clearInterval(tick);tick=setInterval(()=>{if(tab==='c')render(true);},1000);
+  const t=now();let rd=0;for(const b of Object.values(P.map)){const d=B[b.k];if(b.done>t)continue;if(d.c==='w'&&t>=b.s+d.t)rd++;if(d.c==='p'&&b.s!=null&&t>=b.s+d.t)rd++;}
+  if(rd)setTimeout(()=>floatTxt(`🏙️ ${rd} Gebäude warten auf dich!`,innerWidth/2,200),300);}
+function addXp(n){P.xp+=n;const need=lv=>30+lv*lv*25;while(P.xp>=need(P.lv)){P.xp-=need(P.lv);P.lv++;sWin();confetti();const un=Object.values(B).filter(x=>x.lv===P.lv).map(x=>x.e+' '+x.n);
+  infoBox(`<div class="big">⭐</div><h2 style="text-align:center">Level ${P.lv}!</h2><p style="text-align:center">${un.length?'Neu zum Bauen: <b>'+un.join(', ')+'</b>':'Weiter so, Bürgermeister!'}</p>`,'Super!');}}
+function floatTxt(t,x,y){const d=document.createElement('div');d.className='float';d.textContent=t;d.style.left=(x-60)+'px';d.style.top=y+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),1000);}
+function header(){const s=stats();$('#cityName').textContent=P.emo+' '+(P.city||P.name);$('#lvl').textContent='Lv '+P.lv;$('#xp').style.width=(P.xp/(30+P.lv*P.lv*25)*100)+'%';$('#coins').textContent='🪙 '+P.coins;$('#pop').textContent='👥 '+s.pop;$('#happy').textContent=face(s.z)+' '+s.z+'%';}
+const costHTML=(c,check=true)=>Object.entries(c).map(([k,n])=>{const have=k==='m'?P.coins:(P.inv[k]||0);return `<span class="${check&&have<n?'no':''}">${k==='m'?'🪙':GOODS[k].e} ${n}</span>`;}).join('');
+const canPay=c=>Object.entries(c).every(([k,n])=>(k==='m'?P.coins:(P.inv[k]||0))>=n);
+const pay=c=>{for(const [k,n] of Object.entries(c)){if(k==='m')P.coins-=n;else P.inv[k]-=n;}};
+function tileHTML(x,y){const s=size();if(x>=s||y>=s)return '';const key=x+','+y,b=P.map[key];const t=now();
+  if(!b)return `<div class="tl g" data-k="${key}"><span class="plus">+</span></div>`;
+  const d=B[b.k];
+  if(b.done>t){const tot=buildTime(b.k),p=1-(b.done-t)/tot;return `<div class="tl b ${d.c}" data-k="${key}"><span class="e">🏗️</span><span class="tm">${fmt(b.done-t)}</span><span class="bar" style="width:${p*100}%"></span></div>`;}
+  if(d.c==='w'){const left=b.s+d.t-t,p=Math.min(1,1-left/d.t);return `<div class="tl b w ${left<=0?'ready':''}" data-k="${key}"><span class="e">${d.e}</span>${left<=0?'<span class="bd">🪙</span><span class="tm">Miete!</span>':`<span class="tm">${fmt(left)}</span><span class="bar" style="width:${p*100}%"></span>`}</div>`;}
+  if(d.c==='p'){if(b.s==null){const ok=!d.in||canPay(d.in);return `<div class="tl b p idle" data-k="${key}"><span class="e">${d.e}</span><span class="bd">${ok?'▶️':'❗'}</span><span class="tm">${ok?'Start':'fehlt was'}</span></div>`;}
+    const left=b.s+d.t-t,p=Math.min(1,1-left/d.t);return `<div class="tl b p ${left<=0?'ready':''}" data-k="${key}"><span class="e">${d.e}</span>${left<=0?`<span class="bd">${GOODS[d.prod].e}</span><span class="tm">Fertig!</span>`:`<span class="tm">${fmt(left)}</span><span class="bar" style="width:${p*100}%"></span>`}</div>`;}
+  return `<div class="tl b f" data-k="${key}"><span class="e">${d.e}</span></div>`;}
+function render(soft){header();$$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
+  if(tab==='c'){const s=size();let h='';for(let y=0;y<s;y++)for(let x=0;x<s;x++)h+=tileHTML(x,y);const st=stats();
+    $('#view').innerHTML=`<div class="city" style="grid-template-columns:repeat(${s},1fr)">${h}</div>${st.pop===0?'<div class="card" style="margin-top:8px;text-align:center">💡 <b>Tipp:</b> Tippe auf ein grünes Feld und baue zuerst eine 🛖 <b>Hütte</b>. Betriebe wie das 🪚 Sägewerk brauchen Einwohner als Arbeiter!</div>':''}<div class="note" style="text-align:center;margin-top:8px">👷 Freie Arbeiter: <b>${st.free}</b> · 📦 Lager: ${Object.values(P.inv).reduce((a,b)=>a+b,0)} Waren</div><div class="row" style="justify-content:center;margin-top:8px"><button class="small primary" id="collectAll">🧺 Alles einsammeln & starten</button></div>`;return;}
+  if(soft)return;
+  if(tab==='o'){fillOrders();$('#view').innerHTML=P.orders.length?P.orders.map((o,i)=>{const can=o.need.every(([k,n])=>(P.inv[k]||0)>=n);return `<div class="order"><span class="who">${o.who}</span><div class="need"><small style="color:var(--mut)">${NAMES[o.who]||''} wünscht sich:</small><br>${o.need.map(([k,n])=>`<span class="${(P.inv[k]||0)>=n?'':'no'}">${GOODS[k].e}×${n}</span>`).join('')}<br><small>Belohnung: 🪙 ${o.coins} · ⭐ ${o.xp}</small></div><div style="display:grid;gap:4px"><button class="${can?'primary':''} small" data-o="${i}" ${can?'':'disabled'}>Liefern</button><button class="small" data-d="${i}" title="Anderer Wunsch">🗑</button></div></div>`;}).join(''):'<div class="card"><p>Baue zuerst einen <b>Betrieb</b> (z. B. 🪚 Sägewerk) – dann kommen die ersten Wünsche!</p></div>';return;}
+  if(tab==='s'){const inv=Object.entries(P.inv).filter(([k,n])=>n>0);const nl=P.land+1<LAND.length;
+    $('#view').innerHTML=`<div class="card"><div class="lbl">📦 Lager – verkaufen</div>${inv.length?`<div class="inv">${inv.map(([k,n])=>`<div class="it"><span class="e">${GOODS[k].e}</span><div><b>${GOODS[k].n} ×${n}</b><br><small>je 🪙 ${GOODS[k].sell}</small></div><button class="small" data-s="${k}">1</button><button class="small" data-sa="${k}">Alle</button></div>`).join('')}</div>`:'<p>Das Lager ist leer.</p>'}</div>
+      <div class="card"><div class="lbl">🗺️ Bauland kaufen</div>${nl?`<p>Vergrößere deine Stadt von ${size()}×${size()} auf <b>${LAND[P.land+1]}×${LAND[P.land+1]}</b> Felder.</p><button class="${P.coins>=LANDCOST[P.land+1]?'primary':''}" id="buyLand" ${P.coins>=LANDCOST[P.land+1]?'':'disabled'}>🪙 ${LANDCOST[P.land+1]} – Land kaufen</button>`:'<p>Deine Stadt hat die volle Größe erreicht! 🎉</p>'}</div>`;return;}
+  const s=stats();const nb={w:0,p:0,f:0};for(const b of Object.values(P.map))nb[B[b.k].c]++;
+  $('#view').innerHTML=`<div class="card"><h2>🏛️ Rathaus von ${esc(P.city||'')}</h2><p class="note">Bürgermeister: ${P.emo} <b>${esc(P.name)}</b> · gegründet ${new Date(P.created*1000).toLocaleDateString('de-DE')}</p>
+    <div class="kpi"><div class="stat"><div class="k">Einwohner</div><div class="v">👥 ${s.pop}</div></div><div class="stat"><div class="k">Arbeitsplätze belegt</div><div class="v">👷 ${s.jobs} / ${s.pop}</div></div><div class="stat"><div class="k">Gebäude</div><div class="v">🏠 ${nb.w} · 🏭 ${nb.p} · 🌳 ${nb.f}</div></div><div class="stat"><div class="k">Stadtgröße</div><div class="v">🗺️ ${size()}×${size()}</div></div></div>
+    <div class="lbl" style="margin-top:12px">${face(s.z)} Zufriedenheit: ${s.z} %</div><div class="meter"><i style="width:${s.z}%;background:${s.z>=65?'#2fbf71':s.z>=40?'#f2c21b':'#e0453a'}"></i></div>
+    <p class="note">Die Laune hängt davon ab, wie viele Bäume, Parks, Schulen & Co. es für deine Einwohner gibt. Mietbonus gerade: <b>${Math.round(s.mult*100)} %</b> der normalen Miete.</p>
+    <div class="row"><button class="small" id="rename">✏️ Stadt umbenennen</button></div></div>
+    <div class="card"><div class="lbl">🏅 Meilensteine</div>${MILES.map((m,i)=>{const got=P.miles.includes(m),can=s.pop>=m&&!got;return `<div class="ms"><span class="e">${got?'✅':can?'🎁':'🔒'}</span><div><b>${m} Einwohner</b><br><small>Belohnung: 🪙 ${m*10} · ⭐ ${m}</small></div>${can?`<button class="small primary" data-m="${m}">Abholen</button>`:''}</div>`;}).join('')}</div>`;}
+function buildMenu(key){const st=stats();const html=()=>`<h2>🏗️ Was bauen?</h2><div class="cats">${Object.entries(CATN).map(([c,n])=>`<button class="small ${bcat===c?'on':''}" data-c="${c}">${n}</button>`).join('')}</div>
+  <div class="blist">${Object.entries(B).filter(([k,d])=>d.c===bcat).map(([k,d])=>{const lock=d.lv>P.lv,noW=(d.jobs||0)>st.free,ok=!lock&&!noW&&canPay(d.cost);
+    const info=d.c==='w'?`👥 +${d.pop} Einwohner · 🪙 ${d.rent} Miete alle ${fmt(d.t)}`:d.c==='p'?`stellt ${GOODS[d.prod].e} ${GOODS[d.prod].n} her (${fmt(d.t)})${d.in?' · braucht '+Object.entries(d.in).map(([g,n])=>GOODS[g].e+'×'+n).join(' '):''} · 👷 ${d.jobs} Arbeiter`:`😀 +${d.happy} Laune${d.jobs?` · 👷 ${d.jobs} Arbeiter`:''}`;
+    return `<div class="bi ${ok?'':'no'}" data-b="${k}"><span class="e">${d.e}</span><div><b>${d.n}</b><small>${lock?'🔒 ab Level '+d.lv:info}</small>${lock?'':`<div class="cost">${costHTML(d.cost)}${noW?'<span class="no">👷 zu wenig Arbeiter</span>':''}</div>`}</div></div>`;}).join('')}</div><div class="row"><button data-v="x">Abbrechen</button></div>`;
+  modal(html(),(box,close)=>{const bindV=()=>box.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{box.onclick=null;close(b.dataset.v);});bindV();box.onclick=e=>{const c=e.target.closest('[data-c]');if(c){bcat=c.dataset.c;box.innerHTML=html();bindV();tone(500,.03);return;}
+    const b=e.target.closest('.bi');if(!b||b.classList.contains('no'))return;const k=b.dataset.b,d=B[k];if(P.map[key])return;pay(d.cost);P.map[key]={k,done:now()+buildTime(k),s:null};if(d.c==='w')P.map[key].s=P.map[key].done;
+      box.onclick=null;close();addXp(Math.max(1,Math.ceil(d.cost.m/12)));tone(300,.08,0,'square',.06);tone(450,.08,.08,'square',.06);save();render();}}).then(()=>{$('#modalBox').onclick=null;});}
+function collect(key,x,y,quiet){const b=P.map[key];if(!b)return 0;const d=B[b.k],t=now();if(b.done>t)return 0;
+  if(d.c==='w'&&t>=b.s+d.t){const m=Math.round(d.rent*stats().mult);P.coins+=m;b.s=t;addXp(1);if(!quiet){tone(988,.05);tone(1318,.08,.05);floatTxt(`+🪙${m}`,x,y-20);}return m;}
+  if(d.c==='p'){if(b.s!=null&&t>=b.s+d.t){const n=1+(Math.random()<.2?1:0);P.inv[d.prod]=(P.inv[d.prod]||0)+n;b.s=null;addXp(2);if(!quiet){tone(700,.06);tone(900,.08,.05);floatTxt(`+${n} ${GOODS[d.prod].e}`,x,y-20);}return 1;}
+    if(b.s==null){if(d.in&&!canPay(d.in)){if(!quiet){floatTxt('Fehlt: '+Object.entries(d.in).map(([g,n])=>GOODS[g].e+'×'+n).join(' '),x,y-20);tone(200,.15,0,'sine');}return 0;}if(d.in)pay(d.in);b.s=t;if(!quiet){tone(500,.06);tone(700,.06,.06);}return 1;}}
+  return 0;}
+async function info(key){const b=P.map[key],d=B[b.k];const t=now();
+  const txt=b.done>t?`🏗️ Wird gebaut – fertig in <b>${fmt(b.done-t)}</b>.`:d.c==='w'?`👥 ${d.pop} Einwohner wohnen hier. Miete alle ${fmt(d.t)}.`:d.c==='p'?`Stellt ${GOODS[d.prod].e} ${GOODS[d.prod].n} her. ${b.s!=null?'⏳ Noch '+fmt(b.s+d.t-t):''}`:`😀 Macht die Stadt glücklicher (+${d.happy}).`;
+  const v=await modal(`<div class="big">${d.e}</div><h2 style="text-align:center">${d.n}</h2><p style="text-align:center">${txt}</p><div class="row"><button data-v="del">🧨 Abreißen</button><button class="primary" data-v="x">OK</button></div>`);
+  if(v==='del'&&await confirmBox(`${d.e} ${d.n} wirklich abreißen? Du bekommst 🪙 ${Math.floor(d.cost.m/2)} zurück.`,'Abreißen','Behalten')){const st=stats();if(d.c==='w'&&st.free-(d.pop||0)<0&&b.done<=t){infoBox('<p>Das geht nicht – sonst haben deine Betriebe zu wenig Arbeiter! Reiß zuerst einen Betrieb ab oder bau ein anderes Haus.</p>');return;}
+    delete P.map[key];P.coins+=Math.floor(d.cost.m/2);tone(150,.3,0,'sawtooth',.08);save();render();}}
+$('#tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.t;tone(500,.04);render();};
+$('#view').onclick=async e=>{
+  const tl=e.target.closest('.tl[data-k]');if(tl){const key=tl.dataset.k,b=P.map[key];if(!b){buildMenu(key);return;}
+    const d=B[b.k],t=now();if(b.done>t){floatTxt('🏗️ '+fmt(b.done-t),e.clientX,e.clientY);return;}
+    if((d.c==='w'&&t>=b.s+d.t)||(d.c==='p'&&(b.s==null||t>=b.s+d.t))){collect(key,e.clientX,e.clientY);save();render();return;}
+    if(d.c==='w'){floatTxt('⏳ '+fmt(b.s+d.t-t),e.clientX,e.clientY-20);return;}
+    info(key);return;}
+  if(e.target.closest('#collectAll')){let m=0,n=0;for(const key of Object.keys(P.map)){const r=collect(key,0,0,true);if(r>1)m+=r;else if(r)n++;}
+    if(m||n){tone(988,.05);tone(1318,.08,.05);floatTxt(m?`+🪙${m}`:'✅ Erledigt',e.clientX,e.clientY-20);}else floatTxt('Gerade nichts zu tun',e.clientX,e.clientY-20);save();render();return;}
+  const o=e.target.closest('[data-o]');if(o){const ord=P.orders[+o.dataset.o];ord.need.forEach(([k,n])=>P.inv[k]-=n);P.coins+=ord.coins;addXp(ord.xp);P.orders.splice(+o.dataset.o,1);sWin();floatTxt(`+🪙${ord.coins}`,e.clientX,e.clientY-20);fillOrders();save();render();return;}
+  const d=e.target.closest('[data-d]');if(d){P.orders.splice(+d.dataset.d,1);fillOrders();save();render();return;}
+  const s=e.target.closest('[data-s],[data-sa]');if(s){const k=s.dataset.s||s.dataset.sa,n=s.dataset.sa?P.inv[k]:1;P.inv[k]-=n;P.coins+=n*GOODS[k].sell;tone(988,.05);tone(1318,.08,.05);floatTxt(`+🪙${n*GOODS[k].sell}`,e.clientX,e.clientY-20);save();render();return;}
+  if(e.target.closest('#buyLand')){const c=LANDCOST[P.land+1];if(P.coins<c)return;if(await confirmBox(`Neues Bauland für 🪙 ${c} kaufen?`,'Kaufen','Abbrechen')){P.coins-=c;P.land++;sWin();confetti();save();tab='c';render();}return;}
+  const m=e.target.closest('[data-m]');if(m){const v=+m.dataset.m;if(P.miles.includes(v))return;P.miles.push(v);P.coins+=v*10;addXp(v);sWin();confetti();floatTxt(`+🪙${v*10}`,e.clientX,e.clientY-20);save();render();return;}
+  if(e.target.closest('#rename')){let nv=null;await modal(`<h2>✏️ Stadt umbenennen</h2><input class="inp" id="rn" maxlength="18" value="${esc(P.city||'')}"><div class="row"><button data-v="x">Abbrechen</button><button class="primary" id="rnOk">Speichern</button></div>`,(box,close)=>{box.querySelector('#rnOk').onclick=()=>{nv=box.querySelector('#rn').value.trim();close();};});if(nv){P.city=nv;save();render();}return;}};
+function fillOrders(){const made=[...new Set(Object.values(P.map).filter(b=>B[b.k].c==='p').map(b=>B[b.k].prod))];if(!made.length)return;
+  while(P.orders.length<3){const n=1+Math.floor(Math.random()*Math.min(3,made.length,1+P.lv/3));const need=[];for(let k=0;k<n;k++){const it=made[Math.floor(Math.random()*made.length)];if(need.some(x=>x[0]===it))continue;need.push([it,1+Math.floor(Math.random()*(2+P.lv/3))]);}
+    const val=need.reduce((a,[k,m])=>a+GOODS[k].sell*m,0);P.orders.push({who:PEOPLE[Math.floor(Math.random()*PEOPLE.length)],need,coins:Math.round(val*1.7+10),xp:Math.round(4+val/6)});}}
+$('#btnSwitch').onclick=()=>{save();showProfiles();};
+applyTheme();showProfiles();
+
+initHelp('bayazit-stadt');
+</script>
+</body>
+</html>
