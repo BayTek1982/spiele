@@ -148,7 +148,7 @@ body.ingame #app>header,body.ingame #app>.back,body.ingame #app>.idea,body.ingam
   </section>
   <section id="gameScr" class="hidden">
     <canvas id="cv"></canvas>
-    <div class="tb"><button class="ib2" id="gMenu" title="Zurück zu deinen Städten">🏠</button><button class="ib2" id="gHelp" title="Handbuch">📖</button><button class="ib2" id="gSound" title="Ton">🔊</button><button class="ib2" id="gTheme" title="Hell / Dunkel">🌓</button><span class="sp"></span><button class="ib2" id="gZoomOut">－</button><button class="ib2" id="gZoomIn">＋</button><button class="ib2" id="gHome" title="Zur Stadtmitte">🎯</button></div>
+    <div class="tb"><button class="ib2" id="gMenu" title="Zurück zu deinen Städten">🏠</button><button class="ib2" id="gHelp" title="Handbuch">📖</button><button class="ib2" id="gSound" title="Ton">🔊</button><button class="ib2" id="gTheme" title="Hell / Dunkel">🌓</button><span class="sp"></span><button class="ib2" id="gZoomOut">－</button><button class="ib2" id="gZoomIn">＋</button><button class="ib2" id="gHome" title="Zur Stadtmitte">🎯</button><button class="ib2" id="gTip" title="Tipp: Was mache ich als Nächstes?" style="width:auto;padding:0 10px;font-size:15px;white-space:nowrap;font-weight:900;background:#ffd23fdd;color:#3a2a00;border-color:#ffd23f">💡 Tipp</button></div>
     <div class="toolHint hidden" id="toolHint"></div>
     <div class="toasts" id="toasts"></div>
     <div class="panel" id="panel">
@@ -228,8 +228,8 @@ window.HELP=`<h2>🏙️ Bayazit-Stadt – das Handbuch</h2>
 <p>💡 Eine Spielidee von <b>Elijah</b> und <b>Ilyas</b>.</p>
 <h3>🎯 Ziel</h3><p>Baue deine Stadt immer weiter aus, damit möglichst viele Menschen bei dir wohnen. Mehr Einwohner = mehr Geld pro Sekunde = noch tollere Gebäude!</p>
 <h3>🕹️ Steuerung</h3><ul><li><b>Verschieben:</b> mit einem Finger ziehen (ohne Werkzeug) oder mit zwei Fingern.</li><li><b>Zoomen:</b> mit zwei Fingern auseinanderziehen oder ＋/－.</li><li><b>Bauen:</b> unten eine Kategorie und dann ein Werkzeug wählen, danach auf die Karte tippen oder ziehen (Straßen, Gebiete, Rohre).</li><li><b>Antippen ohne Werkzeug</b> zeigt Infos – dort kannst du Gebäude <b>umbenennen</b> oder <b>verkaufen</b> (½ Preis zurück).</li><li>Das Menü unten kannst du am Griff <b>hoch- und runterziehen</b>.</li></ul>
-<h3>🛣️ Straßen & Gebiete</h3><p>Deine Stadt ist über die <b>Autobahn</b> mit der Welt verbunden. Baue Straßen, die daran angeschlossen sind. Neben Straßen kannst du <b>Wohngebiet</b> (grün), <b>Gewerbegebiet</b> (blau) und <b>Industriegebiet</b> (orange) einzeichnen – dort bauen die Menschen von selbst Häuser, Läden und Fabriken. Die drei Balken unten zeigen, was gerade gebraucht wird. Über Wasser geht es nur mit einer <b>Brücke</b>.</p>
-<h3>⚡ Strom & 💧 Wasser</h3><p>Kraftwerke müssen an einer Straße stehen – der Strom fließt dann über das Straßennetz. <b>Wasserpumpen</b> stehen am Ufer und werden mit <b>Wasserrohren</b> verbunden. Häuser in der Nähe eines Rohrs bekommen Wasser – man braucht nicht unter jedem Haus eins! Ohne Strom oder Wasser beschweren sich die Bewohner. Das Abwasser muss über ein <b>Abwasserrohr</b> ins Wasser.</p>
+<h3>🛣️ Straßen & Gebiete</h3><p>Deine Stadt ist über die <b>Autobahn</b> mit der Welt verbunden. Baue Straßen, die daran angeschlossen sind. Neben Straßen kannst du <b>Wohngebiet</b> (grün), <b>Gewerbegebiet</b> (blau) und <b>Industriegebiet</b> (orange) einzeichnen – dort bauen die Menschen von selbst Häuser, Läden und Fabriken. Ein Feld kostet 50 € (Wohnen), 100 € (Gewerbe) oder 150 € (Industrie), Löschen ist gratis. Die drei Balken unten zeigen, was gerade gebraucht wird. Über Wasser geht es nur mit einer <b>Brücke</b>.</p>
+<h3>⚡ Strom & 💧 Wasser</h3><p>Nur Häuser, Läden und Fabriken brauchen eine Straße – alle anderen Gebäude nicht. Kraftwerke versorgen die Häuser in ihrer Nähe; weiter weg bringst du den Strom mit <b>Stromleitungen</b>. <b>Wasserpumpen</b> stehen am Ufer und werden mit <b>Wasserrohren</b> verbunden. Häuser in der Nähe eines Rohrs bekommen Wasser – man braucht nicht unter jedem Haus eins! Ohne Strom oder Wasser beschweren sich die Bewohner. Das Abwasser muss über ein <b>Abwasserrohr</b> ins Wasser.</p>
 <h3>🏫 Dienste</h3><p>Schulen, Arzt, Feuerwehr, Polizei, Müll, Parks und Busse machen die Leute glücklich – aber nur in ihrer Umgebung (der gelbe Kreis beim Bauen zeigt die Reichweite). Glückliche Bewohner bauen größere Häuser!</p>
 <h3>🏅 Meilensteine</h3><p>Mit mehr Einwohnern erreichst du neue Stufen – vom <i>Kleinen Weiler</i> (500) bis zur <i>Hauptstadt</i> (90.000) – und schaltest neue Gebäude frei.</p>
 <h3>⏱️ Bauzeit</h3><p>Alles braucht etwas Zeit: Kleine Sachen ca. 30 Sekunden, riesige Gebäude bis zu 10 Minuten. Auf der Baustelle siehst du klein, was dort entsteht. Mit ▶▶ und ▶▶▶ läuft alles schneller.</p>
@@ -263,8 +263,10 @@ const RKEYS=Object.keys(ROADS);
 const ZONES={1:{n:'Wohngebiet',e:'🏡',c:'#4cc35a',d:'Hier ziehen Menschen ein'},2:{n:'Gewerbegebiet',e:'🏬',c:'#4a9dff',d:'Läden, Büros, Restaurants'},3:{n:'Industriegebiet',e:'🏭',c:'#f0952d',d:'Fabriken – macht etwas Dreck'}};
 const ZE={1:['','🏠','🏡','🏘️','🏢','🏙️'],2:['','🏪','🛒','🏬','🏨','🏦'],3:['','📦','🏭','🏭','⚙️','🏭']};
 const ZN={1:['','Kleines Haus','Haus mit Garten','Reihenhäuser','Wohnblock','Hochhaus'],2:['','Kiosk','Supermarkt','Kaufhaus','Hotel','Bankhaus'],3:['','Lagerhalle','Werkstatt','Fabrik','Maschinenbau','Großfabrik']};
+const ZCOST={1:50,2:100,3:150};
 const ZPOP=[0,8,20,45,100,220],ZJOB2=[0,6,14,30,60,120],ZJOB3=[0,10,22,40,70,110];
 const BLD={
+ kabel:{c:'strom',n:'Stromleitung',e:'⚡',cost:10,ms:0,wire:1,d:'Verbindet Kraftwerke mit den Häusern'},
  mast:{c:'strom',n:'Strommast-Generator',e:'🔌',cost:600,ms:0,s:1,pw:12,up:.25,d:'Kleiner Generator am Mast – erzeugt etwas Strom'},
  wind:{c:'strom',n:'Windturbine',e:'🌬️',cost:1600,ms:0,s:1,pw:35,up:.4,d:'Sauberer Strom aus Wind'},
  kohle:{c:'strom',n:'Kohlekraftwerk',e:'♨️',cost:9000,ms:3,s:2,pw:220,up:2.5,dirt:6,d:'Viel Strom, aber schmutzig'},
@@ -350,7 +352,7 @@ let cities=KIT.get('stadt2-list',[]);
 let S=null,TERR=null,terrCv=null,occ=null,camX=0,camY=0,zoom=1,cat=null,tool=null,panelOpen=false,simIv=null,dirty=true,lastSave=0,SIM=null;
 const I=(x,y)=>y*W+x;
 function newCityState(name,mid,mode){const seed=(Math.random()*1e9)|0;const s={v:1,id:Date.now()+''+((Math.random()*1e4)|0),name,map:mid,mode,seed,money:mode==='sandbox'?1e12:40000,day:0,speed:1,
-  road:new Array(W*H).fill(0),rb:{},zone:new Array(W*H).fill(0),pipe:new Array(W*H).fill(0),dist:new Array(W*H).fill(0),districts:[],owned:[],b:[],nid:1,
+  road:new Array(W*H).fill(0),rb:{},zone:new Array(W*H).fill(0),pipe:new Array(W*H).fill(0),wire:new Array(W*H).fill(0),dist:new Array(W*H).fill(0),districts:[],owned:[],b:[],nid:1,
   tax:{r:10,c:10,i:10},loans:[],act:[],laws:{},idx:100,hist:[100],ihist:[0],mile:0,t:Date.now(),created:Date.now(),lastMsg:{}};
   for(let cy=3;cy<=4;cy++)for(let cx=3;cx<=4;cx++)s.owned.push(cy*NCK+cx);
   return s;}
@@ -390,10 +392,10 @@ $('#btnNew').onclick=()=>{let mid='kueste',mode='normal';const seeds={};MAPS.for
 function packArr(a){const out=[];let prev=null,n=0;for(const v of a){if(v===prev){n++;continue;}if(n)out.push(prev.toString(36)+(n>1?'*'+n.toString(36):''));prev=v;n=1;}if(n)out.push(prev.toString(36)+(n>1?'*'+n.toString(36):''));return out.join(',');}
 function unpackArr(s){const a=[];if(!s)return a;for(const p of s.split(',')){if(!p)continue;const [v,n]=p.split('*');const vv=parseInt(v,36);for(let i=0;i<(n?parseInt(n,36):1);i++)a.push(vv);}return a;}
 function saveCity(force){if(!S)return;const t=Date.now();if(!force&&t-lastSave<8000)return;lastSave=t;S.t=t;
-  const o={...S,road:packArr(S.road),zone:packArr(S.zone),pipe:packArr(S.pipe),dist:packArr(S.dist),packed:1,lastMsg:{}};KIT.set('stadt2-c-'+S.id,o);
+  const o={...S,road:packArr(S.road),zone:packArr(S.zone),pipe:packArr(S.pipe),wire:packArr(S.wire||[]),dist:packArr(S.dist),packed:1,lastMsg:{}};KIT.set('stadt2-c-'+S.id,o);
   const e={id:S.id,name:S.name,map:S.map,mode:S.mode,pop:SIM?SIM.pop:0,money:S.money,mile:S.mile};const i=cities.findIndex(c=>c.id===S.id);if(i>=0)cities[i]=e;else cities.push(e);KIT.set('stadt2-list',cities);}
-function loadState(o){const s={...o};if(o.packed){s.road=unpackArr(o.road);s.zone=unpackArr(o.zone);s.pipe=unpackArr(o.pipe);s.dist=unpackArr(o.dist);}
-  for(const k of ['road','zone','pipe','dist'])if(!s[k]||s[k].length!==W*H)s[k]=new Array(W*H).fill(0);s.rb=s.rb||{};s.act=s.act||[];s.laws=s.laws||{};s.loans=s.loans||[];s.lastMsg={};s.hist=s.hist||[100];s.ihist=s.ihist||[0];return s;}
+function loadState(o){const s={...o};if(o.packed){s.road=unpackArr(o.road);s.zone=unpackArr(o.zone);s.pipe=unpackArr(o.pipe);s.wire=unpackArr(o.wire);s.dist=unpackArr(o.dist);}
+  for(const k of ['road','zone','pipe','wire','dist'])if(!s[k]||s[k].length!==W*H)s[k]=new Array(W*H).fill(0);s.rb=s.rb||{};s.act=s.act||[];s.laws=s.laws||{};s.loans=s.loans||[];s.lastMsg={};s.hist=s.hist||[100];s.ihist=s.ihist||[0];return s;}
 /* ======================= Spiel öffnen ======================= */
 function openCity(st,fresh){S=fresh?st:loadState(st);TERR=genTerrain(S.map,S.seed);rebuildOcc();buildTerrainCanvas();
   document.body.classList.add('ingame');$('#menuScr').classList.add('hidden');$('#gameScr').classList.remove('hidden');
@@ -401,7 +403,7 @@ function openCity(st,fresh){S=fresh?st:loadState(st);TERR=genTerrain(S.map,S.see
   recompute();
   if(!fresh){const away=Math.min(4*3600,(Date.now()-S.t)/1000);if(away>30){const inc=SIM.net*away*.5;let fin=0;for(const b of S.b)if(b.rem>0){b.rem=Math.max(0,b.rem-away);if(b.rem===0){b.lv0=0;fin++;}}for(const k in S.rb){S.rb[k]-=away;if(S.rb[k]<=0)delete S.rb[k];}
       if(inc>0&&!isSand())S.money+=inc;recompute();setTimeout(()=>infoBox(`<div class="big">👋</div><h2 style="text-align:center">Willkommen zurück!</h2><p style="text-align:center">Du warst ${fmtT(away)} weg.<br>${inc>0&&!isSand()?`Deine Stadt hat <b>${fmtE(inc)}</b> verdient.`:''}${fin?`<br>🏗️ ${fin} Baustellen sind fertig geworden.`:''}</p>`,'Weiter bauen!'),300);}}
-  else setTimeout(()=>infoBox(`<div class="big">🏙️</div><h2 style="text-align:center">Willkommen, Bürgermeister!</h2><p>So fängst du an:</p><ol><li>🛣️ Baue eine <b>Straße</b> von der Autobahn in dein Land.</li><li>🏘️ Zeichne daneben <b>Wohn-, Gewerbe- und Industriegebiet</b> ein.</li><li>⚡ Stell einen <b>Strommast-Generator</b> oder eine Windturbine an die Straße.</li><li>💧 Bau eine <b>Wasserpumpe</b> und ein <b>Abwasserrohr</b> ans Ufer und verbinde die Pumpe mit <b>Rohren</b> bis zu den Häusern.</li></ol><p class="note">Das Menü unten kannst du hochziehen. 📖 erklärt alles genau.</p>`,'Los geht’s!'),200);
+  else setTimeout(()=>infoBox(`<div class="big">🏙️</div><h2 style="text-align:center">Willkommen, Bürgermeister!</h2><p>So fängst du an:</p><ol><li>🛣️ Baue eine <b>Straße</b> von der Autobahn in dein Land.</li><li>🏘️ Zeichne daneben <b>Wohn-, Gewerbe- und Industriegebiet</b> ein.</li><li>⚡ Stell einen <b>Strommast-Generator</b> oder eine Windturbine auf und verbinde sie mit <b>Stromleitungen</b> mit den Häusern.</li><li>💧 Bau eine <b>Wasserpumpe</b> und ein <b>Abwasserrohr</b> ans Ufer und verbinde die Pumpe mit <b>Rohren</b> bis zu den Häusern.</li></ol><p class="note">Das Menü unten kannst du hochziehen. Wenn du nicht weiterweißt, drück oben auf <b>💡 Tipp</b>!</p>`,'Los geht’s!'),200);
   clearInterval(simIv);simIv=setInterval(simTick,250);dirty=true;requestAnimationFrame(frame);updHud();}
 $('#gMenu').onclick=()=>{saveCity(true);showMenu();};
 $('#gHelp').onclick=()=>{const b=$('#btnHelp');if(b)b.click();};
@@ -428,15 +430,18 @@ function recompute(){const N=W*H;const R=S.road;
   while(q.length){const k=q.pop();const x=k%W,y=(k/W)|0;for(const [dx,dy] of N4){const nx=x+dx,ny=y+dy;if(!inMap(nx,ny))continue;const n=I(nx,ny);if(!conn[n]&&R[n]&&!S.rb[n]){conn[n]=1;q.push(n);}}}
   const adjRoad=b=>{let r=-1;ring(b,(x,y)=>{if(r>=0||!inMap(x,y))return;const k=I(x,y);if(conn[k]){const rt=ROADS[RKEYS[R[k]-1]];if(rt&&!rt.hw)r=k;}});return r;};
   const P=S.pipe;const pconn=new Uint8Array(N);const pq=[];let wCap=0,sCap=0,gCap=0,pCap=0,depot=false;const inc={};const svc=[];
-  for(const b of S.b){if(b.rem>0||b.z)continue;const d=BLD[b.k];if(!d||d.pipe)continue;const ar=adjRoad(b);b.ok=ar>=0;
-    if(d.pw&&ar>=0)pCap+=d.pw;if(d.sw)sCap+=d.sw;if(d.gb&&ar>=0)gCap+=d.gb;if(d.depot&&ar>=0)depot=true;if(d.inc&&ar>=0)inc[b.k]=d.inc;
+  for(const b of S.b){if(b.rem>0||b.z)continue;const d=BLD[b.k];if(!d||d.pipe||d.wire)continue;b.ok=true;
+    if(d.pw)pCap+=d.pw;if(d.sw)sCap+=d.sw;if(d.gb)gCap+=d.gb;if(d.depot)depot=true;if(d.inc)inc[b.k]=d.inc;
     if(d.wt){wCap+=d.wt;ring(b,(x,y)=>{if(inMap(x,y)&&P[I(x,y)]&&!pconn[I(x,y)]){pconn[I(x,y)]=1;pq.push(I(x,y));}});}
-    if(d.r&&(b.ok||d.f==='park'))svc.push(b);}
-  if(d=>0)for(const b of S.b){if(b.rem>0||b.z)continue;const d=BLD[b.k];if(d&&d.shore)b.ok=true;}
+    if(d.r)svc.push(b);}
   while(pq.length){const k=pq.pop();const x=k%W,y=(k/W)|0;for(const [dx,dy] of N4){const nx=x+dx,ny=y+dy;if(!inMap(nx,ny))continue;const n=I(nx,ny);if(!pconn[n]&&P[n]){pconn[n]=1;pq.push(n);}}}
   const wcov=new Uint8Array(N);for(let k=0;k<N;k++)if(pconn[k]){const x=k%W,y=(k/W)|0;for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++){const nx=x+dx,ny=y+dy;if(inMap(nx,ny))wcov[I(nx,ny)]=1;}}
-  const pcomp=new Uint8Array(N);const sq=[];for(const b of S.b){if(b.rem>0||b.z)continue;const d=BLD[b.k];if(d&&d.pw){const k=adjRoad(b);if(k>=0&&!pcomp[k]){pcomp[k]=1;sq.push(k);}}}
-  while(sq.length){const k=sq.pop();const x=k%W,y=(k/W)|0;for(const [dx,dy] of N4){const nx=x+dx,ny=y+dy;if(!inMap(nx,ny))continue;const n=I(nx,ny);if(!pcomp[n]&&R[n]&&!S.rb[n]){pcomp[n]=1;sq.push(n);}}}
+  const WI=S.wire||[];const wconn=new Uint8Array(N);const sq=[];const pcov=new Uint8Array(N);
+  const cover=(cx,cy,r)=>{for(let y=Math.max(0,Math.floor(cy-r));y<=Math.min(H-1,Math.floor(cy+r));y++)for(let x=Math.max(0,Math.floor(cx-r));x<=Math.min(W-1,Math.floor(cx+r));x++)pcov[I(x,y)]=1;};
+  for(const b of S.b){if(b.rem>0||b.z)continue;const d=BLD[b.k];if(!d||!d.pw)continue;const s2=d.s||1;cover(b.x+s2/2-.5,b.y+s2/2-.5,3+s2/2);ring(b,(x,y)=>{if(inMap(x,y)&&WI[I(x,y)]&&!wconn[I(x,y)]){wconn[I(x,y)]=1;sq.push(I(x,y));}});}
+  while(sq.length){const k=sq.pop();const x=k%W,y=(k/W)|0;for(const [dx,dy] of N4){const nx=x+dx,ny=y+dy;if(!inMap(nx,ny))continue;const n=I(nx,ny);if(!wconn[n]&&WI[n]){wconn[n]=1;sq.push(n);}}}
+  for(let k=0;k<N;k++)if(wconn[k])cover(k%W,(k/W)|0,3);
+  const pcomp=pcov;
   const COV={};for(const f of ['health','death','fire','police','edu1','edu2','edu3','bus','park','dirt'])COV[f]=new Float32Array(N);
   const addCov=(f,cx,cy,r,v,fall)=>{for(let y=Math.max(0,Math.floor(cy-r));y<=Math.min(H-1,Math.ceil(cy+r));y++)for(let x=Math.max(0,Math.floor(cx-r));x<=Math.min(W-1,Math.ceil(cx+r));x++){const dd=Math.hypot(x+.5-cx,y+.5-cy);if(dd<=r)COV[f][I(x,y)]+=v*(fall?(1-dd/(r+1)):1);}};
   for(const b of svc){const d=BLD[b.k];if(d.needDepot&&!depot)continue;const s=d.s||1;addCov(d.f,b.x+s/2,b.y+s/2,d.r*(d.f==='bus'&&R.some?1:1),d.v,d.f==='park');}
@@ -446,7 +451,7 @@ function recompute(){const N=W*H;const R=S.road;
   const pwR=pwD?Math.min(1,pCap/pwD):1,wR=wD?Math.min(1,wCap/wD):1;const garbage=pop*(law('recycl')?.6:1);const swNeed=wD;
   const boost=actEff('hap');let hapSum=0,hapN=0;const tax=S.tax;const probs={power:0,water:0,sew:0,garbage:0,dirt:0,tax:0};
   for(const b of S.b){if(!b.z||b.rem>0)continue;const k=I(b.x,b.y);const ar=adjRoad(b);b.road=ar>=0;
-    b.pw=b.road&&pcomp[ar]?pwR:0;b.wt=wcov[k]?wR:0;
+    b.pw=pcov[k]?pwR:0;b.wt=wcov[k]?wR:0;
     let h=48+Math.min(10,COV.health[k]*6)+Math.min(8,COV.fire[k]*5)+Math.min(8,COV.police[k]*5)+Math.min(10,COV.edu1[k]*6+COV.edu2[k]*3+COV.edu3[k]*3)+Math.min(16,COV.park[k]*2.2)+Math.min(8,COV.bus[k]*4)+Math.min(4,COV.death[k]*3);
     if(b.pw<.5){h-=22;probs.power++;}if(b.wt<.5){h-=22;probs.water++;}if(sCap<swNeed*.9&&pop>60){h-=10;probs.sew++;}if(gCap<garbage&&pop>300){h-=10;probs.garbage++;}
     if(b.z===1&&COV.dirt[k]>1.2){h-=Math.min(18,COV.dirt[k]*3);probs.dirt++;}
@@ -463,7 +468,7 @@ function recompute(){const N=W*H;const R=S.road;
   const income=(incR+incC+incI)*mult;let upkeep=0;for(const b of S.b){if(b.z)continue;const d=BLD[b.k];if(d&&d.up)upkeep+=d.up;}
   for(let k=0;k<N;k++)if(R[k]&&!HWY(k)){const rt=ROADS[RKEYS[R[k]-1]];if(rt)upkeep+=rt.up;}
   upkeep*=costMul();let loanPay=0;for(const l of S.loans)loanPay+=l.pay;
-  SIM={conn,pcomp,wcov,pconn,COV,pop,jc,ji,hap,dR,dC,dI,pCap,pwD,wCap,wD,sCap,swNeed,gCap,garbage,income,upkeep,loanPay,net:income-upkeep-loanPay,probs,depot,mult,houses:hapN};
+  SIM={conn,pcomp,pcov,wconn,wcov,pconn,COV,pop,jc,ji,hap,dR,dC,dI,pCap,pwD,wCap,wD,sCap,swNeed,gCap,garbage,income,upkeep,loanPay,net:income-upkeep-loanPay,probs,depot,mult,houses:hapN};
   return SIM;}
 function actEff(k){let v=0;const t=Date.now()/1000;for(const a of S.act){if(a.until<t)continue;const it=ITEMS.find(i=>i.k===a.k);if(!it||!it.eff||it.eff[k]==null)continue;v=k==='hap'?v+it.eff[k]:Math.max(v,it.eff[k]);}return v;}
 let secAcc=0;
@@ -520,6 +525,36 @@ $('#cPop').onclick=()=>$('#sqMile').click();$('#cMoney').onclick=()=>{cat='wirt'
 $('#cName').onclick=async()=>{let nm=null;await modal(`<h2>✏️ Stadt umbenennen</h2><input class="inp" id="cn" maxlength="22" value="${esc(S.name)}"><div class="row"><button data-v="x">Abbrechen</button><button class="primary" id="cOk">Speichern</button></div>`,(box,close)=>{box.querySelector('#cOk').onclick=()=>{nm=box.querySelector('#cn').value.trim();close();};});if(nm){S.name=nm;updHud();saveCity(true);}};
 $('#sqList').onclick=()=>{const list=S.b.filter(b=>!b.z).sort((a,b)=>(BLD[a.k].c>BLD[b.k].c?1:-1));
   modal(`<h2>🏢 Deine Gebäude (${list.length})</h2><div class="lst">${list.length?list.map(b=>{const d=BLD[b.k];return `<div class="li" data-v="${b.id}"><span class="e">${d.e}</span><div><b>${esc(b.name||d.n)}</b><br><small>${b.rem>0?'🏗️ im Bau':b.ok===false?'⚠️ keine Straße':'✅ in Betrieb'}${d.pipe?'':''}</small></div><span>➜</span></div>`;}).join(''):'<p class="note">Noch keine Gebäude gebaut.</p>'}</div><p class="note">Häuser, Läden und Fabriken bauen die Bewohner selbst. Antippen = hinfliegen.</p><div class="row"><button data-v="x">Schließen</button></div>`,box=>{box.querySelectorAll('.li').forEach(el=>el.onclick=()=>{const b=bById(+el.dataset.v);if(b){camX=(b.x+(b.s||1)/2)*TS;camY=(b.y+(b.s||1)/2)*TS;zoom=Math.max(zoom,1.2);dirty=true;}box.parentElement.click();$('#modal').classList.add('hidden');$('#modalBox').innerHTML='';});}).then(()=>{});};
+/* ======================= Tipp ======================= */
+function nextTip(){const s=SIM,p=s.probs;const has=k=>S.b.some(b=>b.k===k||(BLD[k]&&BLD[k].pw&&k==='_pw'&&BLD[b.k]&&BLD[b.k].pw));const anyB=f=>S.b.some(b=>!b.z&&f(BLD[b.k]||{}));const zoneN=z=>S.zone.filter(v=>v===z).length;
+  let city=0;for(let k=0;k<W*H;k++)if(s.conn[k]&&!HWY(k)){const rt=ROADS[RKEYS[S.road[k]-1]];if(rt&&!rt.hw){city++;}}
+  const T=(e,t,c)=>({e,t,c});
+  if(city<3)return T('🛣️','Baue zuerst eine <b>Straße</b>: Tippe unten auf 🛣️, wähle die 2-spurige Straße und zieh sie vom Ende der Autobahn in dein Land.','strasse');
+  if(!zoneN(1))return T('🏡','Zeichne neben deine Straße ein grünes <b>Wohngebiet</b> (unter 🏘️). Dort ziehen dann Menschen ein. Ein Feld kostet 50 €.','gebiet');
+  if(!anyB(d=>d.pw))return T('⚡','Deine Bewohner brauchen <b>Strom</b>! Baue unter ⚡ einen Strommast-Generator oder eine Windturbine in die Nähe der Häuser.','strom');
+  if(p.power>0)return s.pCap<s.pwD?T('⚡','Der Strom reicht nicht für alle. Baue ein <b>weiteres Kraftwerk</b> (z. B. eine Windturbine).','strom'):T('⚡',`${p.power} Häuser sind zu weit vom Kraftwerk weg. Zieh eine <b>Stromleitung</b> vom Kraftwerk bis zu den Häusern (gelb = verbunden).`,'strom');
+  if(!anyB(d=>d.wt))return T('🚰','Jetzt brauchst du <b>Wasser</b>: Baue unter 💧 eine Wasserpumpe direkt ans Ufer.','wasser');
+  if(p.water>0)return s.wCap<s.wD?T('🚰','Das Wasser reicht nicht. Baue eine <b>weitere Wasserpumpe</b> am Ufer.','wasser'):T('🔵',`${p.water} Häuser haben kein Wasser. Zieh ein <b>Wasserrohr</b> von der Pumpe bis zu den Häusern (blau = verbunden).`,'wasser');
+  if(p.sew>0||(!anyB(d=>d.sw)&&s.pop>40))return T('🕳️','Das Abwasser muss weg: Baue ein <b>Abwasserrohr</b> am Ufer (unter 💧).','wasser');
+  if(s.pop>30&&!zoneN(2))return T('🏬','Deine Bewohner wollen einkaufen und arbeiten. Zeichne ein blaues <b>Gewerbegebiet</b> (100 € pro Feld).','gebiet');
+  if(s.pop>30&&!zoneN(3))return T('🏭','Zeichne ein oranges <b>Industriegebiet</b> (150 € pro Feld) – am besten etwas weg von den Wohnhäusern, weil es Dreck macht.','gebiet');
+  if(p.garbage>0||(s.pop>250&&!anyB(d=>d.gb)))return T('🗑️','Überall liegt Müll! Baue eine <b>Mülldeponie</b> (unter 🗑️).','muell');
+  if(S.money<0&&!isSand())return T('💸','Du hast Schulden! Erhöhe unter 🏦 Wirtschaft die <b>Steuern</b> ein bisschen oder reiße teure Gebäude ab.','wirt');
+  if(s.net<0&&!isSand())return T('💸','Du gibst mehr aus, als du einnimmst. Erhöhe die <b>Steuern</b> leicht oder baue mehr Wohngebiet.','wirt');
+  if(s.pop>60&&!anyB(d=>d.f==='edu1'))return T('🏫','Baue eine <b>Grundschule</b> (unter 🎓) – dann werden die Häuser größer.','bildung');
+  if(s.pop>100&&!anyB(d=>d.f==='health'))return T('🩺','Baue eine <b>Arztpraxis</b> – gesunde Bewohner sind zufriedener.','ges');
+  if(s.pop>150&&!anyB(d=>d.f==='fire'))return T('🚒','Baue eine <b>Feuerwehr</b> für mehr Sicherheit.','feuer');
+  if(s.pop>200&&!anyB(d=>d.f==='police'))return T('🚓','Baue eine <b>Polizeiwache</b>.','polizei');
+  if(s.hap<55&&!anyB(d=>d.f==='park'))return T('🌳','Die Leute sind nicht so glücklich. Parks, Bäume und Plätze in der Nähe machen sie froh (unter 🌳).','park');
+  if(s.dR>.6)return T('🏡','Viele Menschen wollen in deine Stadt (grüner Balken hoch). Zeichne <b>mehr Wohngebiet</b>!','gebiet');
+  if(s.dC>.6)return T('🏬','Der blaue Balken ist hoch: Es wird <b>mehr Gewerbegebiet</b> gebraucht.','gebiet');
+  if(s.dI>.6)return T('🏭','Der orange Balken ist hoch: Es wird <b>mehr Industriegebiet</b> gebraucht.','gebiet');
+  let free=0;for(let k=0;k<W*H;k++){const x=k%W,y=(k/W)|0;if(owned(x,y)&&!S.zone[k]&&!S.road[k]&&!occ[k]&&TERR.t[k]!==1&&TERR.t[k]!==5)free++;}
+  if(free<60)return T('🗺️','Dein Land ist fast voll. Kaufe unter 🗺️ <b>neues Land</b> dazu.','flaeche');
+  if(S.mile>=5&&!Object.keys(S.laws).length)return T('📜','Als Bürgermeister kannst du jetzt <b>Verordnungen</b> beschließen (unter 🛍️) – z. B. Nachtleben für mehr Einnahmen.','items');
+  if(S.b.some(b=>b.rem>60))return T('☕','Eine Baustelle dauert lange. Ein <b>Kaffeeautomat</b> (unter 🛍️) lässt alles doppelt so schnell bauen.','items');
+  const nx=MILES[S.mile+1];return T('🏅',nx?`Super, alles läuft! Baue weiter Straßen und Gebiete. Nächster Meilenstein: <b>${esc(nx[1])}</b> bei ${fmtN(nx[0])} Einwohnern (jetzt ${fmtN(s.pop)}).`:'Du hast die Hauptstadt erreicht – Wahnsinn! Mach deine Stadt noch schöner und reicher.',null);}
+$('#gTip').onclick=async()=>{if(!SIM)return;recompute();const t=nextTip();tone(660,.05);tone(880,.07,.06);const v=await modal(`<div class="big">${t.e}</div><h2 style="text-align:center">💡 Tipp</h2><p style="text-align:center">${t.t}</p><div class="row"><button data-v="x">OK</button>${t.c?'<button class="primary" data-v="go">Zeig es mir</button>':''}</div>`);if(v==='go'&&t.c){cat=t.c;panelOpen=true;setTool(null);renderPanel();}};
 /* ======================= Panel ======================= */
 function renderPanel(){$('#cats').innerHTML=CATS.map(([k,e,n])=>`<button data-c="${k}" title="${n}" class="${cat===k?'on':''} ${k==='hb'?'hb':''}">${e}</button>`).join('');
   $('#sub').classList.toggle('hidden',!panelOpen||!cat);$('#handleTxt').textContent=panelOpen?'▼ Einklappen':'▲ Menü';
@@ -527,16 +562,16 @@ function renderPanel(){$('#cats').innerHTML=CATS.map(([k,e,n])=>`<button data-c=
   const title=(CATS.find(c=>c[0]===cat)||[])[2];let h=`<div class="catT"><span>${title}</span>${tool?`<button class="small" id="tOff">✋ Werkzeug weg</button>`:''}</div>`;
   const ms=msNow();const card=(id,e,n,cost,lk,info)=>`<div class="tool ${tool&&tool.id===id?'on':''} ${lk?'lock':''}" data-t="${id}"><div class="e">${e}</div><b>${n}</b>${lk?`<small>🔒 ${esc(MILES[lk][1])}</small>`:`<span class="pz">${cost}</span>`}${info?`<small>${info}</small>`:''}</div>`;
   if(cat==='strasse')h+=`<div class="tools">${RKEYS.map(k=>{const r=ROADS[k];return card('r:'+k,r.e,r.n,fmtE(r.cost*costMul())+'/Feld',r.ms>ms?r.ms:0,r.b?'nur über Wasser':r.l+' Spur'+(r.l>1?'en':'')+(r.o?' · 1 Richtung':''));}).join('')}</div>`;
-  else if(cat==='gebiet')h+=`<div class="tools">${[1,2,3].map(z=>card('z:'+z,`<span style="color:${ZONES[z].c}">■</span>`,ZONES[z].n,'kostenlos',0,ZONES[z].d)).join('')}${card('z:0','🧽','Gebiet löschen','kostenlos',0,'Zonen entfernen')}</div>`;
+  else if(cat==='gebiet')h+=`<div class="tools">${[1,2,3].map(z=>card('z:'+z,`<span style="color:${ZONES[z].c}">■</span>`,ZONES[z].n,isSand()?'gratis':fmtE(ZCOST[z]*costMul())+'/Feld',0,ZONES[z].d)).join('')}${card('z:0','🧽','Gebiet löschen','kostenlos',0,'Zonen entfernen')}</div>`;
   else if(cat==='flaeche')h+=`<div class="tools">${card('buy','🗺️','Land kaufen',isSand()?'gratis':fmtE(chunkCost()),0,'Gelb markiertes Stück antippen')}</div><p class="note">Du besitzt ${S.owned.length} von ${NCK*NCK} Stücken. Jedes Stück ist 8×8 Kästchen groß.</p>`;
-  else if(BLD_CATS.includes(cat))h+=`<div class="tools">${Object.entries(BLD).filter(([k,d])=>d.c===cat).map(([k,d])=>card('b:'+k,d.e,d.n,fmtE(d.cost*costMul())+(d.pipe?'/Feld':''),d.ms>ms?d.ms:0,d.pipe?'ziehen':(d.s>1?d.s+'×'+d.s+' · ':'')+'⏱ '+(isSand()?'sofort':fmtT(buildDur(d.cost,d.ms))))).join('')}</div><p class="note" id="catNote">${catNote()}</p>`;
+  else if(BLD_CATS.includes(cat))h+=`<div class="tools">${Object.entries(BLD).filter(([k,d])=>d.c===cat).map(([k,d])=>card('b:'+k,d.e,d.n,fmtE(d.cost*costMul())+(d.pipe||d.wire?'/Feld':''),d.ms>ms?d.ms:0,d.pipe||d.wire?'ziehen':(d.s>1?d.s+'×'+d.s+' · ':'')+'⏱ '+(isSand()?'sofort':fmtT(buildDur(d.cost,d.ms))))).join('')}</div><p class="note" id="catNote">${catNote()}</p>`;
   else if(cat==='viertel')h+=`<div class="tools">${S.districts.map((d,i)=>`<div class="tool ${tool&&tool.id==='d:'+(i+1)?'on':''}" data-t="d:${i+1}"><div class="e" style="color:${d.c}">●</div><b>${esc(d.n)}</b><small>malen</small></div>`).join('')}<div class="tool" data-t="newd"><div class="e">➕</div><b>Neues Viertel</b><small>Name ausdenken</small></div><div class="tool ${tool&&tool.id==='d:0'?'on':''}" data-t="d:0"><div class="e">🧽</div><b>Viertel löschen</b><small>malen</small></div>${S.districts.length?'<div class="tool" data-t="rend"><div class="e">✏️</div><b>Umbenennen</b></div>':''}</div><p class="note">Male ein Viertel auf die Karte – der Name erscheint dann dort. Gebäude benennst du, indem du sie antippst.</p>`;
   else if(cat==='abriss')h+=`<div class="tools">${card('del','🧨','Abreißen & verkaufen','½ Preis zurück',0,'antippen oder ziehen')}${card('z:0','🧽','Gebiet löschen','kostenlos',0,'Zonen entfernen')}</div><p class="note">Für Gebäude, Straßen und Rohre bekommst du die Hälfte des Preises zurück.</p>`;
   else if(cat==='wirt')h+=`<div class="econ" id="econ">${econHTML()}</div>`;
   else if(cat==='items')h+=`<div class="econ" id="itemsBox">${itemsHTML()}</div>`;
   $('#sub').innerHTML=h;if(cat==='wirt')drawCharts();dirty=true;}
 const BLD_CATS=['strom','wasser','muell','ges','feuer','polizei','bildung','mob','park'];
-function catNote(){if(!SIM)return '';switch(cat){case 'strom':return `⚡ Strom: ${fmtN(SIM.pCap)} erzeugt · ${fmtN(SIM.pwD)} gebraucht. Kraftwerke müssen an einer Straße stehen – der Strom fließt über die Straßen.`;case 'wasser':return `💧 Wasser: ${fmtN(SIM.wCap)} / ${fmtN(SIM.wD)} · 🕳️ Abwasser: ${fmtN(SIM.sCap)} / ${fmtN(SIM.swNeed)}. Pumpen ans Ufer, dann mit Rohren bis zu den Häusern verbinden (blau = verbunden).`;case 'muell':return `🗑️ Müll: Platz für ${fmtN(SIM.gCap)} · Müll von ${fmtN(SIM.garbage)} Einwohnern.`;case 'mob':return SIM.depot?'🚌 Busdepot vorhanden – Haltestellen funktionieren.':'🚌 Ohne Busdepot fahren keine Busse!';default:return 'Der gelbe Kreis beim Bauen zeigt, wie weit das Gebäude wirkt.';}}
+function catNote(){if(!SIM)return '';switch(cat){case 'strom':return `⚡ Strom: ${fmtN(SIM.pCap)} erzeugt · ${fmtN(SIM.pwD)} gebraucht. Kraftwerke versorgen die Häuser in ihrer Nähe – weiter weg mit Stromleitungen (gelb = verbunden).`;case 'wasser':return `💧 Wasser: ${fmtN(SIM.wCap)} / ${fmtN(SIM.wD)} · 🕳️ Abwasser: ${fmtN(SIM.sCap)} / ${fmtN(SIM.swNeed)}. Pumpen ans Ufer, dann mit Rohren bis zu den Häusern verbinden (blau = verbunden).`;case 'muell':return `🗑️ Müll: Platz für ${fmtN(SIM.gCap)} · Müll von ${fmtN(SIM.garbage)} Einwohnern.`;case 'mob':return SIM.depot?'🚌 Busdepot vorhanden – Haltestellen funktionieren.':'🚌 Ohne Busdepot fahren keine Busse!';default:return 'Der gelbe Kreis beim Bauen zeigt, wie weit das Gebäude wirkt.';}}
 function chunkCost(){if(isSand())return 0;return Math.round(5000*Math.pow(1.5,S.owned.length-4)*costMul()/100)*100;}
 function econHTML(){const s=SIM;const ticker='BAYX-'+(S.name.replace(/[^A-Za-zÄÖÜäöü]/g,'').slice(0,4).toUpperCase()||'STAD');const ch=S.hist.length>1?(S.idx/S.hist[Math.max(0,S.hist.length-8)]-1)*100:0;
   return `<div class="kp"><div class="stat"><div class="k">Einnahmen</div><div class="v good">+${fmtE(s.income)}/s</div></div><div class="stat"><div class="k">Ausgaben</div><div class="v bad">−${fmtE(s.upkeep+s.loanPay)}/s</div></div><div class="stat"><div class="k">Gewinn</div><div class="v ${s.net<0?'bad':'good'}">${fmtE(s.net)}/s</div></div></div>
@@ -560,7 +595,7 @@ $('#sub').addEventListener('click',async e=>{const t=e.target.closest('[data-t]'
     if(id==='rend'){const v=await modal(`<h2>✏️ Viertel umbenennen</h2><div class="lst">${S.districts.map((d,i)=>`<button data-v="${i}"><span style="color:${d.c}">●</span> ${esc(d.n)}</button>`).join('')}</div><div class="row"><button data-v="x">Abbrechen</button></div>`);
       if(v!=null&&v!=='x'){let nm=null;await modal(`<h2>✏️ Neuer Name</h2><input class="inp" id="dn" maxlength="20" value="${esc(S.districts[+v].n)}"><div class="row"><button data-v="x">Abbrechen</button><button class="primary" id="dOk">Speichern</button></div>`,(box,close)=>{box.querySelector('#dOk').onclick=()=>{nm=box.querySelector('#dn').value.trim();close();};});if(nm){S.districts[+v].n=nm;dirty=true;renderPanel();}}return;}
     const [kind,key]=id.split(':');let tl={id,cat};
-    if(kind==='r')tl={...tl,kind:'road',key};else if(kind==='z')tl={...tl,kind:'zone',v:+key};else if(kind==='b')tl={...tl,kind:BLD[key].pipe?'pipe':'bld',key};else if(id==='buy')tl={...tl,kind:'buy'};else if(id==='del')tl={...tl,kind:'del'};else if(kind==='d')tl={...tl,kind:'dist',v:+key};
+    if(kind==='r')tl={...tl,kind:'road',key};else if(kind==='z')tl={...tl,kind:'zone',v:+key};else if(kind==='b')tl={...tl,kind:BLD[key].pipe?'pipe':BLD[key].wire?'wire':'bld',key};else if(id==='buy')tl={...tl,kind:'buy'};else if(id==='del')tl={...tl,kind:'del'};else if(kind==='d')tl={...tl,kind:'dist',v:+key};
     setTool(tool&&tool.id===id?null:tl);renderPanel();return;}
   const it=e.target.closest('[data-item]');if(it){buyItem(it.dataset.item);return;}
   const lw=e.target.closest('[data-law]');if(lw){const l=LAWS.find(x=>x.k===lw.dataset.law);if(!isSand()&&S.money<l.cost)return;if(!(await confirmBox(`${l.e} <b>${l.n}</b> für ${fmtE(l.cost)} beschließen?<br><small>${l.d}</small>`,'Beschließen','Abbrechen')))return;if(!isSand())S.money-=l.cost;S.laws[l.k]=1;sWin();confetti();recompute();renderPanel();return;}
@@ -574,7 +609,7 @@ function buyItem(k){const it=ITEMS.find(i=>i.k===k);if(!isSand()){if(S.money<it.
   else{const t=Date.now()/1000;const a=S.act.find(a=>a.k===k&&a.until>t);if(a)a.until+=it.t;else S.act.push({k,until:t+it.t});toast(`${it.e} ${it.n} ist aktiv!`);}
   recompute();renderPanel();}
 function setTool(t){tool=t;const th=$('#toolHint');if(!t){th.classList.add('hidden');dirty=true;return;}
-  let txt='';if(t.kind==='road')txt=`${ROADS[t.key].e} ${ROADS[t.key].n}: ziehen zum Bauen`;else if(t.kind==='zone')txt=t.v?`${ZONES[t.v].n}: neben Straßen ziehen`:'🧽 Gebiet löschen: ziehen';else if(t.kind==='bld')txt=`${BLD[t.key].e} ${BLD[t.key].n}: Platz antippen`;else if(t.kind==='pipe')txt='🔵 Wasserrohr: ziehen';else if(t.kind==='buy')txt='🗺️ Gelb markiertes Stück antippen';else if(t.kind==='del')txt='🧨 Antippen oder ziehen zum Abreißen';else if(t.kind==='dist')txt=t.v?`🏷️ ${esc(S.districts[t.v-1].n)}: Gebiet malen`:'🧽 Viertel löschen: malen';
+  let txt='';if(t.kind==='road')txt=`${ROADS[t.key].e} ${ROADS[t.key].n}: ziehen zum Bauen`;else if(t.kind==='zone')txt=t.v?`${ZONES[t.v].n}: neben Straßen ziehen`:'🧽 Gebiet löschen: ziehen';else if(t.kind==='bld')txt=`${BLD[t.key].e} ${BLD[t.key].n}: Platz antippen`;else if(t.kind==='pipe')txt='🔵 Wasserrohr: ziehen';else if(t.kind==='wire')txt='⚡ Stromleitung: ziehen';else if(t.kind==='buy')txt='🗺️ Gelb markiertes Stück antippen';else if(t.kind==='del')txt='🧨 Antippen oder ziehen zum Abreißen';else if(t.kind==='dist')txt=t.v?`🏷️ ${esc(S.districts[t.v-1].n)}: Gebiet malen`:'🧽 Viertel löschen: malen';
   th.innerHTML=`<span>${txt} · 2 Finger = bewegen</span><button id="thX">✕</button>`;th.classList.remove('hidden');$('#thX').onclick=()=>{setTool(null);renderPanel();};dirty=true;}
 /* ======================= Bauen ======================= */
 function tryRoad(x,y,key){if(!inMap(x,y))return 'map';const k=I(x,y),r=ROADS[key],t=TERR.t[k];if(!owned(x,y))return 'own';if(r.ms>msNow())return 'lock';const water=t===TER.WATER;if(r.b&&!water)return 'bridgeLand';if(!r.b&&water)return 'water';if(t===TER.ROCK)return 'rock';
@@ -583,7 +618,7 @@ function tryRoad(x,y,key){if(!inMap(x,y))return 'map';const k=I(x,y),r=ROADS[key
 function placeZone(x,y,v){if(!inMap(x,y)||!owned(x,y))return;const k=I(x,y);const t=TERR.t[k];if(t===TER.WATER||t===TER.ROCK||S.road[k])return;
   if(v===0){S.zone[k]=0;const id=occ[k];if(id){const b=bById(id);if(b&&b.z)removeB(b,false);}return;}
   if(occ[k]){const b=bById(occ[k]);if(!b||!b.z||b.z===v)return;removeB(b,false);}
-  let near=false;for(let dy=-2;dy<=2&&!near;dy++)for(let dx=-2;dx<=2;dx++){const nx=x+dx,ny=y+dy;if(inMap(nx,ny)&&S.road[I(nx,ny)]){near=true;break;}}if(!near)return 'far';S.zone[k]=v;}
+  let near=false;for(let dy=-2;dy<=2&&!near;dy++)for(let dx=-2;dx<=2;dx++){const nx=x+dx,ny=y+dy;if(inMap(nx,ny)&&S.road[I(nx,ny)]){near=true;break;}}if(!near)return 'far';if(S.zone[k]===v)return;const c=ZCOST[v]*costMul();if(!isSand()&&S.money<c)return 'money';if(!isSand())S.money-=c;S.zone[k]=v;}
 function canPlace(key,x,y){const d=BLD[key];const s=d.s||1;if(d.ms>msNow())return 'lock';for(let dy=0;dy<s;dy++)for(let dx=0;dx<s;dx++){const nx=x+dx,ny=y+dy;if(!inMap(nx,ny))return 'map';if(!owned(nx,ny))return 'own';const k=I(nx,ny);const t=TERR.t[k];if(t===TER.WATER||t===TER.ROCK)return 'water';if(S.road[k])return 'road';if(occ[k]){const b=bById(occ[k]);if(!(b&&b.z))return 'occ';}}
   if(d.shore){let sh=false;ring({x,y,s},(ax,ay)=>{if(inMap(ax,ay)&&TERR.t[I(ax,ay)]===TER.WATER)sh=true;});if(!sh)return 'shore';}
   if(!isSand()&&S.money<d.cost*costMul())return 'money';return 'ok';}
@@ -591,13 +626,12 @@ const ERR={own:'🗺️ Das Land gehört dir noch nicht – kaufe es unter „Fl
 function placeBld(key,x,y){const r=canPlace(key,x,y);if(r!=='ok'){if(ERR[r])toast(ERR[r]);tone(200,.12);return;}const d=BLD[key];const s=d.s||1;
   for(let dy=0;dy<s;dy++)for(let dx=0;dx<s;dx++){const k=I(x+dx,y+dy);if(occ[k]){const b=bById(occ[k]);if(b)removeB(b,false);}S.zone[k]=0;}
   if(!isSand())S.money-=d.cost*costMul();const dur=buildDur(d.cost,d.ms);const b={id:S.nid++,k:key,x,y,s,rem:dur,dur};S.b.push(b);rebuildOcc();tone(300,.08,0,'square',.06);tone(450,.08,.08,'square',.06);
-  let ar=false;ring(b,(ax,ay)=>{if(inMap(ax,ay)&&S.road[I(ax,ay)])ar=true;});if(!ar&&!d.shore&&d.f!=='park')toast('⚠️ Das Gebäude braucht eine Straße direkt daneben, sonst funktioniert es nicht!');
   if(dur>0)toast(`🏗️ ${d.n} wird gebaut – fertig in ${fmtT(dur/(actEff('build')||1))}.`);
   recompute();dirty=true;}
 function removeB(b,refund){S.b=S.b.filter(x=>x!==b);rebuildOcc();if(refund&&!b.z&&!isSand()){const d=BLD[b.k];S.money+=Math.floor(d.cost*costMul()/2);}}
 function delAt(x,y){if(!inMap(x,y)||!owned(x,y))return;const k=I(x,y);if(occ[k]){const b=bById(occ[k]);if(b){removeB(b,true);tone(150,.15,0,'sawtooth',.06);}return;}
   if(S.road[k]){if(HWY(k)){toast('🛤️ Die Autobahn-Anbindung kann man nicht abreißen.');return;}const r=ROADS[RKEYS[S.road[k]-1]];S.road[k]=0;delete S.rb[k];if(!isSand())S.money+=Math.floor(r.cost*costMul()/2);tone(150,.1,0,'sawtooth',.05);return;}
-  if(S.pipe[k]){S.pipe[k]=0;if(!isSand())S.money+=7;return;}if(S.zone[k])S.zone[k]=0;}
+  if(S.pipe[k]){S.pipe[k]=0;if(!isSand())S.money+=7;return;}if(S.wire&&S.wire[k]){S.wire[k]=0;if(!isSand())S.money+=5;return;}if(S.zone[k])S.zone[k]=0;}
 function buyChunk(x,y){if(!inMap(x,y))return;const ci=Math.floor(y/CK)*NCK+Math.floor(x/CK);if(S.owned.includes(ci))return;const cx=ci%NCK,cy=(ci/NCK)|0;if(!S.owned.some(o=>Math.abs(o%NCK-cx)+Math.abs(((o/NCK)|0)-cy)===1)){toast('🗺️ Nur Land direkt neben deiner Stadt kaufen.');return;}
   const c=chunkCost();if(!isSand()&&S.money<c){toast(ERR.money);return;}confirmBox(`Dieses Stück Land für <b>${isSand()?'0 €':fmtE(c)}</b> kaufen?`,'Kaufen','Abbrechen').then(ok=>{if(!ok)return;if(!isSand())S.money-=c;S.owned.push(ci);sWin();toast('🗺️ Neues Land gekauft!');dirty=true;renderPanel();});}
 async function infoAt(x,y){if(!inMap(x,y))return;const k=I(x,y);const id=occ[k];
@@ -629,6 +663,8 @@ function draw(){ctx.setTransform(DPR,0,0,DPR,0,0);ctx.fillStyle='#1d3a52';ctx.fi
   for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++)drawRoad(x,y);
   if(showPipes){for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const k=I(x,y);if(SIM&&SIM.wcov[k]){ctx.fillStyle='#4aa3ff26';ctx.fillRect(x*TS,y*TS,TS,TS);}}
     ctx.lineCap='round';for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const k=I(x,y);if(!S.pipe[k])continue;const c=SIM&&SIM.pconn[k]?'#1e7be0':'#8aa0b8';ctx.strokeStyle=c;ctx.lineWidth=6;const cx=x*TS+16,cy=y*TS+16;let any=false;for(const [dx,dy] of N4){const nx=x+dx,ny=y+dy;if(inMap(nx,ny)&&S.pipe[I(nx,ny)]){any=true;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+dx*16,cy+dy*16);ctx.stroke();}}ctx.fillStyle=c;ctx.beginPath();ctx.arc(cx,cy,any?4:6,0,7);ctx.fill();}}
+  if(cat==='strom'||(tool&&tool.kind==='wire')){const WI=S.wire||[];for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const k=I(x,y);if(SIM&&SIM.pcov&&SIM.pcov[k]){ctx.fillStyle='#ffd23f22';ctx.fillRect(x*TS,y*TS,TS,TS);}}
+    ctx.lineCap='round';for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const k=I(x,y);if(!WI[k])continue;const c=SIM&&SIM.wconn&&SIM.wconn[k]?'#ffc400':'#9a8f6a';ctx.strokeStyle=c;ctx.lineWidth=3;const cx=x*TS+16,cy=y*TS+16;for(const [dx,dy] of N4){const nx=x+dx,ny=y+dy;if(inMap(nx,ny)&&WI[I(nx,ny)]){ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+dx*16,cy+dy*16);ctx.stroke();}}ctx.fillStyle='#6b5a3a';ctx.fillRect(cx-3,cy-3,6,6);ctx.fillStyle=c;ctx.fillRect(cx-2,cy-2,4,4);}}
   const seen=new Set();
   for(let y=Math.max(0,y0-3);y<=y1;y++)for(let x=Math.max(0,x0-3);x<=x1;x++){const id=occ[I(x,y)];if(!id||seen.has(id))continue;seen.add(id);const b=bById(id);if(b)drawB(b);}
   for(let cy=0;cy<NCK;cy++)for(let cx=0;cx<NCK;cx++){const ci=cy*NCK+cx;if(S.owned.includes(ci))continue;ctx.fillStyle='rgba(10,20,35,.45)';ctx.fillRect(cx*CK*TS,cy*CK*TS,CK*TS,CK*TS);
@@ -670,7 +706,7 @@ const ptrs=new Map();let gest=null,lastPaint=null,moved=0;
 cv.addEventListener('pointerdown',e=>{if(!S)return;try{cv.setPointerCapture(e.pointerId);}catch(_){}ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});moved=0;
   if(ptrs.size===2){const [a,b]=[...ptrs.values()];gest={type:'pinch',d:Math.hypot(a.x-b.x,a.y-b.y)||1,z:zoom,cx:(a.x+b.x)/2,cy:(a.y+b.y)/2,camX,camY};lastPaint=null;return;}
   const [wx,wy]=s2w(e.clientX,e.clientY);const tx=Math.floor(wx/TS),ty=Math.floor(wy/TS);
-  if(tool&&['road','zone','pipe','del','dist'].includes(tool.kind)){gest={type:'paint'};lastPaint=null;paintAt(tx,ty);}else gest={type:'pan',sx:e.clientX,sy:e.clientY,camX,camY};});
+  if(tool&&['road','zone','pipe','wire','del','dist'].includes(tool.kind)){gest={type:'paint'};lastPaint=null;paintAt(tx,ty);}else gest={type:'pan',sx:e.clientX,sy:e.clientY,camX,camY};});
 cv.addEventListener('pointermove',e=>{if(!S)return;const [wx,wy]=s2w(e.clientX,e.clientY);const tx=Math.floor(wx/TS),ty=Math.floor(wy/TS);if(!hover||hover[0]!==tx||hover[1]!==ty){hover=[tx,ty];dirty=true;}
   if(!ptrs.has(e.pointerId))return;const p=ptrs.get(e.pointerId);moved+=Math.abs(e.clientX-p.x)+Math.abs(e.clientY-p.y);p.x=e.clientX;p.y=e.clientY;
   if(!gest)return;if(gest.type==='pinch'&&ptrs.size>=2){const [a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);zoom=Math.max(.35,Math.min(3,gest.z*d/gest.d));const cx=(a.x+b.x)/2,cy=(a.y+b.y)/2;camX=gest.camX-(cx-gest.cx)/zoom;camY=gest.camY-(cy-gest.cy)/zoom;clampCam();dirty=true;return;}
@@ -685,13 +721,14 @@ $('#gZoomIn').onclick=()=>{zoom=Math.min(3,zoom*1.25);dirty=true;};$('#gZoomOut'
 let paintMsg=0;
 function paintAt(tx,ty){const pts=[];if(lastPaint){const [x0,y0]=lastPaint;const steps=Math.max(Math.abs(tx-x0),Math.abs(ty-y0));for(let i=1;i<=steps;i++)pts.push([Math.round(x0+(tx-x0)*i/steps),Math.round(y0+(ty-y0)*i/steps)]);
     // Straßen ohne Diagonalen: Zwischenschritte auffüllen
-    if(tool.kind==='road'||tool.kind==='pipe'){const full=[];let [px,py]=lastPaint;for(const [x,y] of pts){if(x!==px&&y!==py)full.push([x,py]);full.push([x,y]);px=x;py=y;}pts.length=0;pts.push(...full);}}
+    if(tool.kind==='road'||tool.kind==='pipe'||tool.kind==='wire'){const full=[];let [px,py]=lastPaint;for(const [x,y] of pts){if(x!==px&&y!==py)full.push([x,py]);full.push([x,y]);px=x;py=y;}pts.length=0;pts.push(...full);}}
   else pts.push([tx,ty]);
   lastPaint=[tx,ty];let err=null,built=0;
   for(const [x,y] of pts){if(!inMap(x,y))continue;
     if(tool.kind==='road'){const r=tryRoad(x,y,tool.key);if(r==='ok')built++;else if(r!=='same'&&r!=='occ'&&r!=='map')err=r;}
-    else if(tool.kind==='zone'){const r=placeZone(x,y,tool.v);if(r==='far')err='far';}
+    else if(tool.kind==='zone'){const r=placeZone(x,y,tool.v);if(r==='far'||r==='money')err=r;}
     else if(tool.kind==='pipe'){if(!owned(x,y)){err='own';continue;}const k=I(x,y);if(S.pipe[k]||TERR.t[k]===TER.WATER)continue;const c=BLD.rohr.cost*costMul();if(!isSand()&&S.money<c){err='money';break;}if(!isSand())S.money-=c;S.pipe[k]=1;built++;}
+    else if(tool.kind==='wire'){if(!owned(x,y)){err='own';continue;}const k=I(x,y);if(!S.wire)S.wire=new Array(W*H).fill(0);if(S.wire[k])continue;const c=BLD.kabel.cost*costMul();if(!isSand()&&S.money<c){err='money';break;}if(!isSand())S.money-=c;S.wire[k]=1;built++;}
     else if(tool.kind==='del')delAt(x,y);
     else if(tool.kind==='dist'){if(owned(x,y))S.dist[I(x,y)]=tool.v;}}
   if(built)tone(260+Math.random()*60,.03,0,'square',.04);
